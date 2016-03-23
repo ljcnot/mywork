@@ -1,0 +1,278 @@
+<?xml version="1.0"?>
+<SqlWorkbenchSqlProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="武大设备系统脚本">
+  <Items>
+    <LogicalFolder Name="连接" Type="2" Sorted="true">
+      <Items>
+        <ConnectionNode Name="(local):sa">
+          <Created>2010-07-15T08:22:40.1521202+08:00</Created>
+          <Type>SQL</Type>
+          <Server>(local)</Server>
+          <UserName>sa</UserName>
+          <Authentication>SQL</Authentication>
+          <InitialDB />
+          <LoginTimeout>15</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - 查询</ApplicationName>
+        </ConnectionNode>
+        <ConnectionNode Name="192.168.0.254:sa">
+          <Created>2012-09-09T20:19:08.5874934+08:00</Created>
+          <Type>SQL</Type>
+          <Server>192.168.0.254</Server>
+          <UserName>sa</UserName>
+          <Authentication>SQL</Authentication>
+          <InitialDB />
+          <LoginTimeout>15</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - 查询</ApplicationName>
+        </ConnectionNode>
+        <ConnectionNode Name="192.168.1.253:sa">
+          <Created>2013-05-18T03:56:37.4383449+08:00</Created>
+          <Type>SQL</Type>
+          <Server>192.168.1.253</Server>
+          <UserName>sa</UserName>
+          <Authentication>SQL</Authentication>
+          <InitialDB>epdc211</InitialDB>
+          <LoginTimeout>15</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - 查询</ApplicationName>
+        </ConnectionNode>
+        <ConnectionNode Name="192.168.1.254:sa">
+          <Created>2011-11-20T15:47:20.5186554+08:00</Created>
+          <Type>SQL</Type>
+          <Server>192.168.1.254</Server>
+          <UserName>sa</UserName>
+          <Authentication>SQL</Authentication>
+          <InitialDB>master</InitialDB>
+          <LoginTimeout>15</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - 查询</ApplicationName>
+        </ConnectionNode>
+      </Items>
+    </LogicalFolder>
+    <LogicalFolder Name="查询" Type="0" Sorted="true">
+      <Items>
+        <FileNode Name="SMSManager.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:192.168.1.253:False:sa</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>192.168.1.253</AssociatedConnSrvName>
+          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <FullPath>SMSManager.sql</FullPath>
+        </FileNode>
+        <FileNode Name="initDB-syyd.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):False:sa</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <FullPath>initDB-syyd.sql</FullPath>
+        </FileNode>
+        <FileNode Name="exportManager.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):False:sa</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <FullPath>exportManager.sql</FullPath>
+        </FileNode>
+        <FileNode Name="showProcess.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:192.168.1.253:False:sa</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>192.168.1.253</AssociatedConnSrvName>
+          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <FullPath>showProcess.sql</FullPath>
+        </FileNode>
+        <FileNode Name="systemInfo.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:192.168.1.253:False:sa</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>192.168.1.253</AssociatedConnSrvName>
+          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <FullPath>systemInfo.sql</FullPath>
+        </FileNode>
+        <FileNode Name="viewOfReport.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:192.168.1.253:False:sa</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>192.168.1.253</AssociatedConnSrvName>
+          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <FullPath>viewOfReport.sql</FullPath>
+        </FileNode>
+        <FileNode Name="eqpCheck2.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:192.168.1.254:False:sa</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>192.168.1.254</AssociatedConnSrvName>
+          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <FullPath>eqpCheck2.sql</FullPath>
+        </FileNode>
+        <FileNode Name="linkEqp.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:192.168.1.254:False:sa</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>192.168.1.254</AssociatedConnSrvName>
+          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <FullPath>linkEqp.sql</FullPath>
+        </FileNode>
+        <FileNode Name="newStatistic.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):False:sa</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <FullPath>newStatistic.sql</FullPath>
+        </FileNode>
+        <FileNode Name="typeCode.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):False:sa</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <FullPath>typeCode.sql</FullPath>
+        </FileNode>
+        <FileNode Name="broker.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):False:sa</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <FullPath>broker.sql</FullPath>
+        </FileNode>
+        <FileNode Name="cReportCenter.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:192.168.1.253:False:sa</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>192.168.1.253</AssociatedConnSrvName>
+          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <FullPath>cReportCenter.sql</FullPath>
+        </FileNode>
+        <FileNode Name="eqpCarExtInfo.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):False:sa</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <FullPath>eqpCarExtInfo.sql</FullPath>
+        </FileNode>
+        <FileNode Name="typeCodeUpdate.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:192.168.1.253:False:sa</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>192.168.1.253</AssociatedConnSrvName>
+          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <FullPath>typeCodeUpdate.sql</FullPath>
+        </FileNode>
+        <FileNode Name="bulletinInfo.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):False:sa</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <FullPath>bulletinInfo.sql</FullPath>
+        </FileNode>
+        <FileNode Name="eqpCheck.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):False:sa</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <FullPath>eqpCheck.sql</FullPath>
+        </FileNode>
+        <FileNode Name="dirtyDataPro.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):False:sa</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <FullPath>dirtyDataPro.sql</FullPath>
+        </FileNode>
+        <FileNode Name="initDB.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):False:sa</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <FullPath>initDB.sql</FullPath>
+        </FileNode>
+        <FileNode Name="other.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):False:sa</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <FullPath>other.sql</FullPath>
+        </FileNode>
+        <FileNode Name="rsa.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):False:sa</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <FullPath>rsa.sql</FullPath>
+        </FileNode>
+        <FileNode Name="statistic.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):False:sa</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <FullPath>statistic.sql</FullPath>
+        </FileNode>
+        <FileNode Name="help.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):False:sa</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <FullPath>help.sql</FullPath>
+        </FileNode>
+        <FileNode Name="planInfo.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:192.168.1.253:False:sa</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>192.168.1.253</AssociatedConnSrvName>
+          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <FullPath>planInfo.sql</FullPath>
+        </FileNode>
+        <FileNode Name="eqpAlcManager.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):False:sa</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <FullPath>eqpAlcManager.sql</FullPath>
+        </FileNode>
+        <FileNode Name="eqpScrapManager.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):False:sa</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <FullPath>eqpScrapManager.sql</FullPath>
+        </FileNode>
+        <FileNode Name="eqpManager.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):False:sa</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <FullPath>eqpManager.sql</FullPath>
+        </FileNode>
+        <FileNode Name="createDB.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):False:sa</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <FullPath>createDB.sql</FullPath>
+        </FileNode>
+        <FileNode Name="pageSelect.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):False:sa</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <FullPath>pageSelect.sql</FullPath>
+        </FileNode>
+        <FileNode Name="reportCenter.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):False:sa</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <FullPath>reportCenter.sql</FullPath>
+        </FileNode>
+        <FileNode Name="right.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):False:sa</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <FullPath>right.sql</FullPath>
+        </FileNode>
+        <FileNode Name="sysManager.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):False:sa</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <FullPath>sysManager.sql</FullPath>
+        </FileNode>
+        <FileNode Name="user.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):False:sa</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <FullPath>user.sql</FullPath>
+        </FileNode>
+        <FileNode Name="userOpion.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):False:sa</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <FullPath>userOpion.sql</FullPath>
+        </FileNode>
+        <FileNode Name="代码字典.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):False:sa</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <FullPath>代码字典.sql</FullPath>
+        </FileNode>
+        <FileNode Name="eqpAcceptInfo.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local):False:sa</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)</AssociatedConnSrvName>
+          <AssociatedConnUserName>sa</AssociatedConnUserName>
+          <FullPath>eqpAcceptInfo.sql</FullPath>
+        </FileNode>
+      </Items>
+    </LogicalFolder>
+    <LogicalFolder Name="杂项" Type="3" Sorted="true">
+      <Items />
+    </LogicalFolder>
+  </Items>
+  <SccProjectName>"$/武大设备管理信息系统2.1/database", YOAAAAAA</SccProjectName>
+  <SccAuxPath />
+  <SccLocalPath>.</SccLocalPath>
+  <SccProvider>MSSCCI:Microsoft Visual SourceSafe</SccProvider>
+</SqlWorkbenchSqlProject>

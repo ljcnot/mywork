@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "武大设备系统脚本", "武大设备系统脚本\武大设备系统脚本.ssmssqlproj", "{E33241F3-41FF-4CD7-862B-128BC3804F73}"
+EndProject
+Global
+	GlobalSection(SourceCodeControl) = preSolution
+		SccNumberOfProjects = 1
+		SccProjectUniqueName0 = 武大设备系统脚本\\武大设备系统脚本.ssmssqlproj
+		SccProjectName0 = \u0022$/武大设备管理信息系统2.1/database\u0022,\u0020YOAAAAAA
+		SccLocalPath0 = 武大设备系统脚本
+		SccProvider0 = MSSCCI:Microsoft\u0020Visual\u0020SourceSafe
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		默认值|Default = 默认值|Default
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E33241F3-41FF-4CD7-862B-128BC3804F73}.默认值|Default.ActiveCfg = 默认值
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
