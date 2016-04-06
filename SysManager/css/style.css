@@ -1,0 +1,148 @@
+﻿/*定义本系统专用的样式样式*/
+.headlogo_b2
+{
+    float:left; 
+    width:270px; 
+    height:54px; 
+    background:url(../images/header_logo.png) no-repeat 0 -212px;
+    _background:url(..images/header_logo.gif) no-repeat 0 -218px;
+    margin:12px 0 0 30px;
+}
+
+/*表格整体样式*/
+h4 {
+    padding:6px 0 6px 8px;
+    background: #e5f1f6;
+    margin:0;
+}
+#frame {
+    width:660px;
+    margin: 0 auto;
+}
+table {
+    margin:0;
+    padding:0;
+    width: 620px;
+    color: #565;
+    font: 16px;
+}
+/*差旅费报销单*/
+.travel{
+    width:960px;
+    color:#565;
+    font:16px;
+}
+#travel_frame{
+    width:960px;
+    margin: 0 auto;
+}
+.text_area_reason{
+    width:794px;
+    border:1px solid #ccc;
+}
+.project_time,.travel_allowance{
+    margin:10px 0 10px 0;
+    padding:0 0 10px 30px; 
+    width:960px;
+    border:1px dashed #ccc;
+}
+.other{
+    margin:10px 0 10px 0;
+    padding:0 0 10px 30px;
+    width:650px;
+    border:1px dashed #ccc;
+}
+h5{
+    margin:0;
+    padding:0;
+}
+#divLeft{background:none;}
+ /*单元格样式*/
+tr td {
+    padding-top:10px;
+}
+.text{
+    width:112px;
+}
+.footer {
+    text-align:center;
+    margin-top:20px;
+    border-top: 1px solid #B3DE94;
+}
+.closeBtn{
+    margin-top:20px;
+    margin-right:40px;
+    font-size:14px;
+    width:75px;
+    height:25px; 
+    vertical-align:middle; 
+    text-align:center;
+    cursor:pointer;
+}
+.input_box{
+    width:151px;
+    height:26px;
+    border:1px solid #cccccc;
+    background:none;
+}
+.full_text{
+    width:457px;
+    height:26px;
+    border:1px solid #cccccc;
+}
+/*借支单*/
+.Borrow_full_text{
+    width:434px;
+    height:26px;
+    border:1px solid #cccccc;
+}
+.Borrow_text_area{
+    width:434px;
+    border:1px solid #cccccc;
+}
+.project_text{
+    width:436px;
+    height:26px;
+    border:1px solid #ccc;
+}
+.text_area{
+    width:457px;
+    border:1px solid #ccc;
+}
+.rmb{
+    width:130px;
+    height:26px;
+    border:1px solid #ccc;
+}
+/*添加费用报销单*/
+.gridBtn{
+    margin-left:-60px;
+    font-size:14px;
+    width:75px;
+    height:25px; 
+    vertical-align:middle; 
+    text-align:center;
+    cursor:pointer;
+}
+/*日历控件*/
+#txtSignDate,#txtSignDate_start,#txtSignDate_end,#txtApplyDate,#txtReceivableDate {
+    width:134px;
+    height:26px;
+    border:1px solid #ccc;
+    ime-mode: disabled;
+}
+/*分隔线*/
+.separated{
+    margin:20px 0 10px 0;
+    border:1px dashed #565;
+}
+/*上传附件*/
+.attachment{
+    width:648px;
+    height:70px;
+    margin-top:20px;
+    border:1px solid #000;
+}
+.attachment button{
+    margin:5px 0 0 5px;
+}

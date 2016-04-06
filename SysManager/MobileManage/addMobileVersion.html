@@ -1,0 +1,156 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>项目登记</title>
+     <link href="../../jquery/css/tip.css" type="text/css" rel="stylesheet" />
+
+        <link href="../../css/style.css" type="text/css" rel="stylesheet" />
+        <!--jquery主函数库库 -->
+        <script src="../../jquery/jquery-1.10.2.js" type="text/javascript"></script>
+        <script src="../../jquery/jquery.bgiframe.js" type="text/javascript"></script>
+        <script src="../../js/UIcomm.js" type="text/javascript"></script>
+        <script src="../../jquery/uploadify-v3.2.1/jquery.uploadify.js" type="text/javascript"></script>
+    <style type="text/css">
+        
+    </style>
+    <script type="text/javascript">
+        var logoUrl = "images/bbsbig.jpg"; //默认的logo图片URL
+        var api = frameElement.api, W = api.opener; //弹出窗口调用参数
+        function closeMe() {
+            api.setResultStatus("");     //设置窗口的返回值：这里应该根据是否修改了数据返回指定的值
+            setTimeout(function () { api.close(false); }, 100);               //不询问直接关闭
+        }
+        function beforeClose(w) {
+        }
+
+        //上传附件正在操作的附件列表：
+        var uploadAttachs = new AttachFiles("../downLoad/downloadFile.aspx", "../handler/delLocalFile.ashx", false);
+        //初始化上传控件
+        function initUploadify() {
+            $('#uploadify').uploadify({
+                'debug': false,
+                'auto': true, 			    //是否自动上传,
+                //'buttonClass': 'haha', 	//按钮辅助class
+                'buttonImage': '../../jquery/uploadify-v3.2.1/upLoad.png', //选择文件按钮图片
+                // 'buttonText': '请选择上传文件', //按钮文字
+                'height': 20, 			    //按钮高度
+                'width': 128, 			    //按钮宽度
+                //'checkExisting' : 'check-exists.php',//是否检测图片存在,不检测:false
+                'fileObjName': 'Filedata', 	//默认 Filedata, $_FILES控件名称
+                'fileSizeLimit': '5120KB', //文件大小限制 5M,
+                'fileDesc': '请选择上传附件',
+                'fileExt': '*.rar;*.zip;*.doc;*.docx;*.xls;*.xlsx;*.ppt;*.pptx;*.jpg;*.bmp;*.png;*.gif;*.tiff;',         //限定上传文件的类型
+                'formData': { 'folder': 'upload' }, //传输数据JSON格式:目标文件夹：按年月份分目录存放
+                //'overrideEvents': ['onUploadProgress'],  // The progress will not be updated
+                //'progressData' : 'speed',	    //默认percentage 进度显示方式
+                'queueID': 'fileQueue1', 		//默认队列ID
+                'queueSizeLimit': 4, 			//一个队列上传文件数限制
+                'removeCompleted': true, 		//完成时是否清除队列 默认true
+                'removeTimeout': 0, 			//完成时清除队列显示秒数,默认3秒
+                'requeueErrors': false, 		//队列上传出错，是否继续回滚队列
+                'successTimeout': 10, 			//上传超时
+                'uploadLimit': 4, 				//允许上传的最多文件数
+                'swf': '../../jquery/uploadify-v3.2.1/uploadify.swf', //
+                'uploader': '../handler/UploadHandler.ashx', //服务器端脚本
+                //初始化触发：
+                'onUploadStart': function (file) {
+                },
+                //删除时触发
+                'onCancel': function (file) {
+                    //alert('The file ' + file.name + '--' + file.size + ' was cancelled.');
+                },
+                //清除队列
+                'onClearQueue': function (queueItemCount) {
+                    //alert(queueItemCount + ' file(s) were removed from the queue');
+                },
+                //调用destroy是触发
+                'onDestroy': function () {
+                    //alert('我被销毁了');
+                },
+                //每次初始化一个队列是触发
+                'onInit': function (instance) {
+                    //alert('The queue ID is ' + instance.settings.queueID);
+                },
+                //上传成功
+                'onUploadSuccess': function (file, data, response) {
+                    //将上传的文件显示出来：
+                    if (response != "0") {
+                        var myFile = new attachFile(new attachFileBase(file.id, file.name, data, file.size, file.type));
+                        uploadAttachs.insertAttach(myFile, $("#txtAttachments"));
+                    }
+                },
+                //上传错误
+                'onUploadError': function (file, errorCode, errorMsg, errorString) {
+                    //alert('The file ' + file.name + ' could not be uploaded: ' + errorString);
+                },
+                //上传汇总
+                'onUploadProgress': function (file, bytesUploaded, bytesTotal, totalBytesUploaded, totalBytesTotal) {
+                    $('#progress').html(totalBytesUploaded + ' bytes uploaded of ' + totalBytesTotal + ' bytes.');
+                },
+                //上传完成
+                'onUploadComplete': function (file) {
+                }
+            });
+        }
+        //提交：
+        function commit() {
+            var AppVersion = $("#txtAppVersion").val();
+            var AppExplain = $("#txtAppExplain").val();
+            $.ajax({
+                type: "POST",
+                url: "../Handler/addMobileVersionHandler.ashx",
+                data: {
+                    "AppVersion": AppVersion, "AppExplain": AppExplain, "logoUrl": logoUrl},
+                dataType: "text",
+                success: function (result) {
+                    //处理返回值：
+                    if (result != "" && result.substring(0, 6) == "Error:")
+                        W.$.dialog.errorTips(result.substring(6), false, api);
+                    else {
+                        api.setResultStatus("success");     //设置窗口的返回值：这里应该根据是否修改了数据返回指定的值
+                        setTimeout(function () { api.close(false); }, 100);               //不询问直接关闭
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) { errorReport(XMLHttpRequest, textStatus, errorThrown); }
+            });
+        }
+        $(function () {
+            //初始化app上传控件
+            appUploadify();
+        });
+    </script>
+</head>
+<body>
+    <div>
+        <div class="uploadLogo" style="float:left; width:280px;">
+            <img id="logo" src="../images/bbsbig.jpg" style="width:200px;" />
+            <!--Logo附件-->
+            <div class="cs">
+                <div style="width:100%; overflow:hidden; padding:5px 10px 5px 0px; padding-right:10px; display:block;">
+                    <ul>
+                        <li><input type="file" id="logoUploadify" /></li>
+                        <li style="clear:both;text-align:left;"><font color="red">&nbsp;&nbsp;（注:文件大小不能超过2MB！）</font></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <ul class="baseInfo borderBottom" style="height:480px;">
+            <li class="pageRow">
+                <div class="filterTitle defaultText">app版本号：</div>
+                <div><input type="text" id="txtAppVersion" class="deactiveDiv" style="white-space:pre-wrap;"/></div>
+            </li>
+            <li>
+                <div class="filterTitle defaultText">简要说明：</div>
+                <div><input type="text" id="txtAppExplain" style="width:400px;" maxlength="300" tip="请输入app说明" /></div>
+            </li>
+        </ul>
+        <ul class="footBtnBox">
+            <li>
+                <input type="button" id="btnSave" class="closeBtn" value="提  交" onclick="commit();" />
+                <input type="button" id="btnCancel" class="closeBtn" value="取  消" onclick="closeMe();" />
+            </li>
+        </ul>
+    </div>
+</body>
+</html>

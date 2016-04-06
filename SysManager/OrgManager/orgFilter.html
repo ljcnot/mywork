@@ -1,0 +1,147 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>筛选</title>
+    <link href="../../jquery/css/tip.css" rel="stylesheet" />
+    <link href="../../jquery/css/validate.css" rel="stylesheet" />
+    <link href="../../jquery/css/jquery.autocomplete.css" rel="stylesheet" />
+    <link href="../../jquery/themes/base/jquery.ui.datepicker.css" rel="stylesheet" />
+    <link href="../../jquery/themes/base/jquery.ui.all.css" rel="stylesheet" />
+    <link href="../../jquery/themes/base/jquery.ui.buttonStyle.css" rel="stylesheet" />
+    <link href="../../css/radioAndCheckbox.css" rel="stylesheet" />
+    <link href="../../css/comStyle/filterCss.css" rel="stylesheet" />
+    <link href="../../css/comboboxDefault.css" rel="stylesheet" />
+    <link href="../css/style.css" rel="stylesheet" />
+
+    <script src="../js/orgFilter.js"></script>
+    <!--jquery主函数库库 -->
+    <script src="../../jquery/jquery-1.10.2.js"></script>
+    <script src="../../jquery/jquery.bgiframe.js"></script>
+    <script src="../../js/cookie.js"></script>
+    <!--控件提示jquery函数库 -->
+    <script src="../../jquery/tip.js"></script>
+    <script src="../../jquery/validator.js"></script>
+    <!--渐进式增量查询jquery函数库 -->
+    <script src="../../jquery/jquery.autocomplete.js"></script>
+    <script src="../../jquery/typeCode.js"></script>
+    <!--HELP ID预定义常量-->
+    <!--常用格式化库-->
+    <script src="../../js/formats.js"></script>
+    <!--公司专用的UI控件-->
+    <script src="../../js/UIcomm.js"></script>
+    <!--权限函数库-->
+    <script src="../../js/sysTools.js"></script>
+    <!--新combobox控件：-->
+    <script src="../../js/combo_2.0/combo.js"></script>
+    <!--tabs控件-->
+    <script src="../../js/tabsControlerl.js"></script>
+    <script type="text/javascript">
+        //弹出窗口调用参数
+        var api = frameElement.api, W = api.opener;
+        var isRefresh = true;  //窗口关闭后是否强制刷新
+
+        var curOrgID = getArg('orgID');      //当前机构
+        var checkOrgID;                      //机构代码“精确”选项
+        var checkOrgName;                    //机构名称“精确”选项
+        var checkAbbOrgName;                 //机构简称“精确”选项
+        var checkE_mail;                     //机构邮箱“精确”选项
+        var checkTel;                        //机构电话“精确”选项
+        var checkTAddress;                   //机构地址“精确”选项
+
+        $(function () {
+            //按键处理：包括alt+F1在线帮助，退格键屏蔽
+            //wrt by lw 2010-12-5
+            //modi by lw 2014-4-4改写了UIcomm.js中的disableBackSapce函数，区分浏览器判断
+            if ($.browser.mozilla || $.browser.opera) document.onkeypress = disableBackSapce;
+            else document.onkeydown = disableBackSapce; //禁止后退键  作用于IE、Chrome
+
+            checkOrgID = new oridWayRadio("checkOrgID", "checkbox", false, "精确", "");
+            checkOrgName = new oridWayRadio("checkOrgName", "checkbox", false, "精确", "");
+            checkAbbOrgName = new oridWayRadio("checkAbbOrgName", "checkbox", false, "精确", "");
+            checkE_mail = new oridWayRadio("checkE_mail", "checkbox", false, "精确", "");
+            checkTel = new oridWayRadio("checkTel", "checkbox", false, "精确", "");
+            checkTAddress = new oridWayRadio("checkTAddress", "checkbox", false, "精确", "");
+
+
+        });
+        function beforeClose(w) {
+        }
+
+        //关闭：
+        function closeMe() {
+            api.setResultStatus("success");     //设置窗口的返回值：这里应该根据是否修改了数据返回指定的值
+            setTimeout(function () { api.close(false); }, 100);               //不询问直接关闭           
+        }
+    </script>
+</head>
+<body>
+    <div id="frame">
+        <table style="width:700px;">
+            <tr>
+                <td>机构代码：</td>
+                <td>
+                    <div>
+                        <input type="text" class="hei" id="txtOrgID" title="" />
+                    </div>
+                    <div>
+                        <div id="checkOrgID" class="oCheckbox" title="使用“精确”匹配，系统将使用完整的机构代码进行匹配，否则使用左端匹配方式"></div>
+                    </div>
+                </td>
+                <td>机构类型：</td>
+                <td>
+                    <select data-toggle="select" class="hei" id="txtOrgType">
+                        <option value="0">教学</option>
+                        <option value="1">科研</option>
+                        <option value="2">行政</option>
+                        <option value="3">后勤</option>
+                        <option value="4">其他</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>机构名称：</td>
+                <td>
+                    <div><input type="text" class="hei" id="txtOrgName" title="" /></div>
+                    <div><div id="checkOrgName" class="oCheckbox" title="使用“精确”匹配，系统将使用完整的机构名称进行匹配，否则使用模糊匹配方式"></div></div>
+                </td>
+                <td>机构简称：</td>
+                <td>
+                    <div><input type="text" class="hei" id="txtAbbOrgName" title="" /></div>
+                    <div><div id="checkAbbOrgName" class="oCheckbox" title="使用“精确”匹配，系统将使用完整的机构简称进行匹配，否则使用模糊匹配方式"></div></div>                    
+                </td>
+            </tr>
+            <tr>
+                <td>邮箱地址：</td>
+                <td>
+                    <div><input type="text" class="hei" id="txtE_mail" title="" /></div>
+                    <div><div id="checkE_mail" class="oCheckbox" title="使用“精确”匹配，系统将使用完整的机构邮箱进行匹配，否则使用左端匹配方式"></div></div>
+                </td>
+            </tr>
+            <tr>
+                <td>联系电话：</td>
+                <td>
+                    <div><input type="text" class="hei" id="txtTel" title="" /></div>
+                    <div><div id="checkTel" class="oCheckbox" title="使用“精确”匹配，系统将使用完整的机构电话进行匹配，否则使用模糊匹配方式"></div></div>
+                </td>
+                <td>地址：</td>
+                <td>
+                    <div><input type="text" class="hei" id="txtTAddress" title="" /></div>
+                    <div><div id="checkTAddress" class="oCheckbox" title="使用“精确”匹配，系统将使用完整的机构地址进行匹配，否则使用模糊匹配方式"></div></div>
+                </td>
+            </tr>
+            <tr>
+                <td>网址：</td>
+                <td colspan="3"><input type="text" class="hei" id="txtWeb" title="" style="width:550px" /></td>
+            </tr>
+            <tr>
+                <td class="footer" colspan="4">
+                    <input type="button" id="btnCancer" class="closeBtn" value="取消设定" onclick="cancerSet();" />
+                    <input type="button" id="btnSave" class="closeBtn" value="确  定" onclick="saveData();" />
+                    <input type="button" id="btnClose" class="closeBtn" value="关  闭" onclick="closeMe();" />
+                </td>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>

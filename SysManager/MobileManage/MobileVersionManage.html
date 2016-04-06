@@ -1,0 +1,169 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>员工列表</title>
+    <link href="../../css/style.css" rel="stylesheet" />
+    <link href="../../jquery/css/popmenu.css" rel="stylesheet" type="text/css" />
+    <link href="../../css/lhgdialog/idialog.css" rel="stylesheet" type="text/css" />
+    <link href="../../css/flexigrid/flexigrid.css" rel="stylesheet" type="text/css" />
+    <link href="../../css/listTools.css" rel="stylesheet" />
+
+    <script src="../../jquery/jquery-1.10.2.js" type="text/javascript"></script>
+    <script src="../../jquery/flexigrid.js" type="text/javascript"></script>
+    <script src="../../jquery/popmenu.js" type="text/javascript"></script>
+    <script src="../../js/cookie.js" type="text/javascript"></script>
+    <!--系统参数库-->
+    <script src="../../js/sysTools.js" type="text/javascript"></script>
+    <script src="../../js/formats.js" type="text/javascript"></script>
+    <!--HELP ID预定义常量-->
+    <script src="../../js/helpID.js" type="text/javascript"></script>
+    <!--权限函数库-->
+    <script src="../../js/right.js" type="text/javascript"></script>
+    <script src="../../js/UIcomm.js" type="text/javascript"></script>
+    <!--新对话合类库-->
+    <script src="../../jquery/lhgdialog/lhgdialog.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        var thisGrid;
+        var strWhere = "";
+        var ID = "";
+        var appVersionID = "";
+        //自动检测容器尺寸：
+        var _pIframe = window.frameElement; //容器对象
+        var _w = 800; var _h = 500;
+        if (_pIframe) {
+            _w = $(_pIframe).width();
+            _h = $(_pIframe).height();
+        }
+        //重新定义列表的尺寸：这是一个供主页面调用的函数
+        //rewrt by lw 2012-1-4
+        function resize(w, h) {
+            if (!w || !h || w == 0 || h == 0) {
+                var p = window.frameElement; //容器对象
+                if (p) {
+                    w = $(p).width();
+                    h = $(p).height();
+                }
+            }
+            _w = w; _h = h;
+            thisGrid.flexResize(w, h - 87);
+        }
+        //定义button集：
+        var curTools = [];
+        curTools[curTools.length] = { name: 'cmdNew', displayname: "添加", bclass: 'cmdNew', title: "添加App版本信息", onpress: toolbarItem_onclick };
+        curTools[curTools.length] = { name: 'cmdDel', displayname: "删除", bclass: 'cmdDel', title: "删除App版本信息", onpress: toolbarItem_onclick };
+        curTools[curTools.length] = { name: 'cmdShowCard', displayname: "查看", bclass: 'cmdShowCard', title: "查看App版本信息", onpress: toolbarItem_onclick };
+        //加载页面：
+        $(function () {
+            getList();
+        })
+
+        function getList() {
+            thisGrid = $("#flex1").flexigrid(
+            {
+                url: "../Handler/getAppVersionList.ashx",
+                params: [{ name: "where", value: strWhere }],
+                dataType: "xml",
+                data: null,
+                colModel: [
+                    { display: '序号', name: 'RowID', width: 50, sortable: true, align: 'center' },
+		            { display: '版本号', name: 'appVersion', width: 50, sortable: true, align: 'center' },
+		            { display: 'app存放目录', name: 'appUrl', width: 85, sortable: true, align: 'left' },
+		            { display: '简要说明', name: 'remark', width: 120, sortable: true, align: 'left' },
+		            { display: '上载时间', name: 'uploadTime', hide: false, width: 85, sortable: true, align: 'left' },
+                    { display: '创建人ID', name: 'createrID', hide: false, width: 85, sortable: true, align: 'left' },
+                    { display: '创建人姓名', name: 'creater', hide: false, width: 85, sortable: true, align: 'left' }
+                ],
+                buttons: curTools,
+                searchitems: [
+                    { display: '版本号', name: 'appVersion', isdefault: true, operater: "Like" }
+                ],
+                sortname: "appVersion",
+                sortorder: "desc",
+                //title: "部门列表",
+                usepager: true,
+                useRp: true,
+                rp: 20,
+                showTableToggleBtn: false,
+                width: _w,
+                height: _h - 87,   //这是表格体的高度，要减去标题、工具条、表头和状态栏的高度
+                singleSelect: true,  //只能单选
+
+                showcheckbox: true, //显示checkbox
+                onrowchecked: function (row) {  //checkbox事件处理函数
+                    appVersionID = row[0].cells[2].innerText;
+                },
+                rowhandler: false,  //双击行
+                //rowClickHandler: setButton, //根据数据设置按钮的状态   
+                //onError: errorReport,  //获取数据出错处理！！
+
+                //rowMouseRightHandler: contextmenu, //行上鼠标右键
+                resizable: false //是否允许重定义尺寸
+            });
+        }
+        //工具条函数：
+        function toolbarItem_onclick(cmd, grid) {
+            var orgID = "";
+            if ($(".trSelected").length > 0) {
+                orgID = $($(".trSelected")[0].cells[2]).text();
+            }
+            switch (cmd) {
+                case "cmdNew":     //添加App：
+                    var opener = $.dialog({
+                        id: "addMobileVersion", title: "添加App版本", width: "920px", height: "480px", lock: true,
+                        content: "url:MobileManage/addMobileVersion.html",
+                        close: function (cw, w) { return cw.beforeClose(w); },
+                        afterClose: function (status) {
+                            if (status == "success") {
+                                //刷新页面：
+                                getList();
+                            }
+                        },
+                        min: true,
+                        max: true,
+                        resize: true,
+                        help: true,
+                        helpID: 150
+
+                    });
+                    break;
+                case "cmdDel":     //删除App：
+                    if (appVersionID == "")
+                        $.dialog.warning("请选择您要删除的app版本！");
+                    else {
+                        var opener = $.ajax({
+                            type: "POST",
+                            url: "../Handler/delMobileVersionHandler.ashx",
+                            data: {
+                                "AppVersion": appVersionID
+                            },
+                            dataType: "text",
+                            success: function (result) {
+                                //处理返回值：
+                                if (result != "" && result.substring(0, 6) == "Error:")
+                                    W.$.dialog.errorTips(result.substring(6), false, api);
+                                else {
+                                    getList();//刷新页面
+                                }
+                            },
+                            error: function (XMLHttpRequest, textStatus, errorThrown) { errorReport(XMLHttpRequest, textStatus, errorThrown); }
+                        });
+                    }
+                    break;
+                case "cmdShowCard":  //查询机构：
+                    if (orgID == "")
+                        $.dialog.warning("请选择您要查询的机构！");
+                    else
+                        showOrg(orgID);
+                    break;                
+                default:
+            }
+        }
+    </script>
+</head>
+<body>
+    <div>
+        <table id="flex1" style="display:none"></table>
+    </div>
+</body>
+</html>

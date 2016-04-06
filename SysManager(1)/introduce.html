@@ -1,0 +1,160 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>介绍界面</title>  
+    <link href="../css/introduceStyle.css" rel="stylesheet" type="text/css" />
+    <script src="../jquery/jquery-1.10.2.js" type="text/javascript"></script>
+    <script src="../js/cookie.js" type="text/javascript"></script>
+    <script src="../jquery/jquery.innerfade.js" type="text/javascript"></script>
+    <script src="../js/UIcomm.js" type="text/javascript"></script>
+<script type="text/javascript">
+    //动态装载样式表：
+    //loadCssFile("css/privateTheme/introduceStyle.css", "introduceStyle");
+    var timer;
+    function startTimer() {
+        timer = setInterval(showNext, 15000);  //15秒执行一次
+    }
+
+    function stopTimer() {
+        clearInterval(timer);
+    }
+
+    var curDisplay = 0;
+    var curAlbum = null;
+    //wrt by lw 2010-11-30
+    function showNext() {
+        //关闭当前页：
+        $('#page' + curDisplay).fadeOut('slow', function () {
+            //关闭可能存在的页内相册：
+            if (curAlbum != null) {
+                curAlbum = null;
+            }
+            //显示下一页:
+            curDisplay++;
+            curDisplay %= 6;
+            $('#page' + curDisplay).fadeIn('slow');
+            curAlbum = $('#page' + curDisplay + '>.album').innerfade({
+                speed: "slow",
+                timeout: 300,
+                type: "sequence",
+                containerheight: $('#page' + curDisplay + '>.album').attr("ablumHeight")
+            });
+        });
+    }
+
+    function iebody() {
+        //检测严格的区别和模糊模式：
+        return (document.compatMode != "BackCompat" ? document.documentElement : document.body);
+    }
+    //重置窗口大小：
+    function resize() {
+        var bodywidth;
+        var bodyheight;
+        //获取浏览器高度，宽度
+        //modi by lw 2010-11-15
+        if (jQuery.browser.msie) {
+            bodywidth = iebody().clientWidth;
+            bodyheight = iebody().clientHeight;
+        }
+        else if (jQuery.browser.mozilla) { //保持浏览器兼容！
+            bodywidth = window.innerWidth;
+            bodyheight = window.innerHeight;
+        }
+        else //safari、opera //这一类浏览器还需要进一步测试
+        {
+            sysMessage("您现在使用的浏览器不是本系统宣布支持的！\r\n可能会有窗口尺寸计算问题。");
+            bodywidth = document.body.clientWidth;
+            bodyheight = document.body.clientHeight;
+        }
+
+        var p = document.getElementById("content");
+        p.style.width = bodywidth + "px";
+        p.style.height = bodyheight + "px";
+    }
+    $(function () {
+        resize();
+        startTimer();
+    });
+</script>
+</head>
+<body onunload="stopTimer();" onresize="resize();">
+    <div id="content">
+	    <div id="page0">
+            <div class="introTitle"></div>
+		    <h3 style="color:#ff0;">设备管理信息系统改版了！ </h3>
+            <p>本次改版的主要工作是将原运行在局域网中的C/S架构移植到互联网B/S架构上，同时充分利用现在的网络技术、多媒体技术增加软件的表现能力，提高软件并发反应速度，修正原系统设计中的单据号、设备号极限情况下重号问题，增加现在办公需要的常用查询和表格，增加采购计划功能，调整设备调拨流程，增加全流程的逆向操作功能，重新规划权限，增加工作日志功能，实现全过程监控，增加同步服务器管理、自适应、手动、自动切换功能，降低系统运行风险。 </p>
+            <h4 style="color:#fff;">本次改版为全校设备管理工作提供一个全新的软件操作平台，将为全校的设备管理提供更好的基础服务。</h4>
+        </div>
+        <div id="page1" style="display:none;">
+            <div class="introTitleTwo"></div>
+            <ul class="tableIntro baseInfo">
+                <li class="introTitle1"><div class="txtL">设备采购</div><div class="txtR">您可以使用该功能制作设备采购计划</div></li>
+                <li class="introTitle2"><div class="txtL">设备验收</div><div class="txtR">提供设备验收申请、审核、建卡管理，自动生成设备清单</div></li>
+                <li class="introTitle3"><div class="txtL">设备概况</div><div class="txtR">您可以使用该功能制作设备采购计划</div></li>
+                <li class="introTitle4"><div class="txtL">设备管理</div><div class="txtR">您可以使用该功能制作设备采购计划</div></li>
+                <li class="introTitle5"><div class="txtL">统计表</div><div class="txtR">您可以使用该功能制作设备采购计划</div></li>
+                <li class="introTitle6"><div class="txtL">系统工具</div><div class="txtR">您可以使用该功能制作设备采购计划</div></li>
+            </ul>
+        </div>
+        <div id="page2" style="display:none; ">
+		    <div class="introTitle"></div>
+            <h1>具体改版内容与特点如下：</h1>
+            <div class="contentMore">
+                <h2>1.系统架构的迁移</h2>
+                <p>原系统是基于局域网设计，在校园网无法覆盖的区域无法联机作业。现系统基于互联网设计，理论上在互联网覆盖的区域内都可以办公。</p>
+                <h2>2.安全性和稳定性的考虑</h2>
+                <p>互联网的运行环境导致对系统的安全性提出了更高的要求，新系统中我们考虑了以下因素：</p>
+                <p class="txtCss">1）认证(Authentication)</p>
+                <p>系统服务器安全性最基本的解决方案是用户验证，合法的用户才可以访问系统资源。原系统只提供64位的密码加密功能，现设计中提供128位的密码加密和动态密码功能。</p>
+                <p class="txtCss">2）授权(Authorization)</p>
+                <p>并非每一个用户都具有完全相同的操作权限。当某用户通过认证以后需要赋予该用户相应的使用权限，拒绝不在其权限范围之内的任何操作。新设计权限范围包括数据隶属空间区域操作权限和数据类别操作权限。</p>
+                <p class="txtCss">3）数据传输的保密性和完整性(Integrity)</p>
+                <p>在网络上传输数据时必须保证被传输数据的保密性，防止被他人窃取；同时需要保证其完整性，以保证接收者收到的数据是没有被他人篡改过的。新设计采用用户动态密码、IP、结合构造的WEB头认证和SSL加密传送，能够有效地防止入侵和盗链。</p>
+            </div>
+	    </div>
+	    <div id="page3" style="display:none;">
+	        <div class="introTitle"></div>
+            <h1>具体改版内容与特点如下：</h1>
+            <div class="contentMore">
+                <p class="txtCss">4）接收方的唯一性及不可否认性</p>
+                <p>对于一些关键的业务数据，在传输的过程中必须保证接收方的唯一性而不被不相关的第三者所获取；而且无论是交易的发起方还是处理方，对于其所作的处理过程都不可否认。</p>
+                <p class="txtCss">5）同步服务器的实时切换</p>
+                <p>为了确保系统的安全稳定运行，新系统使用双服务器提供在线与备份服务，服务器之间的自动比对差异，信息同步，解决数据冲突，自动切换。</p>
+                <p class="txtCss">6）全程跟踪，可恢复重建灾难事件前场景</p>
+                <p>新系统增加了完整的工作日志服务，您对数据的增删改都将完整地记录，为您的误操作提供可撤销的依据。另系统提供定时自动数据备份功能，结合工作日志，可对灾难性事件前场景进行恢复。</p>
+                <h2>3.可维护性</h2>
+                <p>软件系统的改进和升级越来越频繁，C/S架构的产品明显体现出更方便的特性。无论用户的规模有多大，有多少分支机构都不会增加任何维护升级的工作量，所有的操作只需要针对服务器进行，如果是异地只需要把服务器连接上网即可立即进行维护和升级。新系统架构对人力、时间、费用的节省是相当惊人的。</p>
+                <h2>4.更好的用户体验</h2>
+                <p>新系统有限采用了当前流行的富客户端技术（RIA），在信息的展示中加入了多媒体技术。新版设计的界面全新由专业美工打造，更美观，更人性化。在数据的输入中加入了实时提示、验证，有效地拦截了您的误操作和随意性。</p>
+            </div>
+	    </div>
+	    <div id="page4" style="display:none;">
+	        <div class="introTitle"></div>
+            <h1>具体改版内容与特点如下：</h1>
+            <div class="contentMore">
+            <h2>5.功能增强</h2>
+                <p>新系统增加了现在办公需要的若干常用查询和教育部、财政部要求的新表格，增加采购计划功能，调整设备调拨流程，增加全流程的逆向操作功能，重新规划权限，增加工作日志功能，实现全过程监控，增加同步服务器管理、自适应、手动、自动切换功能。</p>
+                <p>采购计划功能：新系统提供了设备采购计划的制订功能，能够在线提供同类型设备采购参考数据，自动根据采购计划生成设备验收单。</p>
+                <p>设备调拨流程：原系统只能对单台设备进行调拨，新系统能够成批调拨，并生成调拨凭证，可审核、可撤销调拨操作。</p>
+                <p>全流程的逆向操作功能：原系统的操作只能单向进行，新系统可以提供验收、报废、调拨的全流程撤销操作，解决了原系统误操作后数据只能手工清理的问题。</p>                
+                <h2>6. 更优的数据库设计</h2>
+                <p>原系统只提供了简单的号码查重服务，所以在一些极端情况下（比如停电、多人对同一设备或同一单据操作、脏数据）下可能会产生重复单据或设备清单。新系统采用自动号码发生器产生单据号，使用设备号码分布表严格锁定设备号，完全避免了单据号和设备号重复的问题，采用完整事务提交、出错回滚技术，确保了极限情况下的单据完整性。</p>
+                <p>另外，C/S由于访问量大，对速度有更高的要求，需要更加优化的数据库访问要求。原系统的数据处理全部在高级语言中书写，新系统全部采用存储过程设计，比原系统在数据库访问速度上至少有10倍的速度提高。</p>
+            </div>
+	    </div>
+	    <div id="page5" style="display:none;">
+            <div class="introTitle"></div>
+            <h2>7.信息的互联互通与可扩展性</h2>
+            <p>信息的互联互通是当代社会的流行趋势，新系统采用了WEB服务(Web Service)技术构建系统，对未来校内多部门乃至于教育部、财政部之间的数据融合、系统集成提供了可能。</p>
+            <p>WEB服务是一种面向服务的架构的技术，通过标准的Web协议提供服务，目的是保证不同平台的应用服务可以互操作。</p>
+            <p>WEB服务完全基于XML（可扩展标记语言）、XSD（XML Schema）等独立于平台、独立于软件供应商的标准，是创建可互操作的、分布式应用程序的新平台。在跨防火墙的通信、应用程序集成 、B2B的集成、软件和数据重用中有广大的用场。</p>
+            <p>另新系统采用MVC三层架构构建，方便未来软件的升级和维护。模型－视图－控制器（MVC）是一种现在被广泛使用的技术，它强制性的使应用程序的输入、处理和输出分开。使用MVC应用程序被分成三个核心部件：模型、视图、控制器。它们各自处理自己的任务，提高了软件的低耦合性、高重用性和可适用性，降低了软件的生命周期成本，提高了部署速度，增加了可维护性，有利于软件工程化管理。</p>
+            <h2>8.其它应用技术</h2>
+            <p>为了使网络数据传送的轻量化，提高系统服务能力，在新系统中我们还应用了一些其他技术，如：XML、Json等。</p>
+            <p>可扩展置标语言（eXtensible Markup Language，简称XML），又称可扩展标记语言，是一种置标语言。置标指计算机所能理解的信息符号，通过此种标记，计算机之间可以处理包含各种信息的文章等。如何定义这些标记，既可以选择国际通用的标记语言，比如HTML，也可以使用像XML这样由相关人士自由决定的标记语言，这就是语言的可扩展性。XML是从标准通用置标语言（SGML）中简化修改出来的。它主要用到的有可扩展置标语言、可扩展样式语言（XSL）、XBRL和XPath等。XML设计主要用来存储、支持和交换数据。</p>
+            <p>JSON(JavaScript Object Notation) 是一种轻量级的数据交换格式。易于人阅读和编写。同时也易于机器解析和生成。它基于JavaScript Programming Language, Standard ECMA-262 3rd Edition - December 1999的一个子集。 JSON采用完全独立于语言的文本格式，是理想的页面数据交换语言。新系统中采用Json作为页面交换的主要数据结构。</p>        
+	    </div>
+        <div id="page6" style="display:none;"></div>
+    </div>
+</body>
+</html>

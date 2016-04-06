@@ -1,0 +1,218 @@
+﻿/*flexgrid功能工具条样式及权限管理中树形控件样式定义如下：*/
+*{margin:0px; padding:0px;}
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, font, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td {
+margin: 0;
+padding: 0;
+border: 0;
+outline: 0;
+font-size: 100%;
+vertical-align: baseline;
+}
+body {
+line-height: 1;
+}
+ol, ul {
+list-style: none;
+}
+blockquote, q {
+quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+content: '';
+content: none;
+}
+
+
+:focus {
+outline: 0;
+}
+
+
+ins {
+text-decoration: none;
+}
+del {
+text-decoration: line-through;
+}
+
+
+table {
+border-collapse: collapse;
+border-spacing: 0;
+}
+
+
+
+.cmdNew,.cmdUpdate,.cmdChange,.cmdDel,.cmdDelAll,.cmdShowCard,.cmdShowAnnex,.cmdAddAnnex,.cmdFilter,.cmdBack,.cmdSimpleCalc,
+.cmdVerify,.cmdAudit,.cmdCancelVerify,.cmdCheck,.cmdChecking,.cmdCheckInfo,.cmdPrint,.cmdOutput,.cmdDrawPie,.cmdDrawBar,
+.cmdScrap,.cmdAllot,.cmdRep,.cmdSetOff,.cmdActive,.cmdAut,.cmdExec,.cmdRemove,
+.cmdAnswer,.cmdInvalid,.cmdCancelCheck,.cmdPreview,.cmdCalc,
+.cmdSimpleCalc,.cmdOutputCard,.cmdSimpleCalc,.cmdPrintCard,
+.cmdKeeper,.cmdStatus,.cmdEqpPhoto,
+.cmdMyEqp,.cmdCheckEqps,
+.cmdDefineKeeper,.cmdDrawPie,.cmdDrawBar,
+.cmdSend,.cmdImport,.cmdLockList,.cmdChangeHistory,.cmdExceeding,.cmdCheckMyEqps
+{background-image:url(../../images/tools_img.png);_background-image:url(../../images/IE6Img/tools_img.gif); background-repeat:no-repeat; cursor:pointer;}
+.cmdNew,.cmdDel,.cmdAll,.cmdUpdate,.cmdSetOff,.cmdActive
+curTools{background-image:url(../../images/tools_img.png);_background-image:url(../../images/IE6Img/tools_img.gif); background-repeat:no-repeat; cursor:pointer;}
+
+/*新建、修改、删除、删除全部（工作日志）、查阅卡片、查阅附件、添加附件、预览 筛选、返回、小统计*/
+.cmdNew{background-position: -11px -11px;}
+.cmdUpdate,.cmdChange{background-position:-11px -132px;}
+.cmdDel{background-position:-11px -35px;}
+.cmdDelAll{background-position:-11px -492px;}
+.cmdShowCard{background-position:-11px -204px;}
+.cmdShowAnnex{background-position:-11px -278px;}
+.cmdAddAnnex{background-position:-11px -600px;}
+.cmdFilter{background-position:-11px -155px;}
+.cmdBack{background-position:-8px -660px;}
+.cmdCalc{background-position:-11px -810px;}
+.cmdPreview{background-position:-11px -872px;}
+/*审核、盘点作废（取消审核）、复核、打印卡片、打印列表、导出*/
+.cmdVerify,.cmdAudit{background-position:-11px -61px;}
+.cmdCancelVerify{background-position:-11px -443px;}
+.cmdCheck,.cmdChecking{background-position:-11px -416px;}
+.cmdInvalid,.cmdCancelCheck{background-position:-11px -842px;}
+.cmdPrint{background-position: -11px -252px;}
+.cmdOutput{background-position: -11px -107px;}
+/*报废申请、调拨申请、设备报修*/
+.cmdScrap{ background-position:-11px -182px;}
+.cmdAllot{background-position:-11px -298px;}
+.cmdRep{background-position:-11px -469px;}
+
+/*停用、启用*/
+.cmdSetOff{background-position:-11px -395px;}
+.cmdActive{background-position:-11px -371px;}
+
+/*授权、修改密码*/
+.cmdAut{background-position:-11px -630px;}
+
+/*执行、取消执行、已执行锁定文件*/
+.cmdExec{background-position:-11px -547px;}
+.cmdRemove{background-position:-11px -520px;}
+/*.cmdClock{background-position:-11px -573px;}*/
+
+/*回复、返回*/
+.cmdAnswer{background-position:-11px -785px;}
+/*继续盘点、导出盘点表、盘盈盘亏、打印盘点表*/
+.cmdCheckInfo{background-position:-98px -346px;}
+.cmdOutputCard{background-position:-98px -300px;}
+.cmdSimpleCalc{background-position:-98px -276px;}
+.cmdPrintCard{background-position:-98px -324px;}
+/*认领、现状*/
+.cmdKeeper{background-position:-98px -395px;}
+.cmdEqpPhoto,.cmdStatus{background-position:-98px -369px;}
+/*我的设备、全部设备*/
+.cmdMyEqp{background-position:-98px -416px;}
+/*.cmdCheckEqps{background-position:-98px -442px;}*/
+.cmdCheckEqps{background-position:-98px -182px;}
+/*指派*/
+.cmdDefineKeeper{background-position:-98px -468px;}
+/*发送短信*/
+.cmdSend{ background-position:-98px -492px;}
+/*更新列表*/
+.cmdImport{ background-position:-98px -520px;}
+/*被锁定设备*/
+.cmdLockList{ background-position:-98px -546px;}
+/*更正历史*/
+.cmdChangeHistory{ background-position:-98px -573px;}
+/*展期,认领设备*/
+.cmdExceeding{ background-position:-98px -655px;}
+.cmdCheckMyEqps{ background-position:-98px -690px;}
+/*flexgrid 中将btn换成img图片样式*/
+.flexgridBtn
+{
+	border:medium none; 
+	padding:1px 0 1px 2px; 
+	background-color:Transparent; 
+	text-indent:14px; 
+	_text-indent:14px;/*IE6样式兼容*/
+	cursor:pointer;
+	text-align: center; 
+	width: 50px;
+}
+.info
+{
+    background:#EEFAF9 url("images/icons/information.png") no-repeat 5px 50%;
+    border:solid 1px #D6D6D6;
+    padding:5px;
+    padding-left:25px;
+    text-align:left;
+    margin:10px;
+}
+.important
+{
+    color:Red;
+}
+
+/*隐藏导出对话合标题栏中的关闭按钮*/
+.diaExport .ui-dialog-titlebar-close{
+    display: none;
+}
+/*权限控件的样式   树形的行高*/
+.standartTreeRow{padding:5px; font-size:14px !important;}
+
+.toTop,.toPre,.toNext{ width:22px; height:22px; border:none; background:none; float:left; cursor:pointer;}
+.toTop{ background:url(../../images/IE6Img/toTop.gif) no-repeat;}
+.toPre{ background:url(../../images/IE6Img/toPre.gif) no-repeat;}
+.toNext{ background:url(../../images/IE6Img/toNext.gif) no-repeat;}
+/**/
+.checkedStatus,.abNormalIcon,.errorIcon,.news,.someAgree,.needSure,.statusSending
+{
+    width:18px; 
+    margin:-2px auto;
+    cursor:pointer;
+    overflow:hidden; 
+    text-align:center; 
+    text-indent:-2000px; 
+    background:url(../../images/IE6Img/listStatus.png) no-repeat;
+}
+.checkedStatus{  background-position:0px -2px;}
+.abNormalIcon{  background-position:0 -89px; }
+.errorIcon{ background-position:0 -45px; }
+.news{ background-position:0 -125px;}
+.someAgree{background-position:0 -154px;}
+.needSure{background-position:-25px -154px;}
+/*短信请求发送*/
+.statusSending{ background-position:-25px -125px;}
+
+/*显示设备状态：在用、多余、待修、待报废、丢失、报废、调出、降档、其他*/
+.EqpNormal,.EqpOverage,.EqpRepair,.EqpScraping,.EqpLosed,.EqpScrapped,.EqpOut,.EqpDownshift,.EqpOther{width:10px; height:10px; margin:0 auto; text-align:center; line-height:10px; }
+.EqpNormal{ background-color:#25e100; color:White;}  /*在用  绿色系*/
+.EqpOverage{ background-color:#efc500;} /*多余  黄色系*/
+.EqpRepair{ background-color:#c70000; color:White;}  /*待修  红色系*/
+.EqpScraping{ background-color:#ff0000;}/*待报废  红色系*/
+.EqpLosed{ background-color:#840000;}   /*丢失  红色系*/
+.EqpScrapped{ background-color:#7a0062;}/*报废  红色系*/
+.EqpOut{ background-color:#00e41b; color:White;}     /*调出  绿色系*/
+.EqpDownshift{ background-color:#087400; color:White;}/*降档  绿色系*/
+.EqpOther{ background-color:black; color:White;}     /*其他  黑色*/
+
+/*
+//显示设备长事务锁：未锁定、清查锁定、调拨锁定、报废锁定、验收单锁定（添加附件验收单锁定）、设备信息更正申请锁定
+//wrt by zml 2012-10-13
+*/
+.hideFont 
+{   
+    width:18px; 
+    margin:-2px auto;
+    cursor:pointer;
+    overflow:hidden; 
+    text-indent:-2000px;
+}
+.EqpNoLocked,.EqpLockedByChecking,.EqpLockedByAlloc,.EqpLockedByScrap,.EqpLockedByAddAnnex,.EqpLockedByChangeInfo{width:16px; height:10px; margin:0 auto; overflow:hidden; background:url(../../images/IE6Img/allLock.gif) no-repeat; }
+.EqpNoLocked{ background-position:0 0;}
+.EqpLockedByChecking{ background-position:-48px 0;}
+.EqpLockedByAlloc{ background-position:-75px 0;}
+.EqpLockedByScrap{ background-position:-22px 0;}
+.EqpLockedByAddAnnex{ background-position:-100px 0;}
+.EqpLockedByChangeInfo{ background-position:-125px 0;}

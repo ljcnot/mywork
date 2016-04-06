@@ -1,0 +1,121 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>组织机构详细信息</title>
+    <link href="../css/style.css" rel="stylesheet" type="text/css" />
+    <link href="../css/userCss.css" rel="stylesheet" type="text/css" />
+    <link href="../../css/lhgdialog/idialog.css" rel="stylesheet" type="text/css" />
+    <link href="../../css/comboboxDefault.css" rel="stylesheet" type="text/css" />
+
+    <!--jquery主函数库库 -->
+    <script src="../../jquery/jquery-1.10.2.js" type="text/javascript"></script>
+    <script src="../../js/cookie.js" type="text/javascript"></script>
+    <!--控件提示与验证jquery函数库 -->
+    <script src="../../jquery/validator.js" type="text/javascript"></script>
+    <script src="../../jquery/tip.js" type="text/javascript"></script>
+    <!--系统参数库-->
+    <script src="../../js/sysTools.js" type="text/javascript"></script>
+    <script src="../../js/formats.js" type="text/javascript"></script>
+    <!--HELP ID预定义常量-->
+    <script src="../../js/helpID.js" type="text/javascript"></script>
+    <!--权限函数库-->
+    <script src="../../js/right.js" type="text/javascript"></script>
+    <!--公司专用的UI控件-->
+    <script src="../../js/UIcomm.js" type="text/javascript"></script>
+    <!--新combobox控件：-->
+    <script src="../../js/combo_2.0/combo.js"></script>
+    <!--新对话合类库-->
+    <script src="../../jquery/lhgdialog/lhgdialog.js" type="text/javascript"></script>
+    <script language="javascript" type="text/javascript">        
+        var orgID = getArg("orgID");
+        $(function ()//显示机构代码：
+        { document.getElementById("txtOrgID").value = orgID; });
+        //弹出窗口调用参数：
+        var api = frameElement.api, W = api.opener;       
+
+        //关闭：
+        function closeMe() {
+            api.setResultStatus("success");
+            setTimeout(function () { api.close(false); }, 100);
+        }
+        // 初始化函数：
+        $(function () {
+            loadData();
+        });
+        //读取数据：
+        function loadData() {
+            $.ajax({
+                async: false,   //调用方式：同步
+                type: "POST",
+                url: "handler/queryOrgInfo.ashx",
+                data: { "orgID": orgID },
+                dataType: "text",
+                success: function (strJson) {
+                    if (strJson != " ") {
+                        strJson = strJson.replace(/\r/g, "");
+                        strJson = strJson.replace(/\n/g, "<br />");
+                        var result = {};
+                        eval("result=" + strJson + ";");
+
+                        //组织机构的基本信息：
+                        document.getElementById("txtOrgID").value = result.orgID;
+                        document.getElementById("txtOrgType").value = result.orgType;
+                        document.getElementById("txtOrgName").value = result.orgName;
+                        document.getElementById("txtAbbOrgName").value = result.abbOrgName;
+                        document.getElementById("txtInputCode").value = result.inputCode;
+                        document.getElementById("txtE_mail").value = result.e_mail;
+                        document.getElementById("txtTel").value = result.tel;
+                        document.getElementById("txtTAddress").value = result.tAddress;
+                        document.getElementById("txtWeb").value = result.web;
+                    }
+                    else if (result.substring(0, 6) == "Error:") {
+                        $.dialog.errorTips(result.substring(6));
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) { errorReport(XMLHttpRequest, textStatus, errorThrown); }
+            });
+        }
+    </script>
+</head>
+<body>
+    <div id="frame">
+        <table summary="详细信息">
+            <tr>
+                <td>机构代码:</td>
+                <td><input class="hei" id="txtOrgID" type="text" title="请输入组织机构代码" /></td>
+                <td>机构类型：</td>
+                <td><input class="hei" id="txtOrgType" type="text" title="请输入组织机构类型"></td>
+            </tr>
+            <tr>
+                <td>机构名称:</td>
+                <td><input class="hei" id="txtOrgName" type="text" title="请输入组织机构名称" /></td>
+                <td>机构简称：</td>
+                <td><input class="hei" id="txtAbbOrgName" type="text" title="请输入组织机构简称" /></td>
+            </tr>
+            <tr>
+                <td>输入码:</td>
+                <td><input class="hei" id="txtInputCode" type="text" title="请输入组织输入码" /></td>
+                <td>邮箱地址:</td>
+                <td><input class="hei" id="txtE_mail" type="text" title="请输入组织邮箱地址" /></td>
+            </tr>
+            <tr>
+                <td>联系电话:</td>
+                <td><input class="hei" id="txtTel" type="text" title="请输入组织联系电话" /></td>
+                <td>地址:</td>
+                <td><input class="hei" id="txtTAddress" type="text" title="请输入组织机构地址" /></td>
+            </tr>
+            <tr>
+                <td>网址:</td>
+                <td><input class="hei" id="txtWeb" type="text" title="请输入组织机构网址" /></td>
+            </tr>
+            <tr>
+                <td class="footer" colspan="4">
+                    <input type="button" id="btnSave" class="closeBtn" value="提  交" onclick="saveData();" />
+                    <input type="button" id="btnClose" class="closeBtn" value="取  消" onclick="closeMe();" />
+                </td>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>
