@@ -1,0 +1,12 @@
+﻿/*各单位明细页面的样式定义*/
+#user{width:240px; height:100%; overflow:no-display; float:left; font-size:14px; font-family:宋体; line-height:24px; font-weight:normal;}
+#dataWin{
+    margin-left:5px;
+    float:left;
+    width: 0px;
+    height: 0px;
+}
+a:link {color: #000;  text-decoration:none;}		/* 未访问的链接 */
+a:visited {color: blue; text-decoration:none;}	    /* 已访问的链接 */
+a:hover {color: blue; text-decoration:underline;}	    /* 鼠标移动到链接上 */
+a:active {color: red; text-decoration: none;}
