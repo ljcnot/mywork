@@ -139,9 +139,9 @@
 
 </head>
 <body>
-    <div id="frame">
-      <h4>添加差旅费报销单</h4>
-        <table>
+    <div id="travel_frame">
+        <h4>添加差旅费报销单</h4>
+        <table class="travel">
             <tr>
                 <td>部门：</td>
                 <td><div id="abAountType" class="combo" tip="请选择部门"></div></td>
@@ -161,11 +161,11 @@
         <table cellpadding="0" cellspacing="0" class="travelTotal">
             <tr>
                 <td>合计：</td>
-                <td><input class="total_box" type="text" disabled="disabled" style="background:#f7f7f7" /><span>&nbsp;元</span></td>                
+                <td><input class="total_box" type="text" disabled="disabled" style="background:#f7f7f7" /><span>&nbsp;元</span></td>
             </tr>
         </table>
 
-        
+
 
         <table>
             <tr>
@@ -239,7 +239,7 @@
 
         <div class="separated"></div>
 
-        <table cellpadding="0" cellspacing="0">
+        <table class="travel" cellpadding="0" cellspacing="0">
             <tr>
                 <td>备注：</td>
                 <td colspan="3"><textarea class="Borrow_text_area" cols="51" rows="3"></textarea></td>
@@ -250,7 +250,7 @@
 
         <div class="separated"></div>
 
-        <table>
+        <table class="travel" cellpadding="0" cellspacing="0">
             <tr>
                 <td>审批人：</td>
                 <td colspan="5"><input class="input_box" type="text"></td>

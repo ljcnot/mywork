@@ -212,17 +212,18 @@
         $(function () {
             thisGrid = $("#flex1").flexigrid(
            {
-               url: "Handler/userListHandler.ashx",
+               url: "",
                params: [{ name: "where", value: strWhere }],
                dataType: "xml",
                data: null,
                colModel: [
                 { display: '序号', name: 'userID', width: 50, sortable: true, align: 'center' },
                 { display: '项目', name: 'RowID', width: 50, sortable: false, align: 'center' },
-                { display: '客户单位', name: 'userID', width: 50, sortable: true, align: 'left' },
-                { display: '负责人', name: 'userID', width: 50, sortable: true, align: 'left' },
+                { display: '负责人', name: 'RowID', width: 50, sortable: false, align: 'center' },
+                { display: '开工日期', name: 'userID', width: 50, sortable: true, align: 'left' },
+                { display: '完工日期', name: 'userID', width: 50, sortable: true, align: 'left' },
                 { display: '摘要', name: 'userID', width: 50, sortable: true, align: 'left' },
-                { display: '总金额', name: 'userID', width: 50, sortable: true, align: 'left' },
+                { display: '金额', name: 'userID', width: 50, sortable: true, align: 'left' },
                 { display: '备注', name: 'userID', width: 50, sortable: true, align: 'left' },
 
 
@@ -256,7 +257,7 @@
            });
             thisGrid2 = $("#flex2").flexigrid(
           {
-              url: "Handler/userListHandler.ashx",
+              url: "",
               params: [{ name: "where", value: strWhere }],
               dataType: "xml",
               data: null,

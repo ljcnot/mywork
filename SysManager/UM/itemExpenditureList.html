@@ -63,8 +63,9 @@
                     h = $(p).height();
                 }
             }
-            _w = w; _h = h;
-            thisGrid.flexResize(w, h - 87);
+            _w = (w/2); _h = h;
+            thisGrid.flexResize(_w, _h - 87);
+            thisGrid2.flexResize(_w, _h - 87);
         }
         //修正提示弹窗的停顿问题
         //wrt by lw 2013-3-26
@@ -101,14 +102,20 @@
         //------------------------------------应用权限的数据操作集 by lw 2011-9-28---------------------------
         //var curUser = getCurUserInfo(); //包含服务器时间的当前用户信息
         var curTools = [];
-        curTools[curTools.length] = { name: 'cmdNew', displayname: "付款登记", bclass: 'cmdNew', title: "付款登记", onpress: toolbarItem_onclick };
-        curTools[curTools.length] = { name: 'cmdUpdate', displayname: "订正", bclass: 'cmdUpdate', title: "订正", onpress: toolbarItem_onclick };
-        curTools[curTools.length] = { name: 'cmdVerify', displayname: "财务确认", bclass: 'cmdVerify', title: "财务确认", onpress: toolbarItem_onclick };
         curTools[curTools.length] = { name: 'cmdShowCard', displayname: "详情", bclass: 'cmdShowCard', title: "详情", onpress: toolbarItem_onclick };
         curTools[curTools.length] = { name: 'cmdPreview', displayname: "刷新", bclass: 'cmdPreview', title: "刷新", onpress: toolbarItem_onclick };
         curTools[curTools.length] = { name: 'cmdFilter', displayname: "筛选", bclass: 'cmdFilter', title: "筛选", onpress: toolbarItem_onclick };
         curTools[curTools.length] = { name: 'cmdOutput', displayname: "导出", bclass: 'cmdOutput', title: "导出", onpress: toolbarItem_onclick };
         curTools[curTools.length] = { name: 'cmdPrint', displayname: "打印", bclass: 'cmdPrint', title: "打印", onpress: toolbarItem_onclick };
+        var curTools2 = [];
+        curTools2[curTools2.length] = { name: 'cmdNew', displayname: "收款登记", bclass: 'cmdNew', title: "收款登记", onpress: toolbarItem_onclick };
+        curTools2[curTools2.length] = { name: 'cmdUpdate', displayname: "订正", bclass: 'cmdUpdate', title: "订正", onpress: toolbarItem_onclick };
+        curTools2[curTools2.length] = { name: 'cmdVerify', displayname: "发送确认", bclass: 'cmdVerify', title: "发送确认", onpress: toolbarItem_onclick };
+        curTools2[curTools2.length] = { name: 'cmdShowCard', displayname: "详情", bclass: 'cmdShowCard', title: "详情", onpress: toolbarItem_onclick };
+        curTools2[curTools2.length] = { name: 'cmdPreview', displayname: "刷新", bclass: 'cmdPreview', title: "刷新", onpress: toolbarItem_onclick };
+        curTools2[curTools2.length] = { name: 'cmdFilter', displayname: "筛选", bclass: 'cmdFilter', title: "筛选", onpress: toolbarItem_onclick };
+        curTools2[curTools2.length] = { name: 'cmdOutput', displayname: "导出", bclass: 'cmdOutput', title: "导出", onpress: toolbarItem_onclick };
+        curTools2[curTools2.length] = { name: 'cmdPrint', displayname: "打印", bclass: 'cmdPrint', title: "打印", onpress: toolbarItem_onclick };
         //允许的编辑操作集：
         //var allowEditOprs = getDataOprs(curUser.curUserInfo.userDataOprs, 7, 4, 0, 2);
         //if (haveAllowOpr(allowEditOprs, "cmdNew"))
@@ -215,7 +222,7 @@
         $(function () {
             thisGrid = $("#flex1").flexigrid(
            {
-               url: "Handler/userListHandler.ashx",
+               url: "",
                params: [{ name: "where", value: strWhere }],
                dataType: "xml",
                data: null,
@@ -227,9 +234,6 @@
                 { display: '摘要', name: 'userID', width: 50, sortable: true, align: 'left' },
                 { display: '金额', name: 'userID', width: 50, sortable: true, align: 'left' },
                 { display: '备注', name: 'userID', width: 50, sortable: true, align: 'left' },
-                { display: '合同金额', name: 'userID', width: 50, sortable: true, align: 'left' },
-                { display: '已付金额', name: 'userID', width: 50, sortable: true, align: 'left' },
-                { display: '应付金额', name: 'userID', width: 50, sortable: true, align: 'left' },
 
 
                 ],
@@ -246,7 +250,7 @@
                rp: 20,
                showTableToggleBtn: false,
                width: _w,
-               height: _h,   //这是表格体的高度，要减去标题、工具条、表头和状态栏的高度
+               height: _h-87,   //这是表格体的高度，要减去标题、工具条、表头和状态栏的高度
                singleSelect: true,  //只能单选
 
                showcheckbox: true, //显示checkbox
@@ -262,22 +266,17 @@
            });
             thisGrid2 = $("#flex2").flexigrid(
           {
-              url: "Handler/userListHandler.ashx",
+              url: "",
               params: [{ name: "where", value: strWhere }],
               dataType: "xml",
               data: null,
               colModel: [
                { display: '序号', name: 'userID', width: 50, sortable: true, align: 'center' },
                { display: '部门', name: 'RowID', width: 50, sortable: false, align: 'center' },
-               { display: '项目', name: 'userID', width: 50, sortable: true, align: 'left' },
-               { display: '付款单位', name: 'userID', width: 50, sortable: true, align: 'left' },
-               { display: '付款日期', name: 'userID', width: 50, sortable: true, align: 'left' },
+               { display: '收款日期', name: 'userID', width: 50, sortable: true, align: 'left' },
                { display: '摘要', name: 'userID', width: 50, sortable: true, align: 'left' },
                { display: '金额', name: 'userID', width: 50, sortable: true, align: 'left' },
                { display: '备注', name: 'userID', width: 50, sortable: true, align: 'left' },
-               { display: '合同金额', name: 'userID', width: 50, sortable: true, align: 'left' },
-               { display: '已付金额', name: 'userID', width: 50, sortable: true, align: 'left' },
-               { display: '应付金额', name: 'userID', width: 50, sortable: true, align: 'left' },
 
 
               ],
@@ -285,7 +284,7 @@
               searchitems: [
                   { display: '工号', name: 'userID', isdefault: true, operater: "Like" }
               ],
-              buttons: curTools,
+              buttons: curTools2,
               sortname: "userID",
               sortorder: "desc",
               title: "",
@@ -294,7 +293,7 @@
               rp: 20,
               showTableToggleBtn: false,
               width: _w,
-              height: _h,   //这是表格体的高度，要减去标题、工具条、表头和状态栏的高度
+              height: _h-87,   //这是表格体的高度，要减去标题、工具条、表头和状态栏的高度
               singleSelect: true,  //只能单选
 
               showcheckbox: true, //显示checkbox

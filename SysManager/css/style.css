@@ -15,17 +15,18 @@ h4 {
     background: #e5f1f6;
     margin:0;
 }
-#frame {
-    width:660px;
-    margin: 0 auto;
+#frame{
+    margin:0 auto;
+    width:620px;
 }
-table {
+table{
     margin:0;
     padding:0;
-    width: 620px;
-    color: #565;
-    font: 16px;
+    width:600px;
+    color:#565;
+    font:16px;
 }
+
 /*差旅费报销单*/
 .travel{
     width:960px;
@@ -40,23 +41,48 @@ table {
     width:794px;
     border:1px solid #ccc;
 }
-.project_time,.travel_allowance{
+.travel_allowance,.project_transportation,.other{
     margin:10px 0 10px 0;
     padding:0 0 10px 30px; 
     width:960px;
     border:1px dashed #ccc;
 }
-.other{
+.project_time{
     margin:10px 0 10px 0;
-    padding:0 0 10px 30px;
-    width:650px;
+    padding:0 0 10px 30px; 
+    width:860px;
     border:1px dashed #ccc;
 }
+table h5{
+    color:#000;
+}
+.travelGridBtn{
+    margin-left:18px;
+    font-size:14px;
+    width:75px;
+    height:25px; 
+    vertical-align:middle; 
+    text-align:center;
+    cursor:pointer;
+}
+
 h5{
     margin:0;
     padding:0;
 }
 #divLeft{background:none;}
+.travelTotal{
+    margin-left:780px;
+    width:200px;
+    color: #565;
+    font: 16px;
+}
+.travel_text{
+    width:826px;
+    height:26px;
+    border:1px solid #ccc;
+}
+
  /*单元格样式*/
 tr td {
     padding-top:10px;
@@ -114,6 +140,37 @@ tr td {
     height:26px;
     border:1px solid #ccc;
 }
+
+/*详情*/
+.Borrow_full_text_details{
+    width:434px;
+    height:26px;
+    border:1px solid #cccccc;
+    color:#bfbfbf;
+}
+.Borrow_text_area_details{
+    width:434px;
+    border:1px solid #cccccc;
+    color:#bfbfbf;
+}
+.project_text_details{
+    width:436px;
+    height:26px;
+    border:1px solid #ccc;
+    color:#bfbfbf;
+}
+.text_area_details{
+    width:457px;
+    border:1px solid #ccc;
+    color:#bfbfbf;
+}
+.rmb_details{
+    width:130px;
+    height:26px;
+    border:1px solid #ccc;
+    color:#bfbfbf;
+}
+
 /*添加费用报销单*/
 .gridBtn{
     margin-left:-60px;
@@ -123,6 +180,22 @@ tr td {
     vertical-align:middle; 
     text-align:center;
     cursor:pointer;
+}
+.grid{
+    margin-bottom:50px;
+}
+.total{
+    margin-left:440px;
+    width:200px;
+    color: #565;
+    font: 16px;
+}
+.total_box{
+    background:#f00;
+    width:80px;
+    height:26px;
+    border:1px solid #cccccc;
+    background:none;
 }
 /*日历控件*/
 #txtSignDate,#txtSignDate_start,#txtSignDate_end,#txtApplyDate,#txtReceivableDate {

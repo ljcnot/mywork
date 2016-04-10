@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>添加费用报销单</title>
+    <title>审核费用报销单</title>
     <!--combox控件样式表-->
     <link href="../../css/comboboxDefault.css" rel="stylesheet" type="text/css" />
     <!--对话盒样式表-->
@@ -129,17 +129,17 @@
 </head>
 <body>
     <div id="frame">
-      <h4>添加费用报销单</h4>
-        <table>
+        <h4>审核费用报销单</h4>
+        <table cellpadding="0" cellspacing="0">
             <tr>
                 <td>部门：</td>
                 <td><div id="abAountType" class="combo" tip="请选择部门"></div></td>
                 <td>报销时间：</td>
-                <td><input type="text" id="txtSignDate" reg="^\S+$" tip="请输入或选择报销日期" /></td>
+                <td><input type="text" id="txtSignDate" reg="^\S+$" tip="请输入或选择报销日期" style="background:#f7f7f7" /></td>
             </tr>
             <tr>
                 <td>项目：</td>
-                <td colspan="3"><input class="project_text" type="text"></td>
+                <td colspan="3"><input class="project_text" type="text" style="background:#f7f7f7"></td>
             </tr>
         </table>
 
@@ -150,28 +150,28 @@
         <table cellpadding="0" cellspacing="0" class="total">
             <tr>
                 <td>合计：</td>
-                <td><input class="total_box" type="text" disabled="disabled" style="background:#f7f7f7" /><span>&nbsp;元</span></td>                
+                <td><input class="total_box" type="text" disabled="disabled" style="background:#f7f7f7" /><span>&nbsp;元</span></td>
             </tr>
         </table>
 
         <table>
             <tr>
                 <td>
-                    <table cellpadding="0" cellspacing="0">
+                    <table cellpadding="0" cellspacing="0" class="examinetab">
                         <tr>
                             <td>摘要：</td>
-                            <td colspan="3"><textarea class="Borrow_text_area" cols="51" rows="3"></textarea></td>
+                            <td colspan="3"><textarea class="Borrow_text_area" cols="51" rows="3" style="background:#f7f7f7"></textarea></td>
                         </tr>
 
                         <tr>
                             <td>科目</td>
-                            <td><div id="abAountType" class="combo" tip="请选择科目"></div></td>
+                            <td><input class="input_box" type="text" style="background:#f7f7f7"></td>
                             <td>金额：</td>
-                            <td><input class="rmb" type="text" /><span>&nbsp;元</span></td>
+                            <td><input class="rmb" type="text" style="background:#f7f7f7" /><span>&nbsp;元</span></td>
                         </tr>
                     </table>
                 </td>
-                
+
                 <td>
                     <table cellpadding="0" cellspacing="0">
                         <tr><td><input type="button" id="btnSave" class="gridBtn" value="添  加" onclick="saveData();" /></td></tr>
@@ -184,14 +184,10 @@
 
         <div class="separated"></div>
 
-        <table cellpadding="0" cellspacing="0">
+        <table cellpadding="0" cellspacing="0" class="examinetab">
             <tr>
                 <td>备注：</td>
-                <td colspan="3"><textarea class="Borrow_text_area" cols="51" rows="3"></textarea></td>
-            </tr>
-            <tr>
-                <td>票据说明：</td>
-                <td colspan="3"><textarea class="Borrow_text_area" cols="51" rows="3"></textarea></td>
+                <td colspan="3"><textarea class="Borrow_text_area" cols="51" rows="3" style="background:#f7f7f7"></textarea></td>
             </tr>
             <tr>
                 <td>报销人</td>
@@ -199,8 +195,25 @@
             </tr>
         </table>
 
+        <div class="separated"></div>
+
+        <table class="examinetab">
+            <tr>
+                <td>审批人：</td>
+                <td><input class="input_box" type="text" style="background:#f7f7f7"></td>
+                <td>审批人职务：</td>
+                <td><input class="input_box" type="text" style="background:#f7f7f7" /></td>
+            </tr>
+            <tr>
+                <td>审批意见：</td>
+                <td colspan="3"><textarea class="Borrow_text_area" cols="51" rows="3"></textarea></td>
+            </tr>
+        </table>
+
         <div class="footer">
-            <input type="button" id="btnSave" class="closeBtn" value="提  交" onclick="saveData();" />
+            <input type="button" id="btnAgreed" class="closeBtn" value="同  意" onclick="saveData();" />
+            <input type="button" id="btnUnAgreed" class="closeBtn" value="不同意" onclick="saveData();" />
+            <input type="button" id="btnBack" class="closeBtn" value="退  回" onclick="closeMe();" />
             <input type="button" id="btnClose" class="closeBtn" value="取  消" onclick="closeMe();" />
         </div>
     </div>

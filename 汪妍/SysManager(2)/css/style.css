@@ -15,17 +15,18 @@ h4 {
     background: #e5f1f6;
     margin:0;
 }
-#frame {
-    width:960px;
-    margin: 0 auto;
+#frame{
+    margin:0 auto;
+    width:620px;
 }
-table {
+table{
     margin:0;
     padding:0;
-    width: 920px;
-    color: #565;
-    font: 16px;
+    width:600px;
+    color:#565;
+    font:16px;
 }
+
 /*差旅费报销单*/
 .travel{
     width:960px;
@@ -64,12 +65,7 @@ table h5{
     text-align:center;
     cursor:pointer;
 }
-/*.other{
-    margin:10px 0 10px 0;
-    padding:0 0 10px 30px;
-    width:650px;
-    border:1px dashed #ccc;
-}*/
+
 h5{
     margin:0;
     padding:0;
@@ -121,17 +117,6 @@ tr td {
     border:1px solid #cccccc;
 }
 /*借支单*/
-#Borrowframe{
-    width:620px;
-    margin: 0 auto;
-}
-.tabBorrow{
-    margin:0;
-    padding:0;
-    width: 600px;
-    color: #565;
-    font: 16px;
-}
 .Borrow_full_text{
     width:434px;
     height:26px;
@@ -169,7 +154,7 @@ tr td {
     margin-bottom:50px;
 }
 .total{
-    margin-left:480px;
+    margin-left:440px;
     width:200px;
     color: #565;
     font: 16px;
@@ -181,22 +166,9 @@ tr td {
     border:1px solid #cccccc;
     background:none;
 }
-
-/*营业支出审核*/
-#examineFrame{
-    width:620px;
-    margin: 0 auto;
-}
-.examinetab{
-    margin:0;
-    padding:0;
-    width: 600px;
-    color: #565;
-    font: 16px;
-}
 /*日历控件*/
-#txtSignDate,#txtSignDate_start,#txtSignDate_end,#txtApplyDate,#txtReceivableDate {
-    width:134px;
+#txtSignDate,#txtSignDate_start,#txtSignDate_end,#txtApplyDate,#txtReceivableDate,#txtSignDate1,#txtSignDate3,#txtSignDate4 {
+    width:130px;
     height:26px;
     border:1px solid #ccc;
     ime-mode: disabled;

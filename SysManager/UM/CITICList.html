@@ -101,10 +101,6 @@
         //------------------------------------应用权限的数据操作集 by lw 2011-9-28---------------------------
         //var curUser = getCurUserInfo(); //包含服务器时间的当前用户信息
         var curTools = [];
-        curTools[curTools.length] = { name: 'cmdNew', displayname: "新建单据", bclass: 'cmdNew', title: "新建单据", onpress: toolbarItem_onclick };
-        curTools[curTools.length] = { name: 'cmdUpdate', displayname: "订正", bclass: 'cmdUpdate', title: "订正", onpress: toolbarItem_onclick };
-        curTools[curTools.length] = { name: 'cmdVerify', displayname: "删除", bclass: 'cmdVerify', title: "删除", onpress: toolbarItem_onclick };
-        curTools[curTools.length] = { name: 'cmdVerify', displayname: "提交审核", bclass: 'cmdVerify', title: "提交审核", onpress: toolbarItem_onclick };
         curTools[curTools.length] = { name: 'cmdShowCard', displayname: "详情", bclass: 'cmdShowCard', title: "详情", onpress: toolbarItem_onclick };
         curTools[curTools.length] = { name: 'cmdPreview', displayname: "刷新", bclass: 'cmdPreview', title: "刷新", onpress: toolbarItem_onclick };
         curTools[curTools.length] = { name: 'cmdFilter', displayname: "筛选", bclass: 'cmdFilter', title: "筛选", onpress: toolbarItem_onclick };
@@ -221,15 +217,12 @@
                data: null,
                colModel: [
                 { display: '序号', name: 'userID', width: 50, sortable: true, align: 'center' },
-                { display: '单据类型', name: 'RowID', width: 50, sortable: false, align: 'center' },
-                { display: '摘要', name: 'userID', width: 50, sortable: true, align: 'left' },
-                { display: '创建时间', name: 'userID', width: 50, sortable: true, align: 'left' },
-                { display: '金额', name: 'userID', width: 50, sortable: true, align: 'left' },                
-                { display: '项目', name: 'userID', width: 50, sortable: true, align: 'left' },
-                { display: '创建人', name: 'userID', width: 50, sortable: true, align: 'left' },
+                { display: '转账时间', name: 'userID', width: 50, sortable: true, align: 'left' },
+                { display: '收入', name: 'RowID', width: 50, sortable: false, align: 'center' },
+                { display: '支出', name: 'userID', width: 50, sortable: true, align: 'left' },
+                { display: '余额', name: 'userID', width: 50, sortable: true, align: 'left' },
+                { display: '对方账户', name: 'userID', width: 50, sortable: true, align: 'left' },                
                 { display: '备注', name: 'userID', width: 50, sortable: true, align: 'left' },
-
-
 
                 ],
                //buttons: curTools,

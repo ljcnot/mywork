@@ -49,28 +49,28 @@
         var _curDateTime;           //登录的时间
         var _curUser;               //当前用户登录信息，启动客户端用
 
-        $.ajax({
-            type: "POST",
-            url: "../handler/getCurUserInfo.ashx",
-            async: false,   //关闭异步执行
-            dataType: "text",
-            success: function (result) {
-                var curUser;
-                eval("curUser=" + result);
-                _curUserInfo = curUser.curUserInfo;
-                _curUser = curUser.curUser;
-                var t = curUser.ServerDateTime.substring(0, 10);
-                _curDateTime = t.substring(0, 4) + '年' + t.substring(5, 7) + '月' + t.substring(8, 10) + '日';
-                //            if (_curUserInfo.loginMessage == "") {
-                //                setDataLimit(); //设置资源列表限制！
-                //            }
-                //            else {
-                //                $.dialog.errorTips("系统在初始化用户信息的时候出错！出错信息：" + _curUserInfo.loginMessage, false, api);
-                //                setTimeout(function () { window.location = "logOut.html"; }, 300);
-                //            }
-            },
-            error: errorProcess
-        });
+        //$.ajax({
+        //    type: "POST",
+        //    url: "../handler/getCurUserInfo.ashx",
+        //    async: false,   //关闭异步执行
+        //    dataType: "text",
+        //    success: function (result) {
+        //        var curUser;
+        //        eval("curUser=" + result);
+        //        _curUserInfo = curUser.curUserInfo;
+        //        _curUser = curUser.curUser;
+        //        var t = curUser.ServerDateTime.substring(0, 10);
+        //        _curDateTime = t.substring(0, 4) + '年' + t.substring(5, 7) + '月' + t.substring(8, 10) + '日';
+        //        //            if (_curUserInfo.loginMessage == "") {
+        //        //                setDataLimit(); //设置资源列表限制！
+        //        //            }
+        //        //            else {
+        //        //                $.dialog.errorTips("系统在初始化用户信息的时候出错！出错信息：" + _curUserInfo.loginMessage, false, api);
+        //        //                setTimeout(function () { window.location = "logOut.html"; }, 300);
+        //        //            }
+        //    },
+        //    error: errorProcess
+        //});
         //根据用户权限，装配导航菜单：
         //wrt by lw 2013-1-18
         function makeNavigateMenu() {
