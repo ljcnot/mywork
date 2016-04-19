@@ -639,22 +639,25 @@ lockManID varchar(10)				--当前正在锁定编辑的人工号
 GO
 
 
-
-drop table CashJournal 
-create table CashJournal(
-CashJournalDate	smalldatetime	not	null,	--日期
-abstract	varchar(30)	not	null,	--摘要
-debit	float	not	null,	--借记
-credit	float	not	null,	--贷记
-balance	float	not	null,	--余额
-voucherNum	varchar(13),	--凭证号
-paymentMethod	int	not	null,--支付方式
-cashJournalID	varchar(13),	--现金日记编号
-department	varchar(20),	--部门
-project	varchar(50),	--项目
-brokerage	varchar(16),	--经手人
-remarks	varchar(200),	--备注
---创建人：add by lw 2012-8-9为了保持操作的范围——个人的一致性增加的字段
+--账户明细表
+drop table accountDetailsList 
+create table accountList(
+AccountDetailsID	varchar(16)	not null,	--账户明细ID
+accountID	varchar(13)	not null,	--账户ID
+account		varchar(30)	not	null,	--账户名称
+detailDate	smalldatetime	not null,	--日期
+abstract	varchar(200),	--摘要
+borrow		money,		--借
+loan		money,		--贷
+balance		money,		--余额
+departmentID	varchar(13),	--部门ID
+department		varchar(30),	--部门
+projectID		varchar(13),	--项目ID
+project			varchar(100),	--项目
+clerkID		varchar(13),		--经手人ID
+clerk		varchar(20),		--经手人
+remarks		varchar(200),		--备注
+--创建人：为了保持操作的范围——个人的一致性增加的字段
 createManID varchar(10) null,		--创建人工号
 createManName varchar(30) null,		--创建人姓名
 createTime smalldatetime null,		--创建时间
@@ -669,10 +672,45 @@ lockManID varchar(10)				--当前正在锁定编辑的人工号
 )
 
 
-drop table VATinvoiceDetails 
-create table VATinvoiceDetails(
-VATinvoiceID	varchar(17)	not	null,	--增值税发票编号
-goodsName	varchar(20)	not	null,	--货物或应税劳务、服务名称
-SpecificationModel	int	not	null,	--规格型号
-company	varchar(20)	not	null,	--单位
+--账户表
+drop table accountList
+create table accountList(
+accountID	varchar(13) not null,	--账户ID
+accountName	varchar(50)	not null,	--账户名称
+bankAccount	varchar(100) not null,	--开户行
+accountCompany	varchar(100)	not null,	--开户名
+accountOpening	varchar(50)	not	null,	--开户账号
+bankAccountNum	varchar(50)	not null,	--开户行号
+accountDate	smalldatetime	not	null,	--开户时间
+administratorID	varchar(13)	,	--管理人ID
+administartor	varchar(20)	,	--管理人(姓名）
+branchAddress	varchar(100),	--支行地址
+remarks	varchar(200),	--备注
+--创建人：为了保持操作的范围——个人的一致性增加的字段
+createManID varchar(10) null,		--创建人工号
+createManName varchar(30) null,		--创建人姓名
+createTime smalldatetime null,		--创建时间
+
+--最新维护情况:
+modiManID varchar(10) null,			--维护人工号
+modiManName nvarchar(30) null,		--维护人姓名
+modiTime smalldatetime null,		--最后维护时间
+
+--编辑锁定人：
+lockManID varchar(10)				--当前正在锁定编辑的人工号
 )
+
+
+--账户移交表
+drop table accountTransferList
+create table accountTransferList(
+accountTransferID varchar(15)	not null,	--账户移交ID
+handoverDate	smalldatetime	not null,	--移交日期
+transferAccountID	varchar(13)	not	null,	--移交账户ID
+transferAccount		varchar(30)	not null,	--移交账户
+transferPersonID	varchar(13)	not null,	--移交人ID
+transferPerson		varchar(20)	not null,	--移交人
+handoverPersonID	varchar(13)	not	null,	--交接人ID
+handoverPerson		varchar(20)	not	null,	--交接人
+transferMatters		varchar(200),	--移交事项
+remarks		varchar(200),	--备注
