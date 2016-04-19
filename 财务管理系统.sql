@@ -714,3 +714,77 @@ handoverPersonID	varchar(13)	not	null,	--交接人ID
 handoverPerson		varchar(20)	not	null,	--交接人
 transferMatters		varchar(200),	--移交事项
 remarks		varchar(200),	--备注
+)
+
+
+--收入一览表
+drop table incomeList
+create table incomeList(
+incomeInformationID varchar(16)	not null,	--收入信息ID
+projectID	varchar(13)	not null,	--项目ID
+project		varchar(50)	not null,	--项目名称
+customerID	varchar(13)	not null,	--客户ID
+customerName	varchar(30)	not null,	--客户名称
+abstract	varchar(200)	not null,	--摘要
+incomeSum	money not null,	--收入金额
+contractAmount money ,	--合同金额
+receivedAmount	money,	--已收金额
+remarks	varchar(200),	--备注
+collectionModeID	varchar(13) not null,	--收款方式ID
+collectionMode		varchar(50)	not null,	--收款方式
+startDate	smalldatetime	not null,	--收款日期
+paymentApplicantID	varchar(13)	not null,	--收款申请人ID
+payee	varchar(10)	not null,	--收款人
+confirmationDate	smalldatetime	,	--确认日期
+confirmationPersonID	varchar(13),	--确认人ID
+confirmationPerson		varchar(10),	--确认人
+approvalOpinion			varchar(200),	--审批意见
+--创建人：为了保持操作的范围——个人的一致性增加的字段
+createManID varchar(10) null,		--创建人工号
+createManName varchar(30) null,		--创建人姓名
+createTime smalldatetime null,		--创建时间
+
+--最新维护情况:
+modiManID varchar(10) null,			--维护人工号
+modiManName nvarchar(30) null,		--维护人姓名
+modiTime smalldatetime null,		--最后维护时间
+
+--编辑锁定人：
+lockManID varchar(10)				--当前正在锁定编辑的人工号
+)
+
+--支出一览表
+drop table	expensesList
+create table expensesList(
+expensesID	varchar(16)	not null,	--支出信息ID
+projectID	varchar(13)	not null,	--项目ID
+project		varchar(50)	not null,	--项目名称
+customerID	varchar(13)	not null,	--客户ID
+customerName	varchar(30)	not null,	--客户名称
+abstract	varchar(200)	not null,	--摘要
+expensesSum	money	not null,	--支出金额
+contractAmount money ,	--合同金额
+receivedAmount money,	--已付金额
+remarks	varchar(200),	--备注
+collectionModeID	varchar(13) not null,	--付款方式ID
+collectionMode		varchar(50)	not null,	--付款方式
+startDate	smalldatetime	not null,	--付款日期
+paymentApplicantID	varchar(13)	not null,	--付款申请人ID
+paymentApplicant	varchar(10)	not null,	--付款申请人
+confirmationDate	smalldatetime	,	--确认日期
+confirmationPersonID	varchar(13),	--确认人ID
+confirmationPerson		varchar(10),	--确认人
+approvalOpinion			varchar(200),	--审批意见
+--创建人：为了保持操作的范围——个人的一致性增加的字段
+createManID varchar(10) null,		--创建人工号
+createManName varchar(30) null,		--创建人姓名
+createTime smalldatetime null,		--创建时间
+
+--最新维护情况:
+modiManID varchar(10) null,			--维护人工号
+modiManName nvarchar(30) null,		--维护人姓名
+modiTime smalldatetime null,		--最后维护时间
+
+--编辑锁定人：
+lockManID varchar(10)				--当前正在锁定编辑的人工号
+)
