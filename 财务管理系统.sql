@@ -37,11 +37,11 @@ create table borrwSingle(
 )WITH (IGNORE_DUP_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 
---外键：
-ALTER TABLE [dbo].[eqpApplyDetail] WITH CHECK ADD CONSTRAINT [FK_eqpApplyDetail_eqpApplyInfo] FOREIGN KEY([eqpApplyID])
-REFERENCES [dbo].[eqpApplyInfo] ([eqpApplyID])
-ON UPDATE CASCADE
-ON DELETE CASCADE
+----外键：
+--ALTER TABLE [dbo].[eqpApplyDetail] WITH CHECK ADD CONSTRAINT [FK_eqpApplyDetail_eqpApplyInfo] FOREIGN KEY([eqpApplyID])
+--REFERENCES [dbo].[eqpApplyInfo] ([eqpApplyID])
+--ON UPDATE CASCADE
+--ON DELETE CASCADE
 GO
 
 
@@ -58,11 +58,103 @@ create table ApprovalDetailsList(
 	)
 GO
 
+--0.号码发生器定义表：add by lw 2014-1-1
+drop table [dbo].[sysEncoder]
+CREATE TABLE [dbo].[sysEncoder]
+(
+	encoderID int not null,			--号码发生器的ID号
+	encoderName nvarchar(30),		--号码发生器名称
+	encoderPrefix varchar(8),		--前缀
+	encoderDateType int,			--日期码格式：0->不使用日期码,1->4位年度+2位月份+2位日期,2->4位年度+2位月份,3->4位年度
+	encoderSerialNumLen int,		--流水码长度
+	encoderSerialNumInc int default(1),	--流水码增量：计划扩展，暂时未用！
+	encoderSuffix varchar(8),		--后缀
+ CONSTRAINT [PK_sysEncoder] PRIMARY KEY CLUSTERED 
+(
+	[encoderID] ASC
+)WITH (IGNORE_DUP_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+SELECT * from sysEncoder e left join sysNumbers n on e.encoderID=n.numberClass
+
+
+--1.号码发生器表(sysNumbers)
+drop table [dbo].[sysNumbers]
+CREATE TABLE [dbo].[sysNumbers]
+(
+	numberClass smallint not null,	--号码类别：等价于sysEncoder中的encoderID
+	numberLength smallint not null, --号码长度
+	classDesc nvarchar(50) null,	--类别说明：等价于sysEncoder中的encoderName
+	curNumber varchar(30) null,		--当前号码
+ CONSTRAINT [PK_sysNumbers] PRIMARY KEY CLUSTERED 
+(
+	[numberClass] ASC
+)WITH (IGNORE_DUP_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+
+drop PROCEDURE  initNumberInstrument
+/*
+	name:		initNumberInstrument
+	function:	0.初始化指定类别的号码发生器
+	input: 
+				@numberType smallint,	--号码类别
+	output: 
+	author:		卢嘉诚
+	CreateDate:	2010-5-21
+	UpdateDate: 采用定义的号码发生器重写 modi by lw 2014-1-1
+*/
+CREATE PROCEDURE  initNumberInstrument
+	@numberType smallint	--号码类别
+	WITH ENCRYPTION 
+AS
+	declare @count int
+	set @count = (select count(*) from sysNumbers where numberClass = @numberType)
+	if @count > 0
+		return
+
+	declare @encoderName nvarchar(30)	--号码发生器名称
+	declare @encoderPrefix varchar(8)	--前缀
+	declare @encoderDateType int		--日期码格式：0->不使用日期码,1->4位年度+2位月份+2位日期,2->4位年度+2位月份,3->4位年度
+	declare @encoderSerialNumLen int	--流水码长度
+	declare @encoderSerialNumInc int	--流水码增量
+	declare @encoderSuffix varchar(8)	--后缀
+	select @encoderName = encoderName, @encoderPrefix = encoderPrefix, @encoderDateType = encoderDateType, 
+			@encoderSerialNumLen = encoderSerialNumLen, @encoderSerialNumInc = encoderSerialNumInc, @encoderSuffix = encoderSuffix 
+	from sysEncoder where encoderID = @numberType
+	if (@encoderName is null)
+		return
+
+	--日期码：
+	declare  @Year varchar(4), @Month varchar(2), @Day varchar(2)
+	declare  @Str varchar(50), @CurDate datetime
+	set  @CurDate =GetDate()
+
+	set @Year = right('0000' + ltrim(convert(varchar(4), year(@CurDate))),4)
+	set @Month  = right('0' + ltrim(convert(varchar(4), month(@CurDate))),2)
+	set @Day = right('0' + ltrim(convert(varchar(4), day(@CurDate))),2)
+	if (@encoderDateType=0)		--日期码格式：0->不使用日期码,1->4位年度+2位月份+2位日期,2->4位年度+2位月份,3->4位年度
+		set @Str=''
+	else if (@encoderDateType=1)
+		set @Str = @Year + @Month + @Day
+	else if (@encoderDateType=2)
+		set @Str = @Year + @Month
+	else if (@encoderDateType=3)
+		set @Str = @Year
+	
+	--生成初始号码：
+	set @Str = 	@encoderPrefix + @Str + replace(SPACE(@encoderSerialNumLen - 1),' ','0')+'1'+ @encoderSuffix
+
+	insert sysNumbers(numberClass, classDesc, numberLength, curNumber)
+	values (@numberType, @encoderName, LEN(@Str), @Str)
+go
+
 
 drop PROCEDURE addborrowSingle
 /*
 	name:		addborrowSingle
-	function:	1.添加报销单
+	function:	1.添加借支单
 				注意：本存储过程不锁定编辑！
 	input: 
 			@borrowSingleID varchar(15) ,  --借支单号
@@ -466,6 +558,73 @@ AS
 												+ '删除了借支单['+ @borrwSingleID +']。')
 GO
 
+drop PROCEDURE examineBorrowSingle
+/*
+	name:		BorrowSingle
+	function:	审核借支单
+	input: 
+				@borrwSingleID varchar(15),			--借支单ID
+				@ApprovalDetailsID varchar(16)	ouput,	--审批详情ID，使用号码发生器生成
+				@lockManID varchar(13) output,	--锁定人，如果当前设备借用申请单正在被人占用编辑则返回该人的工号
+	output: 
+				@Ret		int output		--操作成功标识
+							0:成功，1：要锁定的借支单不存在，2:要锁定的借支单正在被别人编辑，
+							3:该单据已经批复，不能编辑锁定，
+							9：未知错误
+	author:		卢嘉诚
+	CreateDate:	2016-4-16
+	UpdateDate: 
+*/
+create PROCEDURE lockBorrowSingleEdit
+				@borrwSingleID varchar(15),			--借支单ID
+				@lockManID varchar(13) output,	--锁定人，如果当前借支单正在被人占用编辑则返回该人的工号
+	@Ret int output					--操作成功标识
+	WITH ENCRYPTION 
+AS
+	set @Ret = 9
+	--判断要锁定的借支单是否存在
+	declare @count as int
+	set @count=(select count(*) from borrwSingle where borrwSingleID= @borrwSingleID)	
+	if (@count = 0)	--不存在
+	begin
+		set @Ret = 1
+		return
+	end
+
+	--检查编辑锁：
+	declare @thisLockMan varchar(14)
+	set @count = (select COUNT(*) from borrowSingle
+					where borrowSingleID = @borrowSingleID
+					and	  ISNULL(lockManID,'')<>'')
+	if (@count>0)
+	begin
+		set @lockManID = @thisLockMan
+		set @Ret = 2
+		return
+	end
+
+	update borrwSingle
+	set lockManID = @lockManID 
+	where borrwSingleID= @borrwSingleID
+	if @@ERROR <> 0 
+	begin
+		set @Ret = 9
+		return
+	end    
+	
+	set @Ret = 0
+
+	--取维护人的姓名：
+	declare @lockManName nvarchar(30)
+	set @lockManName = isnull((select userCName from activeUsers where userID = @lockManID),'')
+
+	--登记工作日志：
+	insert workNote(userID, userName, actionTime, actions, actionObject)
+	values(@lockManID, @lockManName, getdate(), '锁定借支单编辑', '系统根据用户' + @lockManName
+												+ '的要求锁定了借支单['+ @borrwSingleID +']为独占式编辑。')
+GO
+
+
 -- 费用报销单
 drop table ExpRemSingle 
 create table ExpRemSingle(
@@ -514,6 +673,344 @@ create table ExpRemSingle(
 )WITH (IGNORE_DUP_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
+
+drop PROCEDURE addExpRemSingle
+/*
+	name:		addExpRemSingle
+	function:	1.添加费用报销单
+				注意：本存储过程不锁定编辑！
+	input: 
+				@ExpRemSingleID varchar(15) not null,  --报销单编号
+				@departmentID varchar(13) not null,	--部门ID
+				@ExpRemDepartment varchar(20)	not null,	--报销部门
+				@ExpRemDate smalldatetime not null,	--报销日期
+				@projectID varchar(13) not null,	--项目ID
+				@projectName varchar(50) not null,	--项目名称
+				@ExpRemSingleNum int ,	--报销单据及附件
+				@note varchar(200),	--备注
+				@expRemSingleType smallint default,	--报销单类型，0：费用报销单，1：差旅费报销单
+				@amount money not null,	--合计金额
+				@borrowSingleID varchar(15) ,	--原借支单ID
+				@originalloan money not null,	--原借款
+				@replenishment money not null,	--应补款
+				@shouldRefund money not null,	--应退款
+				@ExpRemPersonID varchar(14) not null,	--报销人编号
+				@ExpRemPerson varchar(10)	not	null,	--报销人姓名
+				@businessPeopleID	varchar(14) not null,	--出差人编号
+				@businessPeople	varchar(10) not null,	--出差人
+				@businessReason varchar(200)	not null,	--出差事由
+				@approvalProgress smallint default(0) not null,	--审批进度
+				@IssueSituation smallint default(0) not null,	--发放情况
+
+			@createManID varchar(10),		--创建人工号
+	output: 
+				@Ret		int output		--操作成功标识
+							0:成功，1：该国别名称或代码已存在，9：未知错误
+				@rowNum		int output,		--序号
+				@createTime smalldatetime output
+	author:		卢嘉诚
+	CreateDate:	2016-3-23
+	UpdateDate: 2016-3-23 by lw 根据编辑要求增加rowNum返回参数
+*/
+create PROCEDURE addExpRemSingle			
+				@departmentID varchar(13) ,	--部门ID
+				@ExpRemDepartment varchar(20)	,	--报销部门
+				@ExpRemDate smalldatetime ,	--报销日期
+				@projectID varchar(13) ,	--项目ID
+				@projectName varchar(50) ,	--项目名称
+				@ExpRemSingleNum int ,	--报销单据及附件
+				@note varchar(200),	--备注
+				@expRemSingleType smallint ,	--报销单类型，0：费用报销单，1：差旅费报销单
+				@amount money ,	--合计金额
+				@borrowSingleID varchar(15) ,	--原借支单ID
+				@originalloan money ,	--原借款
+				@replenishment money ,	--应补款
+				@shouldRefund money ,	--应退款
+				@ExpRemPersonID varchar(14) ,	--报销人编号
+				@ExpRemPerson varchar(10),	--报销人姓名
+				@businessPeopleID	varchar ,	--出差人编号
+				@businessPeople	varchar(10) ,	--出差人
+				@businessReason varchar(200)	,	--出差事由
+				@approvalProgress smallint ,	--审批进度:0：新建，1：待审批，2：审批中,3:已审结
+
+	@createManID varchar(10),		--创建人工号
+
+	@Ret		int output,
+	@createTime smalldatetime output,
+	@ExpRemSingleID varchar(15) output	--主键：报销单编号，使用第 号号码发生器产生
+	WITH ENCRYPTION 
+AS
+	--使用号码发生器产生新的号码：
+	declare @curNumber varchar(50)
+	exec dbo.getClassNumber 3, 1, @curNumber output
+	set @borrowSingleID = @curNumber
+
+	
+	--取维护人的姓名：
+	declare @createManName nvarchar(30)
+	set @createManName = isnull((select userCName from activeUsers where userID = @createManID),'')
+
+	set @createTime = getdate()
+	
+	insert ExpRemSingle(ExpRemSingleID,		--报销单ID
+							departmentID,	--部门ID
+							ExpRemDepartment,		--报销部门
+							ExpRemDate,		--报销日期
+							projectID,	--项目ID
+							projectName,	--项目名称
+							ExpRemSingleNum,	--报销单据及附件
+							note,			--备注
+							expRemSingleType,	--报销单类型，0：费用报销单，1：差旅费报销单
+							amount,			--合计金额
+							borrowSingleID,	--原借支单ID
+							originalloan,	--原借款
+							replenishment,	--应补款
+							shouldRefund,	--应退款
+							ExpRemPersonID,	--报销人ID
+							ExpRemPerson,	--报销人姓名
+							businessPeopleID,	--出差人ID
+							businessPeople,		--出差人
+							businessReason,		--出差事由
+							approvalProgress	--审批进度:0：新建，1：待审批，2：审批中,3:已审结
+							) 
+	values (	@ExpRemSingleID,
+				@departmentID ,	
+				@ExpRemDepartment,
+				@ExpRemDate,
+				@projectID,
+				@projectName,
+				@ExpRemSingleNum,
+				@note,
+				@expRemSingleType,
+				@amount,
+				@borrowSingleID,
+				@originalloan,
+				@replenishment,
+				@shouldRefund ,
+				@ExpRemPersonID,
+				@ExpRemPerson ,
+				@businessPeopleID,
+				@businessPeople,
+				@businessReason ,
+				@approvalProgress ) 
+	if @@ERROR <> 0 
+	--插入明细表：
+	declare @runRet int 
+	exec dbo.addAlcApplyDetail @alcNum, @alcApplyDetail, @runRet output
+	--登记工作日志：
+	insert workNote(userID, userName, actionTime, actions, actionObject)
+	values(@createManID, @createManName, @createTime, '添加报销单', '系统根据用户' + @createManName + 
+		'的要求添加了报销单[' + @ExpRemSingleID + ']。')
+			
+GO
+
+
+drop PROCEDURE delExpRemSingle
+/*
+	name:		delExpRemSingle
+	function:	删除报销单
+	input: 
+				@ExpRemSingleID varchar(15),			--报销单ID
+				@expRemSingleType smallint,				--报销单类型，0：费用报销单，1：差旅费报销单
+				@lockManID varchar(13) output,	--锁定人，如果当前报销单正在被人占用编辑则返回该人的工号
+	output: 
+				@Ret		int output		--操作成功标识
+							0:成功，1：指定的借支单不存在，
+							2:要删除的借支单正被别人锁定，
+							3:该单据已经批复，不能编辑锁定，
+							9：未知错误
+	author:		卢嘉诚
+	CreateDate:	2016-4-16
+	UpdateDate: 
+*/
+create PROCEDURE delExpRemSingle
+				@ExpRemSingleID varchar(15),			--报销单ID
+				@expRemSingleType smallint,				--报销单类型，0：费用报销单，1：差旅费报销单
+				@lockManID varchar(13) output,	--锁定人，如果当前报销单正在被人占用编辑则返回该人的工号
+	@Ret int output					--操作成功标识
+	WITH ENCRYPTION 
+AS
+	set @Ret = 9
+	--判断要删除的报销单是否存在
+	declare @count as int
+	set @count=(select count(*) from ExpRemSingle where ExpRemSingleID= @ExpRemSingleID)	
+	if (@count = 0)	--不存在
+	begin
+		set @Ret = 1
+		return
+	end
+
+	--检查编辑锁：
+	declare @thisLockMan varchar(14)
+	set @count = (select COUNT(*) from ExpRemSingle
+					where ExpRemSingleID = @ExpRemSingleID
+					and	  ISNULL(lockManID,'')<>'')
+	if (@count>0)
+	begin
+		set @lockManID = @thisLockMan
+		set @Ret = 2
+		return
+	end
+	--删除报销单详情
+	if(@expRemSingleType=0)
+		begin
+			delete	from ExpenseReimbursementDetails where ExpRemSingleID= @ExpRemSingleID
+		end
+	else
+		begin
+			delete	from TravelExpensesDetails where ExpRemSingleID= @ExpRemSingleID	
+	--删除指定报销单
+	delete FROM ExpRemSingle where ExpRemSingleID= @ExpRemSingleID
+	--判断有无错误
+	if @@ERROR <> 0 
+	begin
+		set @Ret = 9
+		return
+	end    
+	
+	set @Ret = 0
+
+	--取维护人的姓名：
+	declare @lockManName nvarchar(30)
+	set @lockManName = isnull((select userCName from activeUsers where userID = @lockManID),'')
+
+	--登记工作日志：
+	insert workNote(userID, userName, actionTime, actions, actionObject)
+	values(@lockManID, @lockManName, getdate(), '删除报销单', '系统根据用户' + @lockManName
+												+ '删除了报销单['+ @ExpRemSingleID +']。')
+GO
+
+
+drop PROCEDURE editExpRemSingle
+/*
+	name:		editExpRemSingle
+	function:	1.编辑报销单
+				注意：本存储过程不锁定编辑！
+	input: 
+				@ExpRemSingleID varchar(15) output	--主键：报销单编号，使用第 号号码发生器产生
+				@departmentID varchar(13) ,	--部门ID
+				@ExpRemDepartment varchar(20)	,	--报销部门
+				@ExpRemDate smalldatetime ,	--报销日期
+				@projectID varchar(13) ,	--项目ID
+				@projectName varchar(50) ,	--项目名称
+				@ExpRemSingleNum int ,	--报销单据及附件
+				@note varchar(200),	--备注
+				@expRemSingleType smallint ,	--报销单类型，0：费用报销单，1：差旅费报销单
+				@amount money ,	--合计金额
+				@borrowSingleID varchar(15) ,	--原借支单ID
+				@originalloan money ,	--原借款
+				@replenishment money ,	--应补款
+				@shouldRefund money ,	--应退款
+				@ExpRemPersonID varchar(14) ,	--报销人编号
+				@ExpRemPerson varchar(10),	--报销人姓名
+				@businessPeopleID	varchar ,	--出差人编号
+				@businessPeople	varchar(10) ,	--出差人
+				@businessReason varchar(200)	,	--出差事由
+				@approvalProgress smallint ,	--审批进度:0：新建，1：待审批，2：审批中,3:已审结
+
+			@createManID varchar(10),		--创建人工号
+	output: 
+				@Ret		int output		--操作成功标识
+							0:成功，1：该借支单已被锁定，2：该借支单为审核状态9：未知错误
+				@rowNum		int output,		--序号
+				@createTime smalldatetime output
+	author:		卢嘉诚
+	CreateDate:	2016-3-23
+	UpdateDate: 2016-3-23 by 
+*/
+create PROCEDURE editExpRemSingle				
+				@departmentID varchar(13) ,	--部门ID
+				@ExpRemDepartment varchar(20)	,	--报销部门
+				@ExpRemDate smalldatetime ,	--报销日期
+				@projectID varchar(13) ,	--项目ID
+				@projectName varchar(50) ,	--项目名称
+				@ExpRemSingleNum int ,	--报销单据及附件
+				@note varchar(200),	--备注
+				@expRemSingleType smallint ,	--报销单类型，0：费用报销单，1：差旅费报销单
+				@amount money ,	--合计金额
+				@borrowSingleID varchar(15) ,	--原借支单ID
+				@originalloan money ,	--原借款
+				@replenishment money ,	--应补款
+				@shouldRefund money ,	--应退款
+				@ExpRemPersonID varchar(14) ,	--报销人编号
+				@ExpRemPerson varchar(10),	--报销人姓名
+				@businessPeopleID	varchar ,	--出差人编号
+				@businessPeople	varchar(10) ,	--出差人
+				@businessReason varchar(200)	,	--出差事由
+				@approvalProgress smallint ,	--审批进度:0：新建，1：待审批，2：审批中,3:已审结
+
+	@createManID varchar(10),		--创建人工号
+
+	@Ret		int output,
+	@createTime smalldatetime output,
+	@ExpRemSingleID varchar(15) output	--主键：报销单编号，使用第 号号码发生器产生
+	WITH ENCRYPTION 
+AS
+	set @Ret = 9
+	--查询报销单是否为审核状态
+	declare @thisflowProgress smallint
+	set @thisflowProgress = (select approvalProgress from ExpRemSingle where ExpRemSingleID = @ExpRemSingleID)
+	if (@thisflowProgress<>0)
+	begin
+		set @Ret = 2
+		return
+	end
+
+	--检查编辑的报销单是否有编辑锁或长事务锁：
+	declare @count int
+	set @count = (select COUNT(*) from ExpRemSingle
+					where ExpRemSingleID = @ExpRemSingleID
+					and	  ISNULL(lockManID,'')<>'')
+						
+	if (@count>0)
+	begin
+		set @Ret = 1
+		return
+	end
+
+
+	
+	--取维护人的姓名：
+	declare @createManName nvarchar(30)
+	set @createManName = isnull((select userCName from activeUsers where userID = @createManID),'')
+
+	set @createTime = getdate()
+	update borrowSingle set
+							departmentID = @departmentID,		--部门ID
+							ExpRemDepartment = @ExpRemDepartment,		--报销部门
+							ExpRemDate = @ExpRemDate,	--报销日期
+							projectID = @projectID,		--项目ID
+							projectName = @projectName,		--项目名称
+							ExpRemSingleNum = @ExpRemSingleNum,	--报销单据及附件）
+							note = @note,	--备注
+							expRemSingleType = @expRemSingleType,		--报销单类型
+							amount = @amount,	--合计金额
+							borrowSingleID = @borrowSingleID,	--原借支单ID
+							originalloan = @originalloan,	--原借款
+							replenishment	= @replenishment,	--应补款
+							shouldRefund	= @shouldRefund	,	--应退款
+							ExpRemPersonID	=	@ExpRemPersonID,	--报销人ID
+							ExpRemPerson	=	@ExpRemPerson,	--报销人姓名
+							businessPeopleID	=	@businessPeopleID,	--出差人ID
+							businessPeople	=	@businessPeople,	--出差人姓名
+							businessReason	=	@businessReason	--出差事由
+							where ExpRemSingleID = @ExpRemSingleID--报销单ID
+	if @@ERROR <> 0 
+	--插入明细表：
+	declare @runRet int 
+	exec dbo.addAlcApplyDetail @alcNum, @alcApplyDetail, @runRet output
+	--登记工作日志：
+	insert workNote(userID, userName, actionTime, actions, actionObject)
+	values(@createManID, @createManName, @createTime, '编辑报销单', '系统根据用户' + @createManName + 
+					'的要求编辑了报销单单[' + @ExpRemSingleID + ']。')
+GO
+
+
+
+
+
+
+
 
 --差旅费报销详情
 drop table TravelExpensesDetails 
@@ -670,7 +1167,7 @@ modiTime smalldatetime null,		--最后维护时间
 --编辑锁定人：
 lockManID varchar(10)				--当前正在锁定编辑的人工号
 )
-
+GO
 
 --账户表
 drop table accountList
@@ -699,7 +1196,7 @@ modiTime smalldatetime null,		--最后维护时间
 --编辑锁定人：
 lockManID varchar(10)				--当前正在锁定编辑的人工号
 )
-
+GO
 
 --账户移交表
 drop table accountTransferList
@@ -716,6 +1213,7 @@ transferMatters		varchar(200),	--移交事项
 remarks		varchar(200),	--备注
 )
 
+GO
 
 --收入一览表
 drop table incomeList
@@ -753,6 +1251,8 @@ modiTime smalldatetime null,		--最后维护时间
 lockManID varchar(10)				--当前正在锁定编辑的人工号
 )
 
+go
+
 --支出一览表
 drop table	expensesList
 create table expensesList(
@@ -788,3 +1288,5 @@ modiTime smalldatetime null,		--最后维护时间
 --编辑锁定人：
 lockManID varchar(10)				--当前正在锁定编辑的人工号
 )
+
+GO
