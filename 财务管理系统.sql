@@ -1,5 +1,5 @@
 drop table borrowSingle      --借支单表
-create table borrwSingle(
+create table borrowSingle(
 	borrowSingleID varchar(15) not null,  --借支单号
 	borrowManID varchar(13)	not null,	--借支人ID
 	borrowMan varchar(20)	not null,		--借支人（姓名）
@@ -12,8 +12,8 @@ create table borrwSingle(
 	borrowReason	varchar(200),	--借支事由
 	borrowSum	money,	--借支金额
 	flowProgress smallint default(0),		--流转进度：0：待审核，1：审批中，2：已审结
-	approvalOpinion	varchar(200)	not null,	--审批意见
-	IssueSituation	smallint default(0) not null,	--发放情况
+	approvalOpinion	varchar(200),	--审批意见
+	IssueSituation	smallint default(0),	--发放情况
 	paymentMethodID	varchar(16),	---付款方式ID
 	paymentMethod	varchar(14) ,	--付款方式
 	paymentSum	money,	--付款金额
@@ -31,7 +31,7 @@ create table borrwSingle(
 
 	--编辑锁定人：
 	lockManID varchar(10)				--当前正在锁定编辑的人工号
- CONSTRAINT [PK_borrwSingle] PRIMARY KEY CLUSTERED 
+ CONSTRAINT [PK_borrowSingle] PRIMARY KEY CLUSTERED 
 (
 	[borrowSingleID] ASC
 )WITH (IGNORE_DUP_KEY = OFF) ON [PRIMARY]
@@ -58,97 +58,6 @@ create table ApprovalDetailsList(
 	)
 GO
 
---0.号码发生器定义表：add by lw 2014-1-1
-drop table [dbo].[sysEncoder]
-CREATE TABLE [dbo].[sysEncoder]
-(
-	encoderID int not null,			--号码发生器的ID号
-	encoderName nvarchar(30),		--号码发生器名称
-	encoderPrefix varchar(8),		--前缀
-	encoderDateType int,			--日期码格式：0->不使用日期码,1->4位年度+2位月份+2位日期,2->4位年度+2位月份,3->4位年度
-	encoderSerialNumLen int,		--流水码长度
-	encoderSerialNumInc int default(1),	--流水码增量：计划扩展，暂时未用！
-	encoderSuffix varchar(8),		--后缀
- CONSTRAINT [PK_sysEncoder] PRIMARY KEY CLUSTERED 
-(
-	[encoderID] ASC
-)WITH (IGNORE_DUP_KEY = OFF) ON [PRIMARY]
-) ON [PRIMARY]
-GO
-SELECT * from sysEncoder e left join sysNumbers n on e.encoderID=n.numberClass
-
-
---1.号码发生器表(sysNumbers)
-drop table [dbo].[sysNumbers]
-CREATE TABLE [dbo].[sysNumbers]
-(
-	numberClass smallint not null,	--号码类别：等价于sysEncoder中的encoderID
-	numberLength smallint not null, --号码长度
-	classDesc nvarchar(50) null,	--类别说明：等价于sysEncoder中的encoderName
-	curNumber varchar(30) null,		--当前号码
- CONSTRAINT [PK_sysNumbers] PRIMARY KEY CLUSTERED 
-(
-	[numberClass] ASC
-)WITH (IGNORE_DUP_KEY = OFF) ON [PRIMARY]
-) ON [PRIMARY]
-GO
-
-
-drop PROCEDURE  initNumberInstrument
-/*
-	name:		initNumberInstrument
-	function:	0.初始化指定类别的号码发生器
-	input: 
-				@numberType smallint,	--号码类别
-	output: 
-	author:		卢嘉诚
-	CreateDate:	2010-5-21
-	UpdateDate: 采用定义的号码发生器重写 modi by lw 2014-1-1
-*/
-CREATE PROCEDURE  initNumberInstrument
-	@numberType smallint	--号码类别
-	WITH ENCRYPTION 
-AS
-	declare @count int
-	set @count = (select count(*) from sysNumbers where numberClass = @numberType)
-	if @count > 0
-		return
-
-	declare @encoderName nvarchar(30)	--号码发生器名称
-	declare @encoderPrefix varchar(8)	--前缀
-	declare @encoderDateType int		--日期码格式：0->不使用日期码,1->4位年度+2位月份+2位日期,2->4位年度+2位月份,3->4位年度
-	declare @encoderSerialNumLen int	--流水码长度
-	declare @encoderSerialNumInc int	--流水码增量
-	declare @encoderSuffix varchar(8)	--后缀
-	select @encoderName = encoderName, @encoderPrefix = encoderPrefix, @encoderDateType = encoderDateType, 
-			@encoderSerialNumLen = encoderSerialNumLen, @encoderSerialNumInc = encoderSerialNumInc, @encoderSuffix = encoderSuffix 
-	from sysEncoder where encoderID = @numberType
-	if (@encoderName is null)
-		return
-
-	--日期码：
-	declare  @Year varchar(4), @Month varchar(2), @Day varchar(2)
-	declare  @Str varchar(50), @CurDate datetime
-	set  @CurDate =GetDate()
-
-	set @Year = right('0000' + ltrim(convert(varchar(4), year(@CurDate))),4)
-	set @Month  = right('0' + ltrim(convert(varchar(4), month(@CurDate))),2)
-	set @Day = right('0' + ltrim(convert(varchar(4), day(@CurDate))),2)
-	if (@encoderDateType=0)		--日期码格式：0->不使用日期码,1->4位年度+2位月份+2位日期,2->4位年度+2位月份,3->4位年度
-		set @Str=''
-	else if (@encoderDateType=1)
-		set @Str = @Year + @Month + @Day
-	else if (@encoderDateType=2)
-		set @Str = @Year + @Month
-	else if (@encoderDateType=3)
-		set @Str = @Year
-	
-	--生成初始号码：
-	set @Str = 	@encoderPrefix + @Str + replace(SPACE(@encoderSerialNumLen - 1),' ','0')+'1'+ @encoderSuffix
-
-	insert sysNumbers(numberClass, classDesc, numberLength, curNumber)
-	values (@numberType, @encoderName, LEN(@Str), @Str)
-go
 
 
 drop PROCEDURE addborrowSingle
@@ -157,7 +66,7 @@ drop PROCEDURE addborrowSingle
 	function:	1.添加借支单
 				注意：本存储过程不锁定编辑！
 	input: 
-			@borrowSingleID varchar(15) ,  --借支单号
+			@borrowSingleID varchar(15) ,  --借支单号,主键 由401号号码发生器生成
 			@borrowManID varchar(13)	,	--借支人ID
 			@borrowMan varchar(20)	,		--借支人（姓名）
 			@position	varchar(10)	,	--职务
@@ -190,32 +99,32 @@ create PROCEDURE addborrowSingle
 			@projectID	varchar(14),	--所在项目ID
 			@projectName	varchar(200),	--所在项目（名称）
 			@borrowReason	varchar(200),	--借支事由
-			@borrowSum	money,	--借支金额
+			@borrowSum	Decimal(12),	--借支金额
 			@flowProgress smallint,		--流转进度
-
-	@createManID varchar(10),		--创建人工号
+			@createManID varchar(10),		--创建人工号
 
 	@Ret		int output,
-	@createTime smalldatetime output,
 	@borrowSingleID varchar(15) output	--主键：借支单号，使用第 3 号号码发生器产生
 	WITH ENCRYPTION 
 AS
 	--使用号码发生器产生新的号码：
 	declare @curNumber varchar(50)
-	exec dbo.getClassNumber 3, 1, @curNumber output
+	exec dbo.getClassNumber 401, 1, @curNumber output
 	set @borrowSingleID = @curNumber
 
 	
-	--取维护人的姓名：
-	declare @createManName nvarchar(30)
-	set @createManName = isnull((select userCName from activeUsers where userID = @createManID),'')
-
+	----取维护人的姓名：
+	--declare @createManName nvarchar(30)
+	--set @createManName = isnull((select userCName from activeUsers where userID = @createManID),'')
+	declare @createTime smalldatetime, @createManName varchar(30)
+	set @createManName = '卢嘉诚'
 	set @createTime = getdate()
 	insert borrowSingle(borrowSingleID,		--借支单ID
 							borrowManID,	--借支人ID
 							borrowMan,		--借支人姓名
 							position,		--职务
-							departmentID,	--部门
+							departmentID,	--部门ID
+							department,		--部门名称
 							borrowDate,		--借支时间
 							projectID,		--所在项目ID
 							projectName,	--所在项目(名称）
@@ -231,6 +140,7 @@ AS
 			@borrowMan,
 			@position, 
 			@departmentID, 
+			@department,
 			@borrowDate, 
 			@projectID, 
 			@projectName, 
@@ -238,21 +148,32 @@ AS
 			@borrowSum, 
 			@flowProgress, 
 			@createManID, 
-			@createManName, 
+			@createManName,
 			@createTime) 
-	if @@ERROR <> 0 
-	--插入明细表：
-	declare @runRet int 
-	exec dbo.addAlcApplyDetail @alcNum, @alcApplyDetail, @runRet output
+	set @Ret = 0
+	--if @@ERROR <> 0 
 	--登记工作日志：
 	insert workNote(userID, userName, actionTime, actions, actionObject)
-	values(@createManID, @createManName, @createTime, '添加借支单', '系统根据用户' + @createManName + 
-					'的要求添加了借支单[' + @borrowSingleID + ']。')
+	values(@createManID,@createManName, @createTime, '添加借支单', '系统根据用户'+@createManName+'的要求添加了借支单[' + @borrowSingleID + ']。')
 GO
 
 
 
-drop PROCEDURE editBorrowSingle
+
+drop table workNote      --工作日志表
+create table workNote(
+	workNoteID int primary key identity(1,1),	--工作日志ID
+	userID	varchar(17)	not null,	--用户ID
+	userName	varchar(17)	not	null,	--用户名字
+	actionTime	varchar(200),	--修改时间
+	actions varchar(50),	--操作说明
+	actionObject	varchar(100),	--详细说明
+	)
+GO
+
+
+
+drop PROCEDURE editborrowSingle
 /*
 	name:		addborrowSingle
 	function:	1.添加报销单
@@ -281,7 +202,8 @@ drop PROCEDURE editBorrowSingle
 	CreateDate:	2016-3-23
 	UpdateDate: 2016-3-23 by 
 */
-create PROCEDURE editBorrowSingle				
+create PROCEDURE editborrowSingle				
+			@borrowSingleID varchar(15), 	--主键：借支单号，使用第 3 号号码发生器产生
 			@borrowManID varchar(13)	,	--借支人ID
 			@borrowMan varchar(20)	,		--借支人（姓名）
 			@position	varchar(10)	,	--职务
@@ -291,14 +213,13 @@ create PROCEDURE editBorrowSingle
 			@projectID	varchar(14),	--所在项目ID
 			@projectName	varchar(200),	--所在项目（名称）
 			@borrowReason	varchar(200),	--借支事由
-			@borrowSum	money,	--借支金额
+			@borrowSum	Decimal(12),	--借支金额
 			@flowProgress smallint,		--流转进度
 
-	@createManID varchar(10),		--创建人工号
+			@modiManID varchar(10),		--维护人工号
 
-	@Ret		int output,
-	@createTime smalldatetime output,
-	@borrowSingleID varchar(15) output	--主键：借支单号，使用第 3 号号码发生器产生
+		@Ret		int output		--操作表示，0：成功，1：该单据被其他人编辑占用，2：该单据为审核状态不允许编辑
+
 	WITH ENCRYPTION 
 AS
 	set @Ret = 9
@@ -323,17 +244,13 @@ AS
 		return
 	end
 
-	--使用号码发生器产生新的号码：
-	declare @curNumber varchar(50)
-	exec dbo.getClassNumber 3, 1, @curNumber output
-	set @borrowSingleID = @curNumber
-
 	
 	--取维护人的姓名：
-	declare @createManName nvarchar(30)
-	set @createManName = isnull((select userCName from activeUsers where userID = @createManID),'')
-
-	set @createTime = getdate()
+	--declare @createManName nvarchar(30)
+	--set @createManName = isnull((select userCName from activeUsers where userID = @createManID),'')
+	declare @modiTime smalldatetime,@modiManName varchar(30)
+	set @modiManName = '卢嘉诚'
+	set @modiTime = getdate()
 	update borrowSingle set borrowManID = @borrowManID,	--借支人ID
 							borrowMan = @borrowMan,		--借支人姓名
 							position = @position,		--职务
@@ -344,28 +261,30 @@ AS
 							borrowReason = @borrowReason,	--借支事由
 							borrowSum = @borrowSum,		--借支金额
 							flowProgress = @flowProgress,	--流转进度
-							createManID = @createManID,	--创建人工号
-							createManName = @createManName,	--创建人姓名
-							createTime	= @createTime	--创建时间
+							modiManID = @modiManID,	--维护人工号
+							modiManName	= @modiManName,	--维护人姓名
+							modiTime	= @modiTime	--修改时间
 							where borrowSingleID = @borrowSingleID--借支单ID
-	if @@ERROR <> 0 
-	--插入明细表：
-	declare @runRet int 
-	exec dbo.addAlcApplyDetail @alcNum, @alcApplyDetail, @runRet output
+	set @Ret = 0
+	--if @@ERROR <> 0 
+	----插入明细表：
+	--declare @runRet int 
+	--exec dbo.addAlcApplyDetail @alcNum, @alcApplyDetail, @runRet output
 	--登记工作日志：
 	insert workNote(userID, userName, actionTime, actions, actionObject)
-	values(@createManID, @createManName, @createTime, '添加调拨申请单', '系统根据用户' + @createManName + 
-					'的要求添加了借支单[' + @borrowSingleID + ']。')
+	values(@modiManID, @modiManName, @modiTime, '编辑借支单单', '系统根据用户' + @modiManName + 
+					'的要求修改了借支单[' + @borrowSingleID + ']。')
 GO
 
+select * from borrowSingle where borrowSingleID = 'JZD201604250001'
 
 
-drop PROCEDURE lockBorrowSingleEdit
+drop PROCEDURE lockborrowSingleEdit
 /*
-	name:		BorrowSingle
+	name:		borrowSingle
 	function:	锁定借支单编辑，避免编辑冲突
 	input: 
-				@borrwSingleID varchar(15),			--借支单ID
+				@@borrowSingleID varchar(15),			--借支单ID
 				@lockManID varchar(13) output,	--锁定人，如果当前设备借用申请单正在被人占用编辑则返回该人的工号
 	output: 
 				@Ret		int output		--操作成功标识
@@ -376,8 +295,8 @@ drop PROCEDURE lockBorrowSingleEdit
 	CreateDate:	2016-4-16
 	UpdateDate: 
 */
-create PROCEDURE lockBorrowSingleEdit
-				@borrwSingleID varchar(15),			--借支单ID
+create PROCEDURE lockborrowSingleEdit
+				@borrowSingleID varchar(15),			--借支单ID
 				@lockManID varchar(13) output,	--锁定人，如果当前借支单正在被人占用编辑则返回该人的工号
 	@Ret int output					--操作成功标识
 	WITH ENCRYPTION 
@@ -385,7 +304,7 @@ AS
 	set @Ret = 9
 	--判断要锁定的借支单是否存在
 	declare @count as int
-	set @count=(select count(*) from borrwSingle where borrwSingleID= @borrwSingleID)	
+	set @count=(select count(*) from borrowSingle where borrowSingleID= @borrowSingleID)	
 	if (@count = 0)	--不存在
 	begin
 		set @Ret = 1
@@ -393,55 +312,67 @@ AS
 	end
 
 	--检查编辑锁：
-	declare @thisLockMan varchar(14)
-	set @count = (select COUNT(*) from borrowSingle
+	declare @thisLockMan varchar(13)
+	set @thisLockMan = (select lockManID from borrowSingle
 					where borrowSingleID = @borrowSingleID
 					and	  ISNULL(lockManID,'')<>'')
-	if (@count>0)
+	if (@thisLockMan<>'')
 	begin
 		set @lockManID = @thisLockMan
 		set @Ret = 2
 		return
 	end
 
-	update borrwSingle
+	update borrowSingle
 	set lockManID = @lockManID 
-	where borrwSingleID= @borrwSingleID
+	where borrowSingleID= @borrowSingleID
+
+	set @Ret = 0
+
 	if @@ERROR <> 0 
 	begin
 		set @Ret = 9
 		return
 	end    
 	
-	set @Ret = 0
+
 
 	--取维护人的姓名：
 	declare @lockManName nvarchar(30)
-	set @lockManName = isnull((select userCName from activeUsers where userID = @lockManID),'')
+	set @lockManName = '卢嘉诚'
+	--set @lockManName = isnull((select userCName from activeUsers where userID = @lockManID),'')
 
 	--登记工作日志：
 	insert workNote(userID, userName, actionTime, actions, actionObject)
 	values(@lockManID, @lockManName, getdate(), '锁定借支单编辑', '系统根据用户' + @lockManName
-												+ '的要求锁定了借支单['+ @borrwSingleID +']为独占式编辑。')
+												+ '的要求锁定了借支单['+ @borrowSingleID +']为独占式编辑。')
 GO
 
+select lockManID from borrowSingle
+					where borrowSingleID = 'JZD201604250002'
+					and	  ISNULL(lockManID,'')<>''
 
-drop PROCEDURE unlockBorrowSingleEdit
+select COUNT(*) from borrowSingle
+					where borrowSingleID = 'JZD201604250002'
+					and	  ISNULL(lockManID,'')<>''
+
+
+drop PROCEDURE unlockborrowSingleEdit
 /*
-	name:		BorrowSingle
+	name:		borrowSingle
 	function:	释放锁定借支单编辑，避免编辑冲突
 	input: 
-				@borrwSingleID varchar(15),			--借支单ID
+				@@borrowSingleID varchar(15),			--借支单ID
 				@lockManID varchar(13) output,	--锁定人，如果当前设备借用申请单正在被人占用编辑则返回该人的工号
 	output: 
 				@Ret		int output		--操作成功标识
-												0:成功，1：要释放编辑锁的锁定人不是自己，8:该单据未锁定,9：未知错误
+												0:成功，1：该借支单不存在，2：锁定该单据的人不是自己，8:该单据未被锁定,9：未知错误
 	author:		卢嘉诚
 	CreateDate:	2016-4-16
 	UpdateDate: 
 */
-create PROCEDURE unlockBorrowSingleEdit
-				@borrwSingleID varchar(15),			--借支单ID
+create PROCEDURE unlockborrowSingleEdit
+				@borrowSingleID varchar(15),			--借支单ID
 				@lockManID varchar(13) output,	--锁定人，如果当前借支单正在被人占用编辑则返回该人的工号
 	@Ret int output					--操作成功标识
 	WITH ENCRYPTION 
@@ -449,55 +380,58 @@ AS
 	set @Ret = 9
 	--判断要锁定的借支单是否存在
 	declare @count as int
-	set @count=(select count(*) from borrwSingle where borrwSingleID= @borrwSingleID)	
-	if (@count = 0)	--不存在
+	set @count=(select count(*) from borrowSingle where borrowSingleID= @borrowSingleID)	
+	if (@count = 0)	    --不存在
 	begin
 		set @Ret = 1
 		return
 	end
 
 	--检查编辑锁：
-	declare @thisLockMan varchar(14)
+	declare @thisLockMan varchar(13)
 	set @thisLockMan = isnull((select lockManID from borrowSingle where borrowSingleID= @borrowSingleID),'')
 	if (@thisLockMan<>'')
-	begin
-		if (@thisLockMan <> @lockManID)
 		begin
-			set @lockManID = @thisLockMan
-			set @Ret = 1
+			if (@thisLockMan <> @lockManID)
+			begin
+				set @lockManID = @thisLockMan
+				set @Ret = 2
+				return
+			end
+			--释放借支单锁定
+			update borrowSingle set lockManID = '' where borrowSingleID = @borrowSingleID
+			set @Ret = 0
+
+			if @@ERROR <>0
+			begin
+				set @Ret = 9
+				return
+			end
+				----取维护人的姓名：
+				declare @lockManName nvarchar(30)
+				--set @lockManName = isnull((select userCName from activeUsers where userID = @lockManID),'')
+				set @lockManName = '卢嘉诚'
+				--登记工作日志：
+				insert workNote (userID, userName, actionTime, actions, actionObject)
+				values(@lockManID, @lockManName, getdate(), '释放借支单编辑', '系统根据用户' + @lockManName	+ '的要求释放了借支单['+ @borrowSingleID +']的编辑锁。')
+		end
+	else   --返回该借支单未被任何人锁定
+		begin
+			set @Ret = 8
 			return
 		end
-		else		--释放借支单锁定
-		update borrowSingle set @lockManID = '' where borrowSingleID = @borrowSingleID
-		if @@ERROR <>0
-		begin
-			set @Ret = 9
-			return
-	end
-	else   --返回该借支单未被任何人锁定
-	begin
-		set @Ret = 8
-		return
-	end
-	
-	set @Ret = 0
 
-	--取维护人的姓名：
-	declare @lockManName nvarchar(30)
-	set @lockManName = isnull((select userCName from activeUsers where userID = @lockManID),'')
-
-	--登记工作日志：
-	insert workNote(userID, userName, actionTime, actions, actionObject)
-	values(@lockManID, @lockManName, getdate(), '释放借支单编辑', '系统根据用户' + @lockManName												+ '的要求释放了借支单['+ @borrwSingleID +']的编辑锁。')
 GO
 
 
-drop PROCEDURE delBorrowSingle
+select count(*) from borrowSingle where borrowSingleID= 'JZD201604250002'
+
+drop PROCEDURE delborrowSingle
 /*
-	name:		delBorrowSingle
+	name:		delborrowSingle
 	function:	删除指定借支单
 	input: 
-				@borrwSingleID varchar(15),			--借支单ID
+				@borrowSingleID varchar(15),			--借支单ID
 				@lockManID varchar(13) output,	--锁定人，如果当前设备借用申请单正在被人占用编辑则返回该人的工号
 	output: 
 				@Ret		int output		--操作成功标识
@@ -509,8 +443,8 @@ drop PROCEDURE delBorrowSingle
 	CreateDate:	2016-4-16
 	UpdateDate: 
 */
-create PROCEDURE delBorrowSingle
-				@borrwSingleID varchar(15),			--借支单ID
+create PROCEDURE delborrowSingle
+				@borrowSingleID varchar(15),			--借支单ID
 				@lockManID varchar(13) output,	--锁定人，如果当前借支单正在被人占用编辑则返回该人的工号
 	@Ret int output					--操作成功标识
 	WITH ENCRYPTION 
@@ -518,7 +452,7 @@ AS
 	set @Ret = 9
 	--判断要删除的借支单是否存在
 	declare @count as int
-	set @count=(select count(*) from borrwSingle where borrwSingleID= @borrwSingleID)	
+	set @count=(select count(*) from borrowSingle where borrowSingleID= @borrowSingleID)	
 	if (@count = 0)	--不存在
 	begin
 		set @Ret = 1
@@ -537,8 +471,8 @@ AS
 		return
 	end
 	--删除指定借支单
-	delete borrwSingle
-	where borrwSingleID= @borrwSingleID
+	delete borrowSingle
+	where borrowSingleID= @borrowSingleID
 	--判断有无错误
 	if @@ERROR <> 0 
 	begin
@@ -555,15 +489,15 @@ AS
 	--登记工作日志：
 	insert workNote(userID, userName, actionTime, actions, actionObject)
 	values(@lockManID, @lockManName, getdate(), '删除借支单', '系统根据用户' + @lockManName
-												+ '删除了借支单['+ @borrwSingleID +']。')
+												+ '删除了借支单['+ @borrowSingleID +']。')
 GO
 
-drop PROCEDURE examineBorrowSingle
+drop PROCEDURE examineborrowSingle
 /*
-	name:		BorrowSingle
+	name:		borrowSingle
 	function:	审核借支单
 	input: 
-				@borrwSingleID varchar(15),			--借支单ID
+				@borrowSingleID varchar(15),			--借支单ID
 				@ApprovalDetailsID varchar(16)	ouput,	--审批详情ID，使用号码发生器生成
 				@lockManID varchar(13) output,	--锁定人，如果当前设备借用申请单正在被人占用编辑则返回该人的工号
 	output: 
@@ -575,8 +509,8 @@ drop PROCEDURE examineBorrowSingle
 	CreateDate:	2016-4-16
 	UpdateDate: 
 */
-create PROCEDURE lockBorrowSingleEdit
-				@borrwSingleID varchar(15),			--借支单ID
+create PROCEDURE lockborrowSingleEdit
+				@borrowSingleID varchar(15),			--借支单ID
 				@lockManID varchar(13) output,	--锁定人，如果当前借支单正在被人占用编辑则返回该人的工号
 	@Ret int output					--操作成功标识
 	WITH ENCRYPTION 
@@ -584,7 +518,7 @@ AS
 	set @Ret = 9
 	--判断要锁定的借支单是否存在
 	declare @count as int
-	set @count=(select count(*) from borrwSingle where borrwSingleID= @borrwSingleID)	
+	set @count=(select count(*) from borrowSingle where borrowSingleID= @borrowSingleID)	
 	if (@count = 0)	--不存在
 	begin
 		set @Ret = 1
@@ -603,9 +537,9 @@ AS
 		return
 	end
 
-	update borrwSingle
+	update borrowSingle
 	set lockManID = @lockManID 
-	where borrwSingleID= @borrwSingleID
+	where borrowSingleID= @borrowSingleID
 	if @@ERROR <> 0 
 	begin
 		set @Ret = 9
@@ -621,7 +555,7 @@ AS
 	--登记工作日志：
 	insert workNote(userID, userName, actionTime, actions, actionObject)
 	values(@lockManID, @lockManName, getdate(), '锁定借支单编辑', '系统根据用户' + @lockManName
-												+ '的要求锁定了借支单['+ @borrwSingleID +']为独占式编辑。')
+												+ '的要求锁定了借支单['+ @borrowSingleID +']为独占式编辑。')
 GO
 
 
