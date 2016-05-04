@@ -1415,7 +1415,7 @@ drop PROCEDURE addEnclosure
 */
 
 create PROCEDURE addEnclosure			
-				@enclosureID varchar(17) output,	--主键：附件ID，使用第406号号码发生器产生
+				@enclosureID varchar(15) output,	--主键：附件ID，使用第406号号码发生器产生
 				@billType	 smallint,	--票据类型：0，借支单，1：报销单
 				@billID	varchar(15),	--票据编号
 				@enclosureAddress	varchar(200),	--附件地址
@@ -1473,18 +1473,17 @@ AS
 GO
 
 
---添加附件
+--删除附件
 drop PROCEDURE delEnclosure
 /*
 	name:		delEnclosure
 	function:	1.删除附件
 				注意：本存储过程不锁定编辑！
 	input: 
-				enclosureID	varchar(15)	not	null,	--主键：附件ID，使用第406号号码发生器产生
+				enclosureID	varchar(15)	not	null,	--主键：附件ID
 				@createManID varchar(10),		--创建人工号
 	output: 
-				@Ret		int output		--操作成功标识
-							0:成功，1：该国别名称或代码已存在，9：未知错误
+				@Ret		int output		  --成功标示，0：成功，1：该附件不存在,9:未知错误
 				@createTime smalldatetime output
 	author:		卢嘉诚
 	CreateDate:	2016-3-23
@@ -1492,7 +1491,7 @@ drop PROCEDURE delEnclosure
 */
 
 create PROCEDURE delEnclosure			
-				@enclosureID varchar(17),	--主键：附件ID，使用第406号号码发生器产生
+				@enclosureID varchar(15),	--主键：附件ID
 				@createManID varchar(13),		--创建人工号
 
 				@Ret		int output,			--成功标示，0：成功，1：该附件不存在,9:未知错误
@@ -1532,8 +1531,8 @@ AS
 	--exec dbo.addAlcApplyDetail @alcNum, @alcApplyDetail, @runRet output
 	--登记工作日志：
 	insert workNote(userID, userName, actionTime, actions, actionObject)
-	values(@createManID, @createManName, @createTime, '添加附件', '系统根据用户' + @createManName + 
-		'的要求添加了附件[' + @enclosureID + ']。')		
+	values(@createManID, @createManName, @createTime, '删除附件', '系统根据用户' + @createManName + 
+		'的要求删除了附件[' + @enclosureID + ']。')		
 GO
 
 
@@ -1613,11 +1612,807 @@ lockManID varchar(10)				--当前正在锁定编辑的人工号
 GO
 
 
+
+--添加科目
+drop PROCEDURE addSubject
+/*
+	name:		addSubject
+	function:	1.添加科目
+				注意：本存储过程不锁定编辑！
+	input: 
+				FinancialSubjectID	varchar(13)	not	null,	--科目ID
+				classification	smallint default(0) not null,	--分类
+				superiorSubjectsID	varchar(13)	,	--上级科目ID
+				superiorSubjects varchar(50)	,	--上级科目名称
+				subjectName	varchar(50)	not null,	--科目名称
+				AccountNumber int not null,	--科目层数
+				establishTime smalldatetime	not null,	--设立时间
+				explain varchar(200)	null,	--说明
+
+				@createManID varchar(10),		--创建人工号
+	output: 
+				@Ret		int output		--操作成功标识
+							0:成功，1：该国别名称或代码已存在，9：未知错误
+				@createTime smalldatetime output
+	author:		卢嘉诚
+	CreateDate:	2016-3-23
+	UpdateDate: 2016-3-23 by lw 根据编辑要求增加rowNum返回参数
+*/
+
+create PROCEDURE addSubject			
+				@FinancialSubjectID	varchar(13) output,	--科目ID,主键,使用407号号码发生器生成
+				@classification	smallint,			--分类
+				@superiorSubjectsID	varchar(13),	--上级科目ID
+				@superiorSubjects varchar(50),		--上级科目名称
+				@subjectName	varchar(50),		--科目名称
+				@AccountNumber int ,				--科目层数
+				@establishTime smalldatetime,		--设立时间
+				@explain varchar(200),				--说明
+
+				@createManID varchar(13),		--创建人工号
+
+				@Ret		int output,
+				@createTime smalldatetime output
+
+	WITH ENCRYPTION 
+AS
+	--使用号码发生器产生新的号码：
+	declare @curNumber varchar(50)
+	exec dbo.getClassNumber 407, 1, @curNumber output
+	set @FinancialSubjectID = @curNumber
+
+	set @Ret = 9
+	
+	--取维护人的姓名：
+	declare @createManName nvarchar(30)
+	--set @createManName = isnull((select userCName from activeUsers where userID = @createManID),'')
+	set @createManName = '卢嘉诚'
+	set @createTime = getdate()
+
+	insert subjectList(
+				FinancialSubjectID,	--科目ID,主键,使用407号号码发生器生成
+				classification,		--分类
+				superiorSubjectsID,	--上级科目ID
+				superiorSubjects,		--上级科目名称
+				subjectName,			--科目名称
+				AccountNumber,			--科目层数
+				establishTime,			--设立时间
+				explain,				--说明
+				createManID,			--创建人工号
+				createTime				--创建时间
+							) 
+	values (		
+				@FinancialSubjectID,	--科目ID,主键,使用407号号码发生器生成
+				@classification,		--分类
+				@superiorSubjectsID,	--上级科目ID
+				@superiorSubjects,		--上级科目名称
+				@subjectName,			--科目名称
+				@AccountNumber,			--科目层数
+				@establishTime,			--设立时间
+				@explain,				--说明
+				@createManID,			--创建人工号
+				@createTime				--创建时间
+				) 
+
+
+	if @@ERROR <> 0 
+		begin
+			set @Ret = 9
+			return
+		end
+	set @Ret = 0
+	--插入明细表：
+	declare @runRet int 
+	--exec dbo.addAlcApplyDetail @alcNum, @alcApplyDetail, @runRet output
+	--登记工作日志：
+	insert workNote(userID, userName, actionTime, actions, actionObject)
+	values(@createManID, @createManName, @createTime, '添加科目', '系统根据用户' + @createManName + 
+		'的要求添加了科目[' + @FinancialSubjectID + ']。')		
+GO
+
+
+--编辑科目
+drop PROCEDURE editSubject
+/*
+	name:		editSubject
+	function:	1.编辑科目
+				注意：本存储过程锁定编辑！
+	input: 
+				FinancialSubjectID	varchar(13)	not	null,	--科目ID
+				subjectName	varchar(50)	not null,			--科目名称
+				explain varchar(200)	null,	--说明
+
+				@lockManID varchar(10),		--锁定人工号
+	output: 
+				@Ret		int output		--操作成功标识
+							0:成功，1：该科目已经被人锁定
+				@createTime smalldatetime output
+	author:		卢嘉诚
+	CreateDate:	2016-3-23
+	UpdateDate: 2016-3-23 by lw 根据编辑要求增加rowNum返回参数
+*/
+
+create PROCEDURE editSubject			
+				@FinancialSubjectID	varchar(13),	--科目ID
+				@subjectName	varchar(50),		--科目名称
+				@explain varchar(200),				--说明
+
+				@lockManID varchar(13) output,				--锁定人工号
+
+				@Ret		int output,
+				@createTime smalldatetime output
+
+	WITH ENCRYPTION 
+AS
+	--判断要锁定的科目是否存在是否存在
+	declare @count as int
+	set @count=(select count(*) from subjectList where FinancialSubjectID = @FinancialSubjectID)	
+	if (@count = 0)	    --不存在
+	begin
+		set @Ret = 3
+		return
+	end
+
+	--检查编辑的科目是否有编辑锁或长事务锁：
+	declare @thislockMan varchar(13)
+	set @thislockMan = (select lockManID from subjectList
+					where FinancialSubjectID = @FinancialSubjectID)
+						
+	if (@thislockMan<>'')
+		if(@thislockMan<>@lockManID)
+		begin
+			set @Ret = 1
+			set @lockManID = @thislockMan
+			return
+		end
+			
+
+	set @Ret = 9
+	
+	--取维护人的姓名：
+	declare @createManName nvarchar(30)
+	--set @createManName = isnull((select userCName from activeUsers where userID = @createManID),'')
+	set @createManName = '卢嘉诚'
+	set @createTime = getdate()
+
+	update subjectList set 
+				subjectName = @subjectName,			--科目名称
+				explain = @explain				--说明
+				 where FinancialSubjectID = @FinancialSubjectID
+
+
+	if @@ERROR <> 0 
+		begin
+			set @Ret = 9
+			return
+		end
+	set @Ret = 0
+	--插入明细表：
+	declare @runRet int 
+	--exec dbo.addAlcApplyDetail @alcNum, @alcApplyDetail, @runRet output
+	--登记工作日志：
+	insert workNote(userID, userName, actionTime, actions, actionObject)
+	values(@lockManID, @createManName, @createTime, '编辑科目', '系统根据用户' + @createManName + 
+		'的要求编辑了科目[' + @FinancialSubjectID + ']。')		
+GO
+
+
+drop PROCEDURE lockSubjectEdit
+/*
+	name:		lockSubjectEdit
+	function:	锁定科目编辑，避免编辑冲突
+	input: 
+				@FinancialSubjectID varchar(13),			--科目ID
+				@lockManID varchar(13) output,	--锁定人，如果当前科目正在被人占用编辑则返回该人的工号
+	output: 
+				@Ret		int output		--操作成功标识
+							0:成功，
+							1：要锁定的科目不存在，
+							2:要锁定的科目正在被别人编辑，
+							9：未知错误
+	author:		卢嘉诚
+	CreateDate:	2016-4-16
+	UpdateDate: 
+*/
+create PROCEDURE lockSubjectEdit
+				@FinancialSubjectID varchar(13),			--科目ID
+				@lockManID varchar(13) output,	--锁定人，如果当前借支单正在被人占用编辑则返回该人的工号
+	@Ret int output					--操作成功标识
+	WITH ENCRYPTION 
+AS
+	set @Ret = 9
+	--判断要锁定的科目是否存在
+	declare @count as int
+	set @count=(select count(*) from subjectList where FinancialSubjectID= @FinancialSubjectID)	
+	if (@count = 0)	--不存在
+	begin
+		set @Ret = 1
+		return
+	end
+
+	--检查编辑锁：
+	declare @thisLockMan varchar(13)
+	set @thisLockMan = (select lockManID from subjectList
+					where FinancialSubjectID = @FinancialSubjectID
+					and	  ISNULL(lockManID,'')<>'')
+	if (@thisLockMan<>'')
+	begin
+		set @lockManID = @thisLockMan
+		set @Ret = 2
+		return
+	end
+
+	update subjectList
+	set lockManID = @lockManID 
+	where FinancialSubjectID= @FinancialSubjectID
+
+	set @Ret = 0
+
+	if @@ERROR <> 0 
+	begin
+		set @Ret = 9
+		return
+	end    
+	
+
+
+	--取维护人的姓名：
+	declare @lockManName nvarchar(30)
+	set @lockManName = '卢嘉诚'
+	--set @lockManName = isnull((select userCName from activeUsers where userID = @lockManID),'')
+
+	--登记工作日志：
+	insert workNote(userID, userName, actionTime, actions, actionObject)
+	values(@lockManID, @lockManName, getdate(), '锁定科目编辑', '系统根据用户' + @lockManName
+												+ '的要求锁定了科目['+ @FinancialSubjectID +']为独占式编辑。')
+GO
+
+
+drop PROCEDURE unlockSubjectEdit
+/*
+	name:		unlockSubjectEdit
+	function:	释放科目编辑锁定，避免编辑冲突
+	input: 
+				@FinancialSubjectID varchar(13),			--科目ID
+				@lockManID varchar(13) output,	--锁定人，如果当前科目正在被人占用编辑则返回该人的工号
+	output: 
+				@Ret		int output		--操作成功标识
+							0:成功，
+							1：要释放锁定的科目不存在，
+							2:要释放锁定的科目正在被别人编辑，
+							8：该科目未被任何人锁定
+							9：未知错误
+	author:		卢嘉诚
+	CreateDate:	2016-4-16
+	UpdateDate: 
+*/
+create PROCEDURE unlockSubjectEdit
+				@FinancialSubjectID varchar(13),			--科目ID
+				@lockManID varchar(13) output,	--锁定人，如果当前借支单正在被人占用编辑则返回该人的工号
+	@Ret int output					--操作成功标识
+	WITH ENCRYPTION 
+AS
+	set @Ret = 9
+	--判断要锁定的报销单是否存在
+	declare @count as int
+	set @count=(select count(*) from subjectList where FinancialSubjectID= @FinancialSubjectID)	
+	if (@count = 0)	    --不存在
+	begin
+		set @Ret = 1
+		return
+	end
+
+	--检查编辑锁：
+	declare @thisLockMan varchar(13)
+	set @thisLockMan = isnull((select lockManID from subjectList where FinancialSubjectID= @FinancialSubjectID),'')
+	if (@thisLockMan<>'')
+		begin
+			if (@thisLockMan <> @lockManID)
+			begin
+				set @lockManID = @thisLockMan
+				set @Ret = 2
+				return
+			end
+			--释放报销单锁定
+			update subjectList set lockManID = '' where FinancialSubjectID = @FinancialSubjectID
+			set @Ret = 0
+
+			if @@ERROR <>0
+			begin
+				set @Ret = 9
+				return
+			end
+				----取维护人的姓名：
+				declare @lockManName nvarchar(30)
+				--set @lockManName = isnull((select userCName from activeUsers where userID = @lockManID),'')
+				set @lockManName = '卢嘉诚'
+				--登记工作日志：
+				insert workNote (userID, userName, actionTime, actions, actionObject)
+				values(@lockManID, @lockManName, getdate(), '释放科目编辑', '系统根据用户' + @lockManName	+ '的要求释放了科目['+ @FinancialSubjectID +']的编辑锁。')
+		end
+	else   --返回该借支单未被任何人锁定
+		begin
+			set @Ret = 8
+			return
+		end
+
+GO
+
+
+--账户表
+drop table accountList
+create table accountList(
+accountID 	varchar(13) not null,	--账户ID
+accountName	varchar(50)	not null,	--账户名称
+bankAccount	varchar(100) not null,	--开户行
+accountCompany	varchar(100)	not null,	--开户名
+accountOpening	varchar(50)	not	null,	--开户账号
+bankAccountNum	varchar(50)	not null,	--开户行号
+accountDate	smalldatetime	not	null,	--开户时间
+administratorID	varchar(13)	,	--管理人ID
+administartor	varchar(20)	,	--管理人(姓名）
+branchAddress	varchar(100),	--支行地址
+remarks	varchar(200),	--备注
+--创建人：为了保持操作的范围——个人的一致性增加的字段
+createManID varchar(10) null,		--创建人工号
+createManName varchar(30) null,		--创建人姓名
+createTime smalldatetime null,		--创建时间
+
+--最新维护情况:
+modiManID varchar(10) null,			--维护人工号
+modiManName nvarchar(30) null,		--维护人姓名
+modiTime smalldatetime null,		--最后维护时间
+
+--编辑锁定人：
+lockManID varchar(10)				--当前正在锁定编辑的人工号
+--主键
+	 CONSTRAINT [PK_accountList] PRIMARY KEY CLUSTERED 
+(
+	accountID ASC
+)WITH (IGNORE_DUP_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+--添加账户
+drop PROCEDURE addAccountList
+/*
+	name:		addAccountList
+	function:	1.添加账户
+				注意：本存储过程不锁定编辑！
+	input: 
+				@accountID 	varchar(13) output,		--账户ID,主键,使用409号号码发生器生成
+				@accountName	varchar(50),		--账户名称
+				@bankAccount	varchar(100),		--开户行
+				@accountCompany	varchar(100),	--开户名
+				@accountOpening	varchar(50),	--开户账号
+				@bankAccountNum	varchar(50),	--开户行号
+				@accountDate	smalldatetime,	--开户时间
+				@administratorID	varchar(13),	--管理人ID
+				@administartor	varchar(20),	--管理人(姓名）
+				@branchAddress	varchar(100),	--支行地址
+				@remarks varchar(200),			--备注
+
+				@createManID varchar(10),		--创建人工号
+	output: 
+				@Ret		int output		--操作成功标识
+							0:成功，1：该账户已存在，9：未知错误
+				@createTime smalldatetime output
+	author:		卢嘉诚
+	CreateDate:	2016-3-23
+	UpdateDate: 2016-3-23 by lw 根据编辑要求增加rowNum返回参数
+*/
+
+create PROCEDURE addAccountList			
+				@accountID 	varchar(13) output,		--账户ID,主键,使用409号号码发生器生成
+				@accountName	varchar(50),		--账户名称
+				@bankAccount	varchar(100),		--开户行
+				@accountCompany	varchar(100),	--开户名
+				@accountOpening	varchar(50),	--开户账号
+				@bankAccountNum	varchar(50),	--开户行号
+				@accountDate	smalldatetime,	--开户时间
+				@administratorID	varchar(13),	--管理人ID
+				@administartor	varchar(20),	--管理人(姓名）
+				@branchAddress	varchar(100),	--支行地址
+				@remarks varchar(200),			--备注
+
+				@createManID varchar(13),		--创建人工号
+
+				@Ret		int output			--操作成功标示；0:成功，1：该账户已存在，9：未知错误
+
+	WITH ENCRYPTION 
+AS
+	--使用号码发生器产生新的号码：
+	declare @curNumber varchar(50)
+	exec dbo.getClassNumber 409, 1, @curNumber output
+	set @accountID = @curNumber
+
+	set @Ret = 9
+	
+	--取维护人的姓名：
+	declare @createManName nvarchar(30)
+	--set @createManName = isnull((select userCName from activeUsers where userID = @createManID),'')
+	set @createManName = '卢嘉诚'
+	declare @createTime smalldatetime
+	set @createTime = getdate()
+
+	insert accountList(
+				accountID,		--账户ID,主键,使用409号号码发生器生成
+				accountName,		--账户名称
+				bankAccount,		--开户行
+				accountCompany,	--开户名
+				accountOpening,	--开户账号
+				bankAccountNum,	--开户行号
+				accountDate,		--开户时间
+				administratorID,	--管理人ID
+				administartor,	--管理人(姓名）
+				branchAddress,	--支行地址
+				remarks,			--备注
+				createManID,		--创建人工号
+				createManName,	--创建人姓名
+				createTime		--创建时间
+							) 
+	values (		
+				@accountID,		--账户ID,主键,使用409号号码发生器生成
+				@accountName,		--账户名称
+				@bankAccount,		--开户行
+				@accountCompany,	--开户名
+				@accountOpening,	--开户账号
+				@bankAccountNum,	--开户行号
+				@accountDate,		--开户时间
+				@administratorID,	--管理人ID
+				@administartor,	--管理人(姓名）
+				@branchAddress,	--支行地址
+				@remarks,			--备注
+				@createManID,		--创建人工号
+				@createManName,	--创建人姓名
+				@createTime		--创建时间
+				) 
+
+
+	if @@ERROR <> 0 
+		begin
+			set @Ret = 9
+			return
+		end
+	set @Ret = 0
+	--插入明细表：
+	declare @runRet int 
+	--exec dbo.addAlcApplyDetail @alcNum, @alcApplyDetail, @runRet output
+	--登记工作日志：
+	insert workNote(userID, userName, actionTime, actions, actionObject)
+	values(@createManID, @createManName, @createTime, '添加账户', '系统根据用户' + @createManName + 
+		'的要求添加了账户[' + @accountID + ']。')		
+GO
+
+
+--删除账户
+drop PROCEDURE delAccountList
+/*
+	name:		delAccountList
+	function:		1.删除账户
+				注意：本存储过程锁定编辑！
+	input: 
+				@accountID 	varchar(13) output,		--账户ID,主键,使用409号号码发生器生成
+				@lockManID varchar(13),		--锁定人ID
+	output: 
+				@Ret		int output		--操作成功标识;--操作成功标示；0:成功，1：该账户不存在，2：该账户被其他用户锁定，9：未知错误
+				@createTime smalldatetime output
+	author:		卢嘉诚
+	CreateDate:	2016-3-23
+	UpdateDate: 2016-3-23 by lw 根据编辑要求增加rowNum返回参数
+*/
+
+create PROCEDURE delAccountList			
+				@accountID 	varchar(13) ,		--账户ID,主键
+				@lockManID   varchar(13) output,		--锁定人ID
+
+				@Ret		int output			--操作成功标示；0:成功，1：该账户不存在，2：该账户被其他用户锁定，9：未知错误
+
+	WITH ENCRYPTION 
+AS
+	
+	set @Ret = 9
+	
+	--判断要删除的账户是否存在
+	declare @count as int
+	set @count=(select count(*) from accountList where accountID= @accountID)	
+	if (@count = 0)	--不存在
+	begin
+		set @Ret = 1
+		return
+	end
+
+	--检查编辑锁：
+	declare @thisLockMan varchar(13)
+	set @thisLockMan = (select lockManID from accountList
+					where accountID = @accountID
+					and	  ISNULL(lockManID,'')<>'')
+	if (@thisLockMan<>'')
+	begin
+		if(@thisLockMan<>@lockManID)
+		begin
+			set @lockManID = @thisLockMan
+			set @Ret = 2
+			return
+		end
+	end
+
+	--取维护人的姓名：
+	declare @lockMan nvarchar(30)
+	--set @createManName = isnull((select userCName from activeUsers where userID = @createManID),'')
+	set @lockMan = '卢嘉诚'
+	declare @createTime smalldatetime
+	set @createTime = getdate()
+
+	delete from accountList where accountID = @accountID
+
+	if @@ERROR <> 0 
+		begin
+			set @Ret = 9
+			return
+		end
+	set @Ret = 0
+	--插入明细表：
+	declare @runRet int 
+	--exec dbo.addAlcApplyDetail @alcNum, @alcApplyDetail, @runRet output
+	--登记工作日志：
+	insert workNote(userID, userName, actionTime, actions, actionObject)
+	values(@lockManID, @lockMan, @createTime, '删除账户', '系统根据用户' + @lockMan + 
+		'的要求删除了账户[' + @accountID + ']。')		
+GO
+
+
+
+
+--编辑账户
+drop PROCEDURE editAccountList
+/*
+	name:		editAccountList
+	function:	1.编辑账户
+				注意：本存储过程锁定编辑！
+	input: 
+				@accountID 	varchar(13),		--账户ID,主键,使用409号号码发生器生成
+				@accountName	varchar(50),		--账户名称
+				@bankAccount	varchar(100),		--开户行
+				@accountCompany	varchar(100),	--开户名
+				@accountOpening	varchar(50),	--开户账号
+				@bankAccountNum	varchar(50),	--开户行号
+				@accountDate	smalldatetime,	--开户时间
+				@administratorID	varchar(13),	--管理人ID
+				@administartor	varchar(20),	--管理人(姓名）
+				@branchAddress	varchar(100),	--支行地址
+				@remarks varchar(200),			--备注
+
+				@lockManID varchar(10)output,		--锁定人ID
+	output: 
+				@Ret		int output		--操作成功标示；0:成功，1：该账户不存在，2：该账户已被其他用户锁定，9：未知错误
+				@createTime smalldatetime output
+	author:		卢嘉诚
+	CreateDate:	2016-3-23
+	UpdateDate: 2016-3-23 by lw 根据编辑要求增加rowNum返回参数
+*/
+
+create PROCEDURE editAccountList			
+				@accountID 	varchar(13),		--账户ID,主键,使用409号号码发生器生成
+				@accountName	varchar(50),		--账户名称
+				@bankAccount	varchar(100),		--开户行
+				@accountCompany	varchar(100),	--开户名
+				@accountOpening	varchar(50),	--开户账号
+				@bankAccountNum	varchar(50),	--开户行号
+				@accountDate	smalldatetime,	--开户时间
+				@administratorID	varchar(13),	--管理人ID
+				@administartor	varchar(20),	--管理人(姓名）
+				@branchAddress	varchar(100),	--支行地址
+				@remarks varchar(200),			--备注
+
+				@lockManID varchar(13) output,		--锁定人ID
+
+				@Ret		int output			--操作成功标示；0:成功，1：该账户不存在，2：该账户已被其他用户锁定，9：未知错误
+
+	WITH ENCRYPTION 
+AS
+	--判断要编辑的账户是否存在
+	declare @count as int
+	set @count=(select count(*) from accountList where accountID= @accountID)	
+	if (@count = 0)	--不存在
+	begin
+		set @Ret = 1
+		return
+	end
+
+	--检查编辑锁：
+	declare @thisLockMan varchar(13)
+	set @thisLockMan = (select lockManID from accountList
+					where accountID = @accountID
+					and	  ISNULL(lockManID,'')<>'')
+	if (@thisLockMan<>'')
+	begin
+		if(@thisLockMan<>@lockManID)
+		begin
+			set @lockManID = @thisLockMan
+			set @Ret = 2
+			return
+		end
+	end
+
+	set @Ret = 9
+	
+	--取维护人的姓名：
+	declare @createManName nvarchar(30)
+	--set @createManName = isnull((select userCName from activeUsers where userID = @createManID),'')
+	set @createManName = '卢嘉诚'
+	declare @createTime smalldatetime
+	set @createTime = getdate()
+
+	update accountList set
+				accountName = @accountName,			--账户名称
+				bankAccount = @bankAccount,			--开户行
+				accountCompany = accountCompany,	--开户名
+				accountOpening = accountOpening,	--开户账号
+				bankAccountNum = bankAccountNum,	--开户行号
+				accountDate    = accountDate,		--开户时间
+				administratorID = administratorID,	--管理人ID
+				administartor  = administartor,		--管理人(姓名）
+				branchAddress  = branchAddress,		--支行地址
+				remarks = remarks,				--备注
+				createManID = createManID,			--创建人工号
+				createManName = createManName,		--创建人姓名
+				createTime	= createTime			--创建时间
+				where	accountID = @accountID		--账户ID,主键,使用409号号码发生器生成
+
+
+	if @@ERROR <> 0 
+		begin
+			set @Ret = 9
+			return
+		end
+	set @Ret = 0
+	--插入明细表：
+	declare @runRet int 
+	--exec dbo.addAlcApplyDetail @alcNum, @alcApplyDetail, @runRet output
+	--登记工作日志：
+	insert workNote(userID, userName, actionTime, actions, actionObject)
+	values(@lockManID, @createManName, @createTime, '编辑账户', '系统根据用户' + @createManName + 
+		'的要求编辑了账户[' + @accountID + ']。')		
+GO
+
+
+drop PROCEDURE lockAccountEdit
+/*
+	name:		lockAccountEdit
+	function: 	锁定账户编辑，避免编辑冲突
+	input: 
+				@accountID varchar(13),		--账户ID
+				@lockManID varchar(13) output,	--锁定人，如果当前科目正在被人占用编辑则返回该人的工号
+	output: 
+				@Ret		int output		--操作成功标识0:成功，1：要锁定的账户不存在，2:要锁定的账户正在被别人编辑，9：未知错误
+	author:		卢嘉诚
+	CreateDate:	2016-4-16
+	UpdateDate: 
+*/
+create PROCEDURE lockAccountEdit
+				@accountID varchar(13),		--账户ID
+				@lockManID varchar(13) output,	--锁定人，如果当前借支单正在被人占用编辑则返回该人的工号
+				@Ret int output				--操作成功标识0:成功，1：要锁定的账户不存在，2:要锁定的账户正在被别人编辑，9：未知错误
+	WITH ENCRYPTION 
+AS
+	set @Ret = 9
+	--判断要锁定的账户是否存在
+	declare @count as int
+	set @count=(select count(*) from accountList where accountID= @accountID)	
+	if (@count = 0)	--不存在
+	begin
+		set @Ret = 1
+		return
+	end
+
+	--检查编辑锁：
+	declare @thisLockMan varchar(13)
+	set @thisLockMan = (select lockManID from accountList
+					where accountID = @accountID
+					and	  ISNULL(lockManID,'')<>'')
+	if (@thisLockMan<>'')
+	begin
+		set @lockManID = @thisLockMan
+		set @Ret = 2
+		return
+	end
+
+	update accountList
+	set lockManID = @lockManID 
+	where accountID= @accountID
+
+	set @Ret = 0
+
+	if @@ERROR <> 0 
+	begin
+		set @Ret = 9
+		return
+	end    
+	
+
+
+	--取维护人的姓名：
+	declare @lockManName nvarchar(30)
+	set @lockManName = '卢嘉诚'
+	--set @lockManName = isnull((select userCName from activeUsers where userID = @lockManID),'')
+
+	--登记工作日志：
+	insert workNote(userID, userName, actionTime, actions, actionObject)
+	values(@lockManID, @lockManName, getdate(), '锁定账户编辑', '系统根据用户' + @lockManName
+												+ '的要求锁定了账户['+ @accountID +']为独占式编辑。')
+GO
+
+
+drop PROCEDURE unlockAccountEdit
+/*
+	name:		unlockAccountEdit
+	function: 	释放锁定账户编辑，避免编辑冲突
+	input: 
+				@accountID varchar(13),		--账户ID
+				@lockManID varchar(13) output,	--锁定人，如果当前科目正在被人占用编辑则返回该人的工号
+	output: 
+				@Ret		int output		--操作成功标识0:成功，1：要释放锁定的账户不存在，2:要释放锁定的账户正在被别人编辑，8：该账户未被任何人锁定9：未知错误
+	author:		卢嘉诚
+	CreateDate:	2016-4-16
+	UpdateDate: 
+*/
+create PROCEDURE unlockAccountEdit
+				@accountID varchar(13),			--账户ID
+				@lockManID varchar(13) output,	--锁定人ID，如果当前账户正在被人占用编辑则返回该人的工号
+	@Ret int output					--操作成功标识0:成功，1：要释放锁定的账户不存在，2:要释放锁定的账户正在被别人编辑，8：该账户未被任何人锁定9：未知错误
+	WITH ENCRYPTION 
+AS
+	set @Ret = 9
+	--判断要锁定的报销单是否存在
+	declare @count as int
+	set @count=(select count(*) from accountList where accountID= @accountID)	
+	if (@count = 0)	    --不存在
+	begin
+		set @Ret = 1
+		return
+	end
+
+	--检查编辑锁：
+	declare @thisLockMan varchar(13)
+	set @thisLockMan = isnull((select lockManID from accountList where accountID= @accountID),'')
+	if (@thisLockMan<>'')
+		begin
+			if (@thisLockMan <> @lockManID)
+			begin
+				set @lockManID = @thisLockMan
+				set @Ret = 2
+				return
+			end
+			--释放报销单锁定
+			update accountList set lockManID = '' where accountID = @accountID
+			set @Ret = 0
+
+			if @@ERROR <>0
+			begin
+				set @Ret = 9
+				return
+			end
+				----取维护人的姓名：
+				declare @lockManName nvarchar(30)
+				--set @lockManName = isnull((select userCName from activeUsers where userID = @lockManID),'')
+				set @lockManName = '卢嘉诚'
+				--登记工作日志：
+				insert workNote (userID, userName, actionTime, actions, actionObject)
+				values(@lockManID, @lockManName, getdate(), '释放账户编辑', '系统根据用户' + @lockManName	+ '的要求释放了账户['+ @accountID +']的编辑锁。')
+		end
+	else   --返回该借支单未被任何人锁定
+		begin
+			set @Ret = 8
+			return
+		end
+GO
+
 --账户明细表
 drop table accountDetailsList 
-create table accountList(
+create table accountDetailsList(
 AccountDetailsID	varchar(16)	not null,	--账户明细ID
-accountID	varchar(13)	not null,	--账户ID
+accountID 	varchar(13)	not null,	--账户ID
 account		varchar(30)	not	null,	--账户名称
 detailDate	smalldatetime	not null,	--日期
 abstract	varchar(200),	--摘要
@@ -1643,37 +2438,18 @@ modiTime smalldatetime null,		--最后维护时间
 
 --编辑锁定人：
 lockManID varchar(10)				--当前正在锁定编辑的人工号
-)
+--外键
+foreign key(accountID) references accountList(accountID) on update cascade on delete cascade,
+--主键
+	 CONSTRAINT [PK_AccountDetailsID] PRIMARY KEY CLUSTERED 
+(
+	[AccountDetailsID] ASC
+)WITH (IGNORE_DUP_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
 GO
 
---账户表
-drop table accountList
-create table accountList(
-accountID	varchar(13) not null,	--账户ID
-accountName	varchar(50)	not null,	--账户名称
-bankAccount	varchar(100) not null,	--开户行
-accountCompany	varchar(100)	not null,	--开户名
-accountOpening	varchar(50)	not	null,	--开户账号
-bankAccountNum	varchar(50)	not null,	--开户行号
-accountDate	smalldatetime	not	null,	--开户时间
-administratorID	varchar(13)	,	--管理人ID
-administartor	varchar(20)	,	--管理人(姓名）
-branchAddress	varchar(100),	--支行地址
-remarks	varchar(200),	--备注
---创建人：为了保持操作的范围——个人的一致性增加的字段
-createManID varchar(10) null,		--创建人工号
-createManName varchar(30) null,		--创建人姓名
-createTime smalldatetime null,		--创建时间
 
---最新维护情况:
-modiManID varchar(10) null,			--维护人工号
-modiManName nvarchar(30) null,		--维护人姓名
-modiTime smalldatetime null,		--最后维护时间
 
---编辑锁定人：
-lockManID varchar(10)				--当前正在锁定编辑的人工号
-)
-GO
 
 --账户移交表
 drop table accountTransferList
