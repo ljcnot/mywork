@@ -1994,14 +1994,14 @@ public class FinancialSystem : virtualWebService
     /// <param name="bankAccountNum">开户行号</param>
     /// <param name="accountDate">开户时间</param>
     /// <param name="administratorID">管理人ID</param>
-    /// <param name="administartor">管理人姓名</param>
+    /// <param name="administrator">管理人姓名</param>
     /// <param name="branchAddress">支行地址</param>
     /// <param name="remarks">备注</param>
     /// <returns>成功：账户编号，采用409号号码发生器发生；失败："Error：..."</returns>
     [WebMethod(Description = "增加账户<br />"
                            + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
     //[SoapHeader("PageHeader")]
-    public string addAccountList(string accountName, string bankAccount, string accountCompany, string accountOpening, string bankAccountNum, string accountDate, string administratorID, string administartor, string branchAddress,
+    public string addAccountList(string accountName, string bankAccount, string accountCompany, string accountOpening, string bankAccountNum, string accountDate, string administratorID, string administrator, string branchAddress,
         string remarks)
     {
         //verifyPageHeader(this);
@@ -2023,7 +2023,7 @@ public class FinancialSystem : virtualWebService
 				            @bankAccountNum	varchar(50),	--开户行号
 				            @accountDate	smalldatetime,	--开户时间
 				            @administratorID	varchar(13),	--管理人ID
-				            @administartor	varchar(20),	--管理人(姓名）
+				            @administrator	varchar(20),	--管理人(姓名）
 				            @branchAddress	varchar(100),	--支行地址
                 			@remarks varchar(200),			--备注
 
@@ -2071,9 +2071,9 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@administratorID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@administratorID"].Value = administratorID;
 
-        cmd.Parameters.Add("@administartor", SqlDbType.VarChar, 20);
-        cmd.Parameters["@administartor"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@administartor"].Value = administartor;
+        cmd.Parameters.Add("@administrator", SqlDbType.VarChar, 20);
+        cmd.Parameters["@administrator"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@administrator"].Value = administrator;
 
         cmd.Parameters.Add("@branchAddress", SqlDbType.VarChar, 100);
         cmd.Parameters["@branchAddress"].Direction = ParameterDirection.Input;
@@ -2200,14 +2200,14 @@ public class FinancialSystem : virtualWebService
     /// <param name="bankAccountNum">开户行号</param>
     /// <param name="accountDate">开户时间</param>
     /// <param name="administratorID">管理人ID</param>
-    /// <param name="administartor">管理人姓名</param>
+    /// <param name="administrator">管理人姓名</param>
     /// <param name="branchAddress">支行地址</param>
     /// <param name="remarks">备注</param>
     /// <returns>成功：账户编号，采用409号号码发生器发生；失败："Error：..."</returns>
     [WebMethod(Description = "编辑账户<br />"
                            + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
     //[SoapHeader("PageHeader")]
-    public string editAccountList(string accountID, string accountName, string bankAccount, string accountCompany, string accountOpening, string bankAccountNum, string accountDate, string administratorID, string administartor, string branchAddress,
+    public string editAccountList(string accountID, string accountName, string bankAccount, string accountCompany, string accountOpening, string bankAccountNum, string accountDate, string administratorID, string administrator, string branchAddress,
         string remarks, string lockManID)
     {
         //verifyPageHeader(this);
@@ -2229,7 +2229,7 @@ public class FinancialSystem : virtualWebService
 				            @bankAccountNum	varchar(50),	--开户行号
 				            @accountDate	smalldatetime,	--开户时间
 				            @administratorID	varchar(13),	--管理人ID
-				            @administartor	varchar(20),	--管理人(姓名）
+				            @administrator	varchar(20),	--管理人(姓名）
 				            @branchAddress	varchar(100),	--支行地址
 				            @remarks varchar(200),			--备注
 
@@ -2276,9 +2276,9 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@administratorID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@administratorID"].Value = administratorID;
 
-        cmd.Parameters.Add("@administartor", SqlDbType.VarChar, 20);
-        cmd.Parameters["@administartor"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@administartor"].Value = administartor;
+        cmd.Parameters.Add("@administrator", SqlDbType.VarChar, 20);
+        cmd.Parameters["@administrator"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@administrator"].Value = administrator;
 
         cmd.Parameters.Add("@branchAddress", SqlDbType.VarChar, 100);
         cmd.Parameters["@branchAddress"].Direction = ParameterDirection.Input;
@@ -2469,6 +2469,681 @@ public class FinancialSystem : virtualWebService
             sqlCon.Dispose();
         }
     }
+
+
+    /// <summary>
+    /// 功    能：账户移交
+    /// 作    者：卢嘉诚
+    /// 编写日期：2016-4-28
+    /// </summary>
+    /// <param name="handoverDate">移交时间</param>
+    /// <param name="transferAccountID">移交账户ID</param>
+    /// <param name="transferAccount">移交账户</param>
+    /// <param name="transferPersonID">移交人ID</param>
+    /// <param name="transferPerson">移交人</param>
+    /// <param name="handoverPersonID">交接人ID</param>
+    /// <param name="handoverPerson">交接人</param>
+    /// <param name="transferMatters">移交事项</param>
+    /// <param name="remarks">备注</param>
+    /// <param name="lockManID">锁定人</param>
+    /// <returns>成功：返回账户移交ID！；失败："Error：..."</returns>
+    [WebMethod(Description = "账户移交<br />"
+                           + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
+    //[SoapHeader("PageHeader")]
+    public string accountTransfer(string handoverDate, string transferAccountID, string transferAccount, string transferPersonID, string transferPerson, string handoverPersonID, string handoverPerson, string transferMatters,
+        string remarks, string lockManID)
+    {
+        //verifyPageHeader(this);
+        int ret = 9;
+        //从web.config获取连接字符串
+        string conStr = WebConfigurationManager.ConnectionStrings["conStr"].ToString();
+        SqlConnection sqlCon = new SqlConnection(conStr);
+        sqlCon.Open();
+        /*
+	            name:		accountTransfer
+	            function: 	该存储过程锁定账户编辑，避免编辑冲突
+	            input: 
+				            @accountTransferID varchar(15) output,	--账户移交ID,主键，使用410号号码发生器生成
+				            @handoverDate	smalldatetime,	--移交日期
+				            @transferAccountID	varchar(13),	--移交账户ID
+				            @transferAccount	varchar(30),	--移交账户
+				            @transferPersonID	varchar(13),	--移交人ID
+				            @transferPerson	varchar(20),	--移交人
+				            @handoverPersonID	varchar(13),	--交接人ID
+				            @handoverPerson	varchar(20),	--交接人
+				            @transferMatters	varchar(200),	--移交事项
+				            @remarks		varchar(200),	--备注
+				            @lockManID varchar(13) output,	--锁定人，如果当前借支单正在被人占用编辑则返回该人的工号
+				
+	            output: 
+				            @Ret		int output		--操作成功标识0:成功，1：要移交的的账户不存在，2:要移交的的账户正在被别人锁定，3:该账户未锁定，请先锁定账户9：未知错误
+	            author:		卢嘉诚
+	            CreateDate:	2016-4-16
+	            UpdateDate: 
+         */
+        SqlCommand cmd = new SqlCommand("accountTransfer", sqlCon);
+        cmd.CommandType = CommandType.StoredProcedure;
+
+        cmd.Parameters.Add("@accountTransferID", SqlDbType.VarChar, 15);
+        cmd.Parameters["@accountTransferID"].Direction = ParameterDirection.Output;
+
+        cmd.Parameters.Add("@handoverDate", SqlDbType.SmallDateTime);
+        cmd.Parameters["@handoverDate"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@handoverDate"].Value = handoverDate;
+
+        cmd.Parameters.Add("@transferAccountID", SqlDbType.VarChar,13);
+        cmd.Parameters["@transferAccountID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@transferAccountID"].Value = transferAccountID;
+
+        cmd.Parameters.Add("@transferAccount", SqlDbType.VarChar,30);
+        cmd.Parameters["@transferAccount"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@transferAccount"].Value = transferAccount;
+
+        cmd.Parameters.Add("@transferPersonID", SqlDbType.VarChar,13);
+        cmd.Parameters["@transferPersonID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@transferPersonID"].Value = transferPersonID;
+
+        cmd.Parameters.Add("@transferPerson", SqlDbType.VarChar, 20);
+        cmd.Parameters["@transferPerson"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@transferPerson"].Value = transferPerson;
+
+        cmd.Parameters.Add("@handoverPersonID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@handoverPersonID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@handoverPersonID"].Value = handoverPersonID;
+
+        cmd.Parameters.Add("@handoverPerson", SqlDbType.VarChar, 20);
+        cmd.Parameters["@handoverPerson"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@handoverPerson"].Value = handoverPerson;
+
+        cmd.Parameters.Add("@transferMatters", SqlDbType.VarChar, 200);
+        cmd.Parameters["@transferMatters"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@transferMatters"].Value = transferMatters;
+
+        cmd.Parameters.Add("@remarks", SqlDbType.VarChar, 200);
+        cmd.Parameters["@remarks"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@remarks"].Value = remarks;
+
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
+        cmd.Parameters["@lockManID"].Value = lockManID;
+
+        cmd.Parameters.Add("@Ret", SqlDbType.Int);
+        cmd.Parameters["@Ret"].Direction = ParameterDirection.Output;
+
+
+        try
+        {
+            cmd.ExecuteNonQuery();
+            ret = (int)cmd.Parameters["@Ret"].Value;
+            lockManID = (string)cmd.Parameters["@lockManID"].Value;
+            if (ret == 0)
+                return (string)cmd.Parameters["@accountTransferID"].Value;
+            else if (ret == 1)
+                return "Error:账户" + transferAccountID + "不存在！";
+            else if (ret == 2)
+                return "Error:该账户已被用户" + lockManID + "锁定无法编辑！";
+            else if (ret == 3)
+                return "Error：该账户未锁定，请先锁定该账户再移交";
+            else
+                return "Error:未知错误！";
+        }
+        catch (Exception e)
+        {
+            return "Error:" + e.Message;
+        }
+        finally
+        {
+            cmd.Dispose();
+            sqlCon.Close();
+            sqlCon.Dispose();
+        }
+    }
+
+    #endregion
+
+
+
+
+
+
+
+
+
+
+    #region 账户明细的增删改
+    /// <summary>
+    /// 功    能：增加账户明细
+    /// 作    者：卢嘉诚
+    /// 编写日期：2016-4-28
+    /// </summary>
+    /// <param name="accountID">账户ID</param>
+    /// <param name="account">账户名称</param>
+    /// <param name="detailDate">日期</param>
+    /// <param name="abstract">摘要</param>
+    /// <param name="borrow">借</param>
+    /// <param name="loan">贷</param>
+    /// <param name="balance">余额</param>
+    /// <param name="departmentID">部门ID</param>
+    /// <param name="department">部门</param>
+    /// <param name="projectID">项目ID</param>
+    /// <param name="project">项目</param>
+    /// <param name="clerkID">经手人ID</param>
+    /// <param name="clerk">经手人</param>
+    /// <param name="remarks">备注</param>
+    /// <returns>成功：账户编号，采用409号号码发生器发生；失败："Error：..."</returns>
+    [WebMethod(Description = "增加账户明细<br />"
+                           + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
+    //[SoapHeader("PageHeader")]
+    public string addAccountDetails(string accountID, string account, string detailDate, string Detailsabstract, decimal borrow, decimal loan, decimal balance, string departmentID, string department,
+        string projectID, string project, string clerkID, string clerk, string remarks)
+    {
+        //verifyPageHeader(this);
+        int ret = 9;
+        //从web.config获取连接字符串
+        string conStr = WebConfigurationManager.ConnectionStrings["conStr"].ToString();
+        SqlConnection sqlCon = new SqlConnection(conStr);
+        sqlCon.Open();
+        /*
+	           	name:		addAccountDetails
+	            function:	1.添加账户明细
+				            注意：本存储过程不锁定编辑！
+	            input: 
+				            @AccountDetailsID	varchar(16) output,	--账户明细ID，主键，使用408号号码发生器生成
+				            @accountID 	varchar(13),		--账户ID
+				            @account		varchar(30),		--账户名称
+				            @detailDate	smalldatetime	,	--日期
+				            @abstract	varchar(200),			--摘要
+				            @borrow		money,			--借
+				            @loan		money,			--贷
+				            @balance		money,			--余额
+				            @departmentID	varchar(13),		--部门ID
+				            @department		varchar(30),	--部门
+				            @projectID		varchar(13),	--项目ID
+				            @project			varchar(100),	--项目
+				            @clerkID		varchar(13),		--经手人ID
+				            @clerk		varchar(20),		--经手人
+				            @remarks		varchar(200),		--备注
+
+				            @createManID varchar(10),		--创建人工号
+	            output: 
+				            @Ret		int output		--操作成功标识
+							            0:成功，9：未知错误
+	            author:		卢嘉诚
+	            CreateDate:	2016-3-23
+	            UpdateDate: 2016-3-23 by lw 根据编辑要求增加rowNum返回参数
+         */
+        SqlCommand cmd = new SqlCommand("addAccountDetails", sqlCon);
+        cmd.CommandType = CommandType.StoredProcedure;
+
+        cmd.Parameters.Add("@AccountDetailsID", SqlDbType.VarChar, 16);
+        cmd.Parameters["@AccountDetailsID"].Direction = ParameterDirection.Output;
+
+        cmd.Parameters.Add("@accountID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@accountID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@accountID"].Value = accountID;
+
+        cmd.Parameters.Add("@account", SqlDbType.VarChar, 30);
+        cmd.Parameters["@account"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@account"].Value = account;
+
+        cmd.Parameters.Add("@detailDate", SqlDbType.SmallDateTime);
+        cmd.Parameters["@detailDate"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@detailDate"].Value = detailDate;
+
+        cmd.Parameters.Add("@abstract", SqlDbType.VarChar, 200);
+        cmd.Parameters["@abstract"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@abstract"].Value = Detailsabstract;
+
+        cmd.Parameters.Add("@borrow", SqlDbType.Money);
+        cmd.Parameters["@borrow"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@borrow"].Value = borrow;
+
+        cmd.Parameters.Add("@loan", SqlDbType.Money);
+        cmd.Parameters["@loan"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@loan"].Value = loan;
+
+        cmd.Parameters.Add("@balance", SqlDbType.Money);
+        cmd.Parameters["@balance"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@balance"].Value = balance;
+
+        cmd.Parameters.Add("@departmentID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@departmentID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@departmentID"].Value = departmentID;
+
+        cmd.Parameters.Add("@department", SqlDbType.VarChar, 30);
+        cmd.Parameters["@department"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@department"].Value = department;
+
+        cmd.Parameters.Add("@projectID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@projectID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@projectID"].Value = projectID;
+
+        cmd.Parameters.Add("@project", SqlDbType.VarChar, 100);
+        cmd.Parameters["@project"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@project"].Value = project;
+
+        cmd.Parameters.Add("@clerkID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@clerkID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@clerkID"].Value = clerkID;
+
+        cmd.Parameters.Add("@clerk", SqlDbType.VarChar, 20);
+        cmd.Parameters["@clerk"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@clerk"].Value = clerk;
+
+        cmd.Parameters.Add("@remarks", SqlDbType.VarChar, 200);
+        cmd.Parameters["@remarks"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@remarks"].Value = remarks;
+
+        cmd.Parameters.Add("@createManID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@createManID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@createManID"].Value = "user100";
+
+        cmd.Parameters.Add("@Ret", SqlDbType.Int);
+        cmd.Parameters["@Ret"].Direction = ParameterDirection.Output;
+
+
+        try
+        {
+            cmd.ExecuteNonQuery();
+            ret = (int)cmd.Parameters["@Ret"].Value;
+            if (ret == 0)
+                return (string)cmd.Parameters["@AccountDetailsID"].Value;
+            else
+                return "Error:未知错误！";
+        }
+        catch (Exception e)
+        {
+            return "Error:" + e.Message;
+        }
+        finally
+        {
+            cmd.Dispose();
+            sqlCon.Close();
+            sqlCon.Dispose();
+        }
+    }
+
+
+    /// <summary>
+    /// 功    能：删除账户明细
+    /// 作    者：卢嘉诚
+    /// 编写日期：2016-5-5
+    /// </summary>
+    /// <param name="FinancialSubjectID">科目ID</param>
+    /// <param name="lockManID">锁定人ID</param>
+    /// <returns>成功：删除成功；失败："Error：..."</returns>
+    [WebMethod(Description = "删除账户明细<br />"
+                           + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
+    //[SoapHeader("PageHeader")]
+    public string delAccountDetails(string AccountDetailsID, string lockManID)
+    {
+        //verifyPageHeader(this);
+        int ret = 9;
+        //从web.config获取连接字符串
+        string conStr = WebConfigurationManager.ConnectionStrings["conStr"].ToString();
+        SqlConnection sqlCon = new SqlConnection(conStr);
+        sqlCon.Open();
+        /*
+	        name:		delAccountList
+	        function:		1.删除账户明细
+				        注意：本存储过程锁定编辑！
+	        input: 
+				        @AccountDetailsID	varchar(16) output,	--账户明细ID，主键，使用408号号码发生器生成
+				        @lockManID varchar(13),		--锁定人ID
+	        output: 
+				        @Ret		int output		--操作成功标识;--操作成功标示；0:成功，1：该账户明细不存在，2：该账户明细被其他用户锁定，9：未知错误
+	        author:		卢嘉诚
+	        CreateDate:	2016-3-23
+	        UpdateDate: 2016-3-23 by lw 根据编辑要求增加rowNum返回参数
+         */
+        SqlCommand cmd = new SqlCommand("delAccountDetails", sqlCon);
+        cmd.CommandType = CommandType.StoredProcedure;
+
+        cmd.Parameters.Add("@AccountDetailsID", SqlDbType.VarChar, 16);
+        cmd.Parameters["@AccountDetailsID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@AccountDetailsID"].Value = AccountDetailsID;
+
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
+        cmd.Parameters["@lockManID"].Value = lockManID;
+
+        cmd.Parameters.Add("@Ret", SqlDbType.Int);
+        cmd.Parameters["@Ret"].Direction = ParameterDirection.Output;
+
+
+        try
+        {
+            cmd.ExecuteNonQuery();
+            ret = (int)cmd.Parameters["@Ret"].Value;
+            lockManID = (string)cmd.Parameters["@lockManID"].Value;
+            if (ret == 0)
+                return "删除账户明细成功！";
+            else if (ret == 1)
+                return "Error:账户" + AccountDetailsID + "不存在！";
+            else if (ret == 2)
+                return "Error:该账户被用户" + lockManID + "锁定";
+            else
+                return "Error:未知错误！";
+        }
+        catch (Exception e)
+        {
+            return "Error:" + e.Message;
+        }
+        finally
+        {
+            cmd.Dispose();
+            sqlCon.Close();
+            sqlCon.Dispose();
+        }
+    }
+
+
+
+    /// <summary>
+    /// 功    能：编辑账户明细
+    /// 作    者：卢嘉诚
+    /// 编写日期：2016-4-28
+    /// </summary>
+    /// <param name="AccountDetailsID">账户明细ID</param>
+    /// <param name="accountID">账户ID</param>
+    /// <param name="account">账户名称</param>
+    /// <param name="detailDate">日期</param>
+    /// <param name="abstract">摘要</param>
+    /// <param name="borrow">借</param>
+    /// <param name="loan">贷</param>
+    /// <param name="balance">余额</param>
+    /// <param name="departmentID">部门ID</param>
+    /// <param name="department">部门</param>
+    /// <param name="projectID">项目ID</param>
+    /// <param name="project">项目</param>
+    /// <param name="clerkID">经手人ID</param>
+    /// <param name="clerk">经手人</param>
+    /// <param name="remarks">备注</param>
+    /// <returns>成功：编辑成功！；失败："Error：..."</returns>
+    [WebMethod(Description = "增加账户明细<br />"
+                           + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
+    //[SoapHeader("PageHeader")]
+    public string editAccountDetails(string AccountDetailsID,string accountID, string account, string detailDate, string Detailsabstract, decimal borrow, decimal loan, decimal balance, string departmentID, string department,
+        string projectID, string project, string clerkID, string clerk, string remarks,string lockManID)
+    {
+        //verifyPageHeader(this);
+        int ret = 9;
+        //从web.config获取连接字符串
+        string conStr = WebConfigurationManager.ConnectionStrings["conStr"].ToString();
+        SqlConnection sqlCon = new SqlConnection(conStr);
+        sqlCon.Open();
+        /*
+	            name:		editAccountDetails	
+	            function:	1.编辑账户明细
+				            注意：本存储过程锁定编辑！
+	            input: 
+				            @AccountDetailsID	varchar(16) output,	--账户明细ID，主键
+				            @accountID 	varchar(13),		--账户ID
+				            @account		varchar(30),		--账户名称
+				            @detailDate	smalldatetime	,	--日期
+				            @abstract	varchar(200),			--摘要
+				            @borrow		money,			--借
+				            @loan		money,			--贷
+				            @balance		money,			--余额
+				            @departmentID	varchar(13),		--部门ID
+				            @department		varchar(30),	--部门
+				            @projectID		varchar(13),	--项目ID
+				            @project			varchar(100),	--项目
+				            @clerkID		varchar(13),		--经手人ID
+				            @clerk		varchar(20),		--经手人
+				            @remarks		varchar(200),		--备注
+
+				            @lockManID varchar(10)output,		--锁定人ID
+	            output: 
+				            @Ret		int output		--操作成功标示；0:成功，1：该账户明细不存在，2：该账户明细已被其他用户锁定，9：未知错误
+				            @createTime smalldatetime output
+	            author:		卢嘉诚
+	            CreateDate:	2016-3-23
+         */
+        SqlCommand cmd = new SqlCommand("editAccountDetails", sqlCon);
+        cmd.CommandType = CommandType.StoredProcedure;
+
+        cmd.Parameters.Add("@AccountDetailsID", SqlDbType.VarChar, 16);
+        cmd.Parameters["@AccountDetailsID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@AccountDetailsID"].Value = AccountDetailsID;
+
+        cmd.Parameters.Add("@accountID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@accountID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@accountID"].Value = accountID;
+
+        cmd.Parameters.Add("@account", SqlDbType.VarChar, 30);
+        cmd.Parameters["@account"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@account"].Value = account;
+
+        cmd.Parameters.Add("@detailDate", SqlDbType.SmallDateTime);
+        cmd.Parameters["@detailDate"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@detailDate"].Value = detailDate;
+
+        cmd.Parameters.Add("@abstract", SqlDbType.VarChar, 200);
+        cmd.Parameters["@abstract"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@abstract"].Value = Detailsabstract;
+
+        cmd.Parameters.Add("@borrow", SqlDbType.Money);
+        cmd.Parameters["@borrow"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@borrow"].Value = borrow;
+
+        cmd.Parameters.Add("@loan", SqlDbType.Money);
+        cmd.Parameters["@loan"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@loan"].Value = loan;
+
+        cmd.Parameters.Add("@balance", SqlDbType.Money);
+        cmd.Parameters["@balance"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@balance"].Value = balance;
+
+        cmd.Parameters.Add("@departmentID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@departmentID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@departmentID"].Value = departmentID;
+
+        cmd.Parameters.Add("@department", SqlDbType.VarChar, 30);
+        cmd.Parameters["@department"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@department"].Value = department;
+
+        cmd.Parameters.Add("@projectID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@projectID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@projectID"].Value = projectID;
+
+        cmd.Parameters.Add("@project", SqlDbType.VarChar, 100);
+        cmd.Parameters["@project"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@project"].Value = project;
+
+        cmd.Parameters.Add("@clerkID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@clerkID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@clerkID"].Value = clerkID;
+
+        cmd.Parameters.Add("@clerk", SqlDbType.VarChar, 20);
+        cmd.Parameters["@clerk"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@clerk"].Value = clerk;
+
+        cmd.Parameters.Add("@remarks", SqlDbType.VarChar, 200);
+        cmd.Parameters["@remarks"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@remarks"].Value = remarks;
+
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
+        cmd.Parameters["@lockManID"].Value = lockManID;
+
+        cmd.Parameters.Add("@Ret", SqlDbType.Int);
+        cmd.Parameters["@Ret"].Direction = ParameterDirection.Output;
+
+
+        try
+        {
+            cmd.ExecuteNonQuery();
+            ret = (int)cmd.Parameters["@Ret"].Value;
+            lockManID = (string)cmd.Parameters["@lockManID"].Value;
+            if (ret == 0)
+                return "编辑成功！";
+            else if (ret == 1)
+                return "Error:账户明细" + AccountDetailsID + "不存在!";
+            else if (ret == 2)
+                return "该账户明细已经被用户" + lockManID + "锁定！";
+            else
+                return "Error:未知错误！";
+        }
+        catch (Exception e)
+        {
+            return "Error:" + e.Message;
+        }
+        finally
+        {
+            cmd.Dispose();
+            sqlCon.Close();
+            sqlCon.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// 功    能：锁定指定账户明细
+    /// 作    者：卢嘉诚
+    /// 编写日期：2016-5-4
+    /// </summary>
+    /// <param name="AccountDetailsID">账户明细ID</param>
+    /// <param name="lockManID">锁定人ID</param>
+    /// <returns>成功：锁定成功；失败："Error：..."</returns>
+    [WebMethod(Description = "锁定指定账户明细<br />"
+                           + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
+    //[SoapHeader("PageHeader")]
+    public string lockAccountDetailsEdit(string AccountDetailsID, string lockManID)
+    {
+        //verifyPageHeader(this);
+        int ret = 9;
+        //从web.config获取连接字符串
+        string conStr = WebConfigurationManager.ConnectionStrings["conStr"].ToString();
+        SqlConnection sqlCon = new SqlConnection(conStr);
+        sqlCon.Open();
+        /*
+	        name:		lockAccountDetailsEdit
+	        function: 	锁定账户明细编辑，避免编辑冲突
+	        input: 
+				        @AccountDetailsID varchar(16),		--账户ID
+				        @lockManID varchar(13) output,	--锁定人，如果当前科目正在被人占用编辑则返回该人的工号
+	        output: 
+				        @Ret		int output		--操作成功标识0:成功，1：要锁定的账户明细不存在，2:要锁定的账户明细正在被别人编辑，9：未知错误
+	        author:		卢嘉诚
+	        CreateDate:	2016-4-16
+	        UpdateDate: 
+         */
+        SqlCommand cmd = new SqlCommand("lockAccountDetailsEdit", sqlCon);
+        cmd.CommandType = CommandType.StoredProcedure;
+
+        cmd.Parameters.Add("@AccountDetailsID", SqlDbType.VarChar, 16);
+        cmd.Parameters["@AccountDetailsID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@AccountDetailsID"].Value = AccountDetailsID;
+
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
+        cmd.Parameters["@lockManID"].Value = lockManID;
+
+        cmd.Parameters.Add("@Ret", SqlDbType.Int);
+        cmd.Parameters["@Ret"].Direction = ParameterDirection.Output;
+
+
+
+        try
+        {
+            cmd.ExecuteNonQuery();
+            ret = (int)cmd.Parameters["@Ret"].Value;
+            lockManID = (string)cmd.Parameters["@lockManID"].Value;
+            if (ret == 0)
+                return "锁定成功！";
+            else if (ret == 1)
+                return "账户明细" + AccountDetailsID + "不存在！";
+            else if (ret == 2)
+                return "要锁定的账户明细正在被用户" + lockManID + "锁定编辑";
+            else
+                return "Error:未知错误！";
+        }
+        catch (Exception e)
+        {
+            return "Error:" + e.Message;
+        }
+        finally
+        {
+            cmd.Dispose();
+            sqlCon.Close();
+            sqlCon.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// 功    能：释放指定账户明细锁定
+    /// 作    者：卢嘉诚
+    /// 编写日期：2016-4-28
+    /// </summary>
+    /// <param name="AccountDetailsID">账户明细ID</param>
+    /// <param name="lockManID">锁定人ID</param>
+    /// <returns>成功：释放锁定成功！；失败："Error：..."</returns>
+    [WebMethod(Description = "释放指定账户明细锁定<br />"
+                           + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
+    //[SoapHeader("PageHeader")]
+    public string unlockAccountDetailsEdit(string AccountDetailsID, string lockManID)
+    {
+        //verifyPageHeader(this);
+        int ret = 9;
+        //从web.config获取连接字符串
+        string conStr = WebConfigurationManager.ConnectionStrings["conStr"].ToString();
+        SqlConnection sqlCon = new SqlConnection(conStr);
+        sqlCon.Open();
+        /*
+	            name:		lockAccountDetailsEdit
+	            function: 	释放锁定账户明细编辑，避免编辑冲突
+	            input: 
+				            @AccountDetailsID varchar(16),		--账户ID
+				            @lockManID varchar(13) output,	--锁定人，如果当前科目正在被人占用编辑则返回该人的工号
+	            output: 
+				            @Ret		int output		--操作成功标识0:成功，1：要释放锁定的账户明细不存在，2:要释放锁定的账户明细正在被别人编辑，8：该账户明细未被任何人锁定9：未知错误
+	            author:		卢嘉诚
+	            CreateDate:	2016-4-16
+	            UpdateDate: 
+         */
+        SqlCommand cmd = new SqlCommand("unlockAccountDetailsEdit", sqlCon);
+        cmd.CommandType = CommandType.StoredProcedure;
+
+        cmd.Parameters.Add("@AccountDetailsID", SqlDbType.VarChar, 16);
+        cmd.Parameters["@AccountDetailsID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@AccountDetailsID"].Value = AccountDetailsID;
+
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
+        cmd.Parameters["@lockManID"].Value = lockManID;
+
+        cmd.Parameters.Add("@Ret", SqlDbType.Int);
+        cmd.Parameters["@Ret"].Direction = ParameterDirection.Output;
+
+
+        try
+        {
+            cmd.ExecuteNonQuery();
+            ret = (int)cmd.Parameters["@Ret"].Value;
+            lockManID = (string)cmd.Parameters["@lockManID"].Value;
+            if (ret == 0)
+                return "释放锁定成功！";
+            else if (ret == 1)
+                return "Error:账户" + AccountDetailsID + "不存在！";
+            else if (ret == 2)
+                return "Error:该账户明细已被用户" + lockManID + "锁定无法编辑！";
+            else if (ret == 8)
+                return "Error:该账户明细未被任何人锁定！";
+            else
+                return "Error:未知错误！";
+        }
+        catch (Exception e)
+        {
+            return "Error:" + e.Message;
+        }
+        finally
+        {
+            cmd.Dispose();
+            sqlCon.Close();
+            sqlCon.Dispose();
+        }
+    }
+
     #endregion
 
 }
