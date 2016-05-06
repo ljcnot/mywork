@@ -3146,4 +3146,1302 @@ public class FinancialSystem : virtualWebService
 
     #endregion
 
+    #region 收支明细的增删改
+    /// <summary>
+    /// 功    能：增加收入明细
+    /// 作    者：卢嘉诚
+    /// 编写日期：2016-4-28
+    /// </summary>
+    /// <param name="projectID">项目ID</param>
+    /// <param name="project">项目名称</param>
+    /// <param name="customerID">客户ID</param>
+    /// <param name="customerName">客户名称</param>
+    /// <param name="abstract">摘要</param>
+    /// <param name="incomeSum">收入金额</param>
+    /// <param name="contractAmount">合同金额</param>
+    /// <param name="receivedAmount">已收金额</param>
+    /// <param name="remarks">备注</param>
+    /// <param name="collectionModeID">收款方式ID</param>
+    /// <param name="collectionMode">收款方式</param>
+    /// <param name="startDate">收款日期</param>
+    /// <param name="paymentApplicantID">收款申请人ID</param>
+    /// <param name="payee">收款人</param>
+    /// <param name="createManID">创建人ID</param>
+    /// <returns>成功：收入明细编号，采用411号号码发生器发生；失败："Error：..."</returns>
+    [WebMethod(Description = "增加收入明细<br />"
+                           + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
+    //[SoapHeader("PageHeader")]
+    public string addIncome(string projectID, string project, string customerID, string customerName, string Incomeabstract, decimal incomeSum, decimal contractAmount, decimal receivedAmount, string remarks,
+        string collectionModeID, string collectionMode, string startDate, string paymentApplicantID, string payee, string createManID)
+    {
+        //verifyPageHeader(this);
+        int ret = 9;
+        //从web.config获取连接字符串
+        string conStr = WebConfigurationManager.ConnectionStrings["conStr"].ToString();
+        SqlConnection sqlCon = new SqlConnection(conStr);
+        sqlCon.Open();
+        /*
+	        name:		addIncome
+	        function: 	该存储过程锁定账户编辑，避免编辑冲突
+	        input: 
+
+				        @projectID	varchar(13),	--项目ID
+				        @project		varchar(50),	--项目名称
+				        @customerID	varchar(13),	--客户ID
+				        @customerName	varchar(30),	--客户名称
+				        @abstract	varchar(200),	--摘要
+				        @incomeSum	money,	--收入金额
+				        @contractAmount money,	--合同金额
+				        @receivedAmount	money,	--已收金额
+				        @remarks	varchar(200),	--备注
+				        @collectionModeID	varchar(13),	--收款方式ID
+				        @collectionMode		varchar(50),	--收款方式
+				        @startDate	smalldatetime	,	--收款日期
+				        @paymentApplicantID	varchar(13),	--收款申请人ID
+				        @payee	varchar(10),	--收款人
+				        @createManID varchar(13),	--创建人
+
+				
+	        output: 
+				        @incomeInformationID varchar(16)	output,	--收入信息ID，主键，使用411号号码发生器生成
+				        @Ret int output				--操作成功标识0:成功，9：未知错误
+	        author:		卢嘉诚
+	        CreateDate:	2016-4-16
+	        UpdateDate: 
+         */
+        SqlCommand cmd = new SqlCommand("addIncome", sqlCon);
+        cmd.CommandType = CommandType.StoredProcedure;
+
+        cmd.Parameters.Add("@incomeInformationID", SqlDbType.VarChar, 16);
+        cmd.Parameters["@incomeInformationID"].Direction = ParameterDirection.Output;
+
+        cmd.Parameters.Add("@projectID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@projectID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@projectID"].Value = projectID;
+
+        cmd.Parameters.Add("@project", SqlDbType.VarChar, 50);
+        cmd.Parameters["@project"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@project"].Value = project;
+
+        cmd.Parameters.Add("@customerID", SqlDbType.VarChar,13);
+        cmd.Parameters["@customerID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@customerID"].Value = customerID;
+
+        cmd.Parameters.Add("@customerName", SqlDbType.VarChar, 30);
+        cmd.Parameters["@customerName"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@customerName"].Value = customerName;
+
+        cmd.Parameters.Add("@abstract", SqlDbType.VarChar,200);
+        cmd.Parameters["@abstract"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@abstract"].Value = Incomeabstract;
+
+        cmd.Parameters.Add("@incomeSum", SqlDbType.Money);
+        cmd.Parameters["@incomeSum"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@incomeSum"].Value = incomeSum;
+
+        cmd.Parameters.Add("@contractAmount", SqlDbType.Money);
+        cmd.Parameters["@contractAmount"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@contractAmount"].Value = contractAmount;
+
+        cmd.Parameters.Add("@receivedAmount", SqlDbType.Money);
+        cmd.Parameters["@receivedAmount"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@receivedAmount"].Value = receivedAmount;
+
+        cmd.Parameters.Add("@remarks", SqlDbType.VarChar, 200);
+        cmd.Parameters["@remarks"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@remarks"].Value = remarks;
+
+        cmd.Parameters.Add("@collectionModeID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@collectionModeID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@collectionModeID"].Value = collectionModeID;
+
+        cmd.Parameters.Add("@collectionMode", SqlDbType.VarChar, 50);
+        cmd.Parameters["@collectionMode"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@collectionMode"].Value = collectionMode;
+
+        cmd.Parameters.Add("@startDate", SqlDbType.SmallDateTime);
+        cmd.Parameters["@startDate"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@startDate"].Value = startDate;
+
+        cmd.Parameters.Add("@paymentApplicantID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@paymentApplicantID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@paymentApplicantID"].Value = paymentApplicantID;
+
+        cmd.Parameters.Add("@payee", SqlDbType.VarChar, 10);
+        cmd.Parameters["@payee"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@payee"].Value = payee;
+
+        cmd.Parameters.Add("@createManID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@createManID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@createManID"].Value = createManID;
+
+        cmd.Parameters.Add("@Ret", SqlDbType.Int);
+        cmd.Parameters["@Ret"].Direction = ParameterDirection.Output;
+
+
+        try
+        {
+            cmd.ExecuteNonQuery();
+            ret = (int)cmd.Parameters["@Ret"].Value;
+            if (ret == 0)
+                return (string)cmd.Parameters["@incomeInformationID"].Value;
+            else
+                return "Error:未知错误！";
+        }
+        catch (Exception e)
+        {
+            return "Error:" + e.Message;
+        }
+        finally
+        {
+            cmd.Dispose();
+            sqlCon.Close();
+            sqlCon.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// 功    能：删除收入明细
+    /// 作    者：卢嘉诚
+    /// 编写日期：2016-5-5
+    /// </summary>
+    /// <param name="incomeInformationID">科目ID</param>
+    /// <param name="lockManID">锁定人ID</param>
+    /// <returns>成功：删除成功；失败："Error：..."</returns>
+    [WebMethod(Description = "删除收入明细<br />"
+                           + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
+    //[SoapHeader("PageHeader")]
+    public string delIncome(string incomeInformationID, string lockManID)
+    {
+        //verifyPageHeader(this);
+        int ret = 9;
+        //从web.config获取连接字符串
+        string conStr = WebConfigurationManager.ConnectionStrings["conStr"].ToString();
+        SqlConnection sqlCon = new SqlConnection(conStr);
+        sqlCon.Open();
+        /*
+	            name:		delIncome
+	            function:		1.删除收入明细
+				            注意：本存储过程锁定编辑！
+	            input: 
+				            @incomeInformationID	varchar(16) output,	--收入信息ID，主键
+				            @lockManID varchar(13),		--锁定人ID
+	            output: 
+				            @Ret		int output		--操作成功标识;--操作成功标示；0:成功，1：该收入明细不存在，2：该收入明细被其他用户锁定，3：请先锁定该收入明细再删除避免冲突，9：未知错误
+	            author:		卢嘉诚
+	            CreateDate:	2016-5-6
+         */
+        SqlCommand cmd = new SqlCommand("delIncome", sqlCon);
+        cmd.CommandType = CommandType.StoredProcedure;
+
+        cmd.Parameters.Add("@incomeInformationID", SqlDbType.VarChar, 16);
+        cmd.Parameters["@incomeInformationID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@incomeInformationID"].Value = incomeInformationID;
+
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
+        cmd.Parameters["@lockManID"].Value = lockManID;
+
+        cmd.Parameters.Add("@Ret", SqlDbType.Int);
+        cmd.Parameters["@Ret"].Direction = ParameterDirection.Output;
+
+
+        try
+        {
+            cmd.ExecuteNonQuery();
+            ret = (int)cmd.Parameters["@Ret"].Value;
+            lockManID = (string)cmd.Parameters["@lockManID"].Value;
+            if (ret == 0)
+                return "删除收入明细成功！";
+            else if (ret == 1)
+                return "Error:收入明细" + incomeInformationID + "不存在！";
+            else if (ret == 2)
+                return "Error:该收入明细被用户" + lockManID + "锁定";
+            else if (ret == 3)
+                return "Error:请先锁定该收入明细再删除避免冲突！";
+            else
+                return "Error:未知错误！";
+        }
+        catch (Exception e)
+        {
+            return "Error:" + e.Message;
+        }
+        finally
+        {
+            cmd.Dispose();
+            sqlCon.Close();
+            sqlCon.Dispose();
+        }
+    }
+
+
+    /// <summary>
+    /// 功    能：编辑收入明细
+    /// 作    者：卢嘉诚
+    /// 编写日期：2016-4-28
+    /// </summary>
+    /// <param name="incomeInformationID">收入明细ID</param>
+    /// <param name="projectID">项目ID</param>
+    /// <param name="project">项目</param>
+    /// <param name="customerID">客户ID</param>
+    /// <param name="customerName">客户名称</param>
+    /// <param name="Incomeabstract">摘要</param>
+    /// <param name="incomeSum">收入金额</param>
+    /// <param name="contractAmount">合同金额</param>
+    /// <param name="receivedAmount">已收金额</param>
+    /// <param name="remarks">备注</param>
+    /// <param name="collectionModeID">收款方式ID</param>
+    /// <param name="collectionMode">收款方式</param>
+    /// <param name="startDate">收款日期</param>
+    /// <param name="paymentApplicantID">收款申请人ID</param>
+    /// <param name="payee">收款人</param>
+    /// <param name="lockManID">锁定人ID</param>
+    /// <returns>成功：编辑成功！；失败："Error：..."</returns>
+    [WebMethod(Description = "编辑收入明细<br />"
+                           + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
+    //[SoapHeader("PageHeader")]
+    public string editIncome(string incomeInformationID, string projectID, string project, string customerID, string customerName,string Incomeabstract, decimal incomeSum, decimal contractAmount, decimal receivedAmount, string remarks, string collectionModeID,
+        string collectionMode, string startDate, string paymentApplicantID, string payee, string lockManID)
+    {
+        //verifyPageHeader(this);
+        int ret = 9;
+        //从web.config获取连接字符串
+        string conStr = WebConfigurationManager.ConnectionStrings["conStr"].ToString();
+        SqlConnection sqlCon = new SqlConnection(conStr);
+        sqlCon.Open();
+        /*
+	        name:		editIncome
+	        function:	1.编辑收入明细
+				        注意：本存储过程锁定编辑！
+	        input: 
+				        @incomeInformationID varchar(16)	output,	--收入信息ID，主键，使用411号号码发生器生成
+				        @projectID	varchar(13),	--项目ID
+				        @project		varchar(50),	--项目名称
+				        @customerID	varchar(13),	--客户ID
+				        @customerName	varchar(30),	--客户名称
+				        @abstract	varchar(200),	--摘要
+				        @incomeSum	money,	--收入金额
+				        @contractAmount money,	--合同金额
+				        @receivedAmount	money,	--已收金额
+				        @remarks	varchar(200),	--备注
+				        @collectionModeID	varchar(13),	--收款方式ID
+				        @collectionMode		varchar(50),	--收款方式
+				        @startDate	smalldatetime	,	--收款日期
+				        @paymentApplicantID	varchar(13),	--收款申请人ID
+				        @payee	varchar(10),	--收款人
+
+
+	        output: 
+				        @lockManID varchar(10)output,		--锁定人ID
+				        @Ret		int output		--操作成功标示；0:成功，1：该账户明细不存在，2：该账户明细已被其他用户锁定，9：未知错误
+
+	        author:		卢嘉诚
+	        CreateDate:	2016-3-23
+
+         */
+        SqlCommand cmd = new SqlCommand("editIncome", sqlCon);
+        cmd.CommandType = CommandType.StoredProcedure;
+
+        cmd.Parameters.Add("@incomeInformationID", SqlDbType.VarChar, 16);
+        cmd.Parameters["@incomeInformationID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@incomeInformationID"].Value = incomeInformationID;
+
+        cmd.Parameters.Add("@projectID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@projectID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@projectID"].Value = projectID;
+
+        cmd.Parameters.Add("@project", SqlDbType.VarChar, 50);
+        cmd.Parameters["@project"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@project"].Value = project;
+
+        cmd.Parameters.Add("@customerID", SqlDbType.VarChar,13);
+        cmd.Parameters["@customerID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@customerID"].Value = customerID;
+
+        cmd.Parameters.Add("@customerName", SqlDbType.VarChar, 30);
+        cmd.Parameters["@customerName"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@customerName"].Value = customerName;
+
+        cmd.Parameters.Add("@abstract", SqlDbType.VarChar,200);
+        cmd.Parameters["@abstract"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@abstract"].Value = Incomeabstract;
+
+        cmd.Parameters.Add("@incomeSum", SqlDbType.Money);
+        cmd.Parameters["@incomeSum"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@incomeSum"].Value = incomeSum;
+
+        cmd.Parameters.Add("@contractAmount", SqlDbType.Money);
+        cmd.Parameters["@contractAmount"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@contractAmount"].Value = contractAmount;
+
+        cmd.Parameters.Add("@receivedAmount", SqlDbType.Money);
+        cmd.Parameters["@receivedAmount"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@receivedAmount"].Value = receivedAmount;
+
+        cmd.Parameters.Add("@remarks", SqlDbType.VarChar, 200);
+        cmd.Parameters["@remarks"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@remarks"].Value = remarks;
+
+        cmd.Parameters.Add("@collectionModeID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@collectionModeID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@collectionModeID"].Value = collectionModeID;
+
+        cmd.Parameters.Add("@collectionMode", SqlDbType.VarChar, 50);
+        cmd.Parameters["@collectionMode"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@collectionMode"].Value = collectionMode;
+
+        cmd.Parameters.Add("@startDate", SqlDbType.SmallDateTime);
+        cmd.Parameters["@startDate"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@startDate"].Value = startDate;
+
+        cmd.Parameters.Add("@paymentApplicantID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@paymentApplicantID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@paymentApplicantID"].Value = paymentApplicantID;
+
+        cmd.Parameters.Add("@payee", SqlDbType.VarChar, 10);
+        cmd.Parameters["@payee"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@payee"].Value = payee;
+
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
+        cmd.Parameters["@lockManID"].Value = lockManID;
+
+        cmd.Parameters.Add("@Ret", SqlDbType.Int);
+        cmd.Parameters["@Ret"].Direction = ParameterDirection.Output;
+
+
+        try
+        {
+            cmd.ExecuteNonQuery();
+            ret = (int)cmd.Parameters["@Ret"].Value;
+            lockManID = (string)cmd.Parameters["@lockManID"].Value;
+            if (ret == 0)
+                return "编辑成功！";
+            else if (ret == 1)
+                return "Error:收入明细" + incomeInformationID + "不存在!";
+            else if (ret == 2)
+                return "Error:该收入明细已经被用户" + lockManID + "锁定！";
+            else if (ret == 3)
+                return "Error:请先锁定该收入明细再编辑，避免冲突！";
+            else if (ret == 4)
+                return "Error:该收入明细已确认，无法编辑！";
+            else
+                return "Error:未知错误！";
+        }
+        catch (Exception e)
+        {
+            return "Error:" + e.Message;
+        }
+        finally
+        {
+            cmd.Dispose();
+            sqlCon.Close();
+            sqlCon.Dispose();
+        }
+    }
+
+
+
+
+    /// <summary>
+    /// 功    能：添加支出明细
+    /// 作    者：卢嘉诚
+    /// 编写日期：2016-4-28
+    /// </summary>
+    /// <param name="projectID">项目ID</param>
+    /// <param name="project">项目名称</param>
+    /// <param name="customerID">客户ID</param>
+    /// <param name="customerName">客户名称</param>
+    /// <param name="abstract">摘要</param>
+    /// <param name="expensesSum">支出金额</param>
+    /// <param name="contractAmount">合同金额</param>
+    /// <param name="receivedAmount">已付金额</param>
+    /// <param name="remarks">备注</param>
+    /// <param name="collectionModeID">付款方式ID</param>
+    /// <param name="collectionMode">付款方式</param>
+    /// <param name="startDate">付款日期</param>
+    /// <param name="paymentApplicantID">付款申请人ID</param>
+    /// <param name="paymentApplicant">付款人</param>
+    /// <param name="createManID">创建人ID</param>
+    /// <returns>成功：收入明细编号，采用412号号码发生器发生；失败："Error：..."</returns>
+    [WebMethod(Description = "添加支出明细<br />"
+                           + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
+    //[SoapHeader("PageHeader")]
+    public string addExpenses(string projectID, string project, string customerID, string customerName, string Expensesabstract, decimal expensesSum, decimal contractAmount, decimal receivedAmount, string remarks,
+        string collectionModeID, string collectionMode, string startDate, string paymentApplicantID, string paymentApplicant, string createManID)
+    {
+        //verifyPageHeader(this);
+        int ret = 9;
+        //从web.config获取连接字符串
+        string conStr = WebConfigurationManager.ConnectionStrings["conStr"].ToString();
+        SqlConnection sqlCon = new SqlConnection(conStr);
+        sqlCon.Open();
+        /*
+                name:		addExpenses
+	            function:	1.添加支出明细
+				            注意：本存储过程不锁定编辑！
+	            input: 
+
+				            @projectID	varchar(13),	--项目ID
+				            @project		varchar(50),	--项目名称
+				            @customerID	varchar(13),	--客户ID
+				            @customerName	varchar(30),	--客户名称
+				            @abstract	varchar(200),	--摘要
+				            @expensesSum	money,	--支出金额
+				            @contractAmount money,	--合同金额
+				            @receivedAmount money,	--已付金额
+				            @remarks	varchar(200),	--备注
+				            @collectionModeID	varchar(13) ,	--付款方式ID
+				            @collectionMode		varchar(50),	--付款方式
+				            @startDate	smalldatetime	,	--付款日期
+				            @paymentApplicantID	varchar(13),	--付款申请人ID
+				            @paymentApplicant	varchar(10),	--付款申请人
+
+				            @createManID varchar(13),		--创建人工号
+	            output: 
+				            @expensesID	varchar(16),	--支出信息ID，主键，使用412号号码发生器生成
+				            @Ret		int output		--操作成功标识
+							            0:成功，1：该国别名称或代码已存在，9：未知错误
+				
+	            author:		卢嘉诚
+	            CreateDate:	2016-3-23
+	            UpdateDate: 2016-3-23 by lw 根据编辑要求增加rowNum返回参数
+         */
+        SqlCommand cmd = new SqlCommand("addExpenses", sqlCon);
+        cmd.CommandType = CommandType.StoredProcedure;
+
+        cmd.Parameters.Add("@expensesID", SqlDbType.VarChar, 16);
+        cmd.Parameters["@expensesID"].Direction = ParameterDirection.Output;
+
+        cmd.Parameters.Add("@projectID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@projectID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@projectID"].Value = projectID;
+
+        cmd.Parameters.Add("@project", SqlDbType.VarChar, 50);
+        cmd.Parameters["@project"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@project"].Value = project;
+
+        cmd.Parameters.Add("@customerID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@customerID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@customerID"].Value = customerID;
+
+        cmd.Parameters.Add("@customerName", SqlDbType.VarChar, 30);
+        cmd.Parameters["@customerName"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@customerName"].Value = customerName;
+
+        cmd.Parameters.Add("@abstract", SqlDbType.VarChar, 200);
+        cmd.Parameters["@abstract"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@abstract"].Value = Expensesabstract;
+
+        cmd.Parameters.Add("@expensesSum", SqlDbType.Money);
+        cmd.Parameters["@expensesSum"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@expensesSum"].Value = expensesSum;
+
+        cmd.Parameters.Add("@contractAmount", SqlDbType.Money);
+        cmd.Parameters["@contractAmount"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@contractAmount"].Value = contractAmount;
+
+        cmd.Parameters.Add("@receivedAmount", SqlDbType.Money);
+        cmd.Parameters["@receivedAmount"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@receivedAmount"].Value = receivedAmount;
+
+        cmd.Parameters.Add("@remarks", SqlDbType.VarChar, 200);
+        cmd.Parameters["@remarks"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@remarks"].Value = remarks;
+
+        cmd.Parameters.Add("@collectionModeID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@collectionModeID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@collectionModeID"].Value = collectionModeID;
+
+        cmd.Parameters.Add("@collectionMode", SqlDbType.VarChar, 50);
+        cmd.Parameters["@collectionMode"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@collectionMode"].Value = collectionMode;
+
+        cmd.Parameters.Add("@startDate", SqlDbType.SmallDateTime);
+        cmd.Parameters["@startDate"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@startDate"].Value = startDate;
+
+        cmd.Parameters.Add("@paymentApplicantID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@paymentApplicantID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@paymentApplicantID"].Value = paymentApplicantID;
+
+        cmd.Parameters.Add("@paymentApplicant", SqlDbType.VarChar, 10);
+        cmd.Parameters["@paymentApplicant"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@paymentApplicant"].Value = paymentApplicant;
+
+        cmd.Parameters.Add("@createManID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@createManID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@createManID"].Value = createManID;
+
+        cmd.Parameters.Add("@Ret", SqlDbType.Int);
+        cmd.Parameters["@Ret"].Direction = ParameterDirection.Output;
+
+
+        try
+        {
+            cmd.ExecuteNonQuery();
+            ret = (int)cmd.Parameters["@Ret"].Value;
+            if (ret == 0)
+                return (string)cmd.Parameters["@expensesID"].Value;
+            else
+                return "Error:未知错误！";
+        }
+        catch (Exception e)
+        {
+            return "Error:" + e.Message;
+        }
+        finally
+        {
+            cmd.Dispose();
+            sqlCon.Close();
+            sqlCon.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// 功    能：删除支出明细
+    /// 作    者：卢嘉诚
+    /// 编写日期：2016-5-5
+    /// </summary>
+    /// <param name="expensesID">支出明细ID</param>
+    /// <param name="lockManID">锁定人ID</param>
+    /// <returns>成功：删除成功；失败："Error：..."</returns>
+    [WebMethod(Description = "删除支出明细<br />"
+                           + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
+    //[SoapHeader("PageHeader")]
+    public string delExpenses(string expensesID, string lockManID)
+    {
+        //verifyPageHeader(this);
+        int ret = 9;
+        //从web.config获取连接字符串
+        string conStr = WebConfigurationManager.ConnectionStrings["conStr"].ToString();
+        SqlConnection sqlCon = new SqlConnection(conStr);
+        sqlCon.Open();
+        /*
+	            name:		delExpenses
+	            function:		1.删除支出明细
+				            注意：本存储过程锁定编辑！
+	            input: 
+				            @expensesID	varchar(16) output,		--支出信息ID，主键
+				            @lockManID varchar(13),		--锁定人ID
+	            output: 
+				            @Ret		int output		--操作成功标识;--操作成功标示；0:成功，1：该支出明细不存在，2：该支出明细被其他用户锁定，3：请先锁定该支出明细再删除避免冲突，9：未知错误
+	            author:		卢嘉诚
+	            CreateDate:	2016-5-6
+         */
+        SqlCommand cmd = new SqlCommand("delExpenses", sqlCon);
+        cmd.CommandType = CommandType.StoredProcedure;
+
+        cmd.Parameters.Add("@expensesID", SqlDbType.VarChar, 16);
+        cmd.Parameters["@expensesID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@expensesID"].Value = expensesID;
+
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
+        cmd.Parameters["@lockManID"].Value = lockManID;
+
+        cmd.Parameters.Add("@Ret", SqlDbType.Int);
+        cmd.Parameters["@Ret"].Direction = ParameterDirection.Output;
+
+
+        try
+        {
+            cmd.ExecuteNonQuery();
+            ret = (int)cmd.Parameters["@Ret"].Value;
+            lockManID = (string)cmd.Parameters["@lockManID"].Value;
+            if (ret == 0)
+                return "删除支出明细成功！";
+            else if (ret == 1)
+                return "Error:支出明细" + expensesID + "不存在！";
+            else if (ret == 2)
+                return "Error:该支出明细被用户" + lockManID + "锁定";
+            else if (ret == 3)
+                return "Error:请先锁定该支出明细再删除避免冲突！";
+            else
+                return "Error:未知错误！";
+        }
+        catch (Exception e)
+        {
+            return "Error:" + e.Message;
+        }
+        finally
+        {
+            cmd.Dispose();
+            sqlCon.Close();
+            sqlCon.Dispose();
+        }
+    }
+
+
+    /// <summary>
+    /// 功    能：编辑支出明细
+    /// 作    者：卢嘉诚
+    /// 编写日期：2016-4-28
+    /// </summary>
+    /// <param name="expensesID">支出明细ID</param>
+    /// <param name="projectID">项目ID</param>
+    /// <param name="project">项目</param>
+    /// <param name="customerID">客户ID</param>
+    /// <param name="customerName">客户名称</param>
+    /// <param name="Expensesabstract">摘要</param>
+    /// <param name="expensesSum">支出金额</param>
+    /// <param name="contractAmount">合同金额</param>
+    /// <param name="receivedAmount">已收金额</param>
+    /// <param name="remarks">备注</param>
+    /// <param name="collectionModeID">付款方式ID</param>
+    /// <param name="collectionMode">付款方式</param>
+    /// <param name="startDate">付款日期</param>
+    /// <param name="paymentApplicantID">付款申请人ID</param>
+    /// <param name="paymentApplicant">付款人</param>
+    /// <param name="lockManID">锁定人ID</param>
+    /// <returns>成功：编辑成功！；失败："Error：..."</returns>
+    [WebMethod(Description = "编辑支出明细<br />"
+                           + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
+    //[SoapHeader("PageHeader")]
+    public string editExpenses(string expensesID, string projectID, string project, string customerID, string customerName, string Expensesabstract, decimal expensesSum, decimal contractAmount, decimal receivedAmount, string remarks, string collectionModeID,
+        string collectionMode, string startDate, string paymentApplicantID, string paymentApplicant, string lockManID)
+    {
+        //verifyPageHeader(this);
+        int ret = 9;
+        //从web.config获取连接字符串
+        string conStr = WebConfigurationManager.ConnectionStrings["conStr"].ToString();
+        SqlConnection sqlCon = new SqlConnection(conStr);
+        sqlCon.Open();
+        /*
+	        name:		editExpenses
+	        function:	1.编辑支出明细
+				        注意：本存储过程锁定编辑！
+	        input: 
+				        @expensesID	varchar(16) output,	--支出信息ID，主键，使用412号号码发生器生成
+				        @projectID	varchar(13),	--项目ID
+				        @project		varchar(50),	--项目名称
+				        @customerID	varchar(13),	--客户ID
+				        @customerName	varchar(30),	--客户名称
+				        @abstract	varchar(200),	--摘要
+				        @expensesSum	money,	--支出金额
+				        @contractAmount money,	--合同金额
+				        @receivedAmount money,	--已付金额
+				        @remarks	varchar(200),	--备注
+				        @collectionModeID	varchar(13) ,	--付款方式ID
+				        @collectionMode		varchar(50),	--付款方式
+				        @startDate	smalldatetime	,	--付款日期
+				        @paymentApplicantID	varchar(13),	--付款申请人ID
+				        @paymentApplicant	varchar(10),	--付款申请人
+
+	        output: 
+				        @lockManID varchar(10)output,		--锁定人ID
+				        @Ret		int output			--操作成功标示；0:成功，1：该支出明细不存在，2：该支出明细已被其他用户锁定，3:请先锁定该支出明细避免编辑冲突4：该支出明细已确认无法编辑9：未知错误
+
+	        author:		卢嘉诚
+	        CreateDate:	2016-3-23
+
+         */
+        SqlCommand cmd = new SqlCommand("editExpenses", sqlCon);
+        cmd.CommandType = CommandType.StoredProcedure;
+
+        cmd.Parameters.Add("@expensesID", SqlDbType.VarChar, 16);
+        cmd.Parameters["@expensesID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@expensesID"].Value = expensesID;
+
+        cmd.Parameters.Add("@projectID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@projectID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@projectID"].Value = projectID;
+
+        cmd.Parameters.Add("@project", SqlDbType.VarChar, 50);
+        cmd.Parameters["@project"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@project"].Value = project;
+
+        cmd.Parameters.Add("@customerID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@customerID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@customerID"].Value = customerID;
+
+        cmd.Parameters.Add("@customerName", SqlDbType.VarChar, 30);
+        cmd.Parameters["@customerName"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@customerName"].Value = customerName;
+
+        cmd.Parameters.Add("@abstract", SqlDbType.VarChar, 200);
+        cmd.Parameters["@abstract"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@abstract"].Value = Expensesabstract;
+
+        cmd.Parameters.Add("@expensesSum", SqlDbType.Money);
+        cmd.Parameters["@expensesSum"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@expensesSum"].Value = expensesSum;
+
+        cmd.Parameters.Add("@contractAmount", SqlDbType.Money);
+        cmd.Parameters["@contractAmount"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@contractAmount"].Value = contractAmount;
+
+        cmd.Parameters.Add("@receivedAmount", SqlDbType.Money);
+        cmd.Parameters["@receivedAmount"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@receivedAmount"].Value = receivedAmount;
+
+        cmd.Parameters.Add("@remarks", SqlDbType.VarChar, 200);
+        cmd.Parameters["@remarks"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@remarks"].Value = remarks;
+
+        cmd.Parameters.Add("@collectionModeID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@collectionModeID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@collectionModeID"].Value = collectionModeID;
+
+        cmd.Parameters.Add("@collectionMode", SqlDbType.VarChar, 50);
+        cmd.Parameters["@collectionMode"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@collectionMode"].Value = collectionMode;
+
+        cmd.Parameters.Add("@startDate", SqlDbType.SmallDateTime);
+        cmd.Parameters["@startDate"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@startDate"].Value = startDate;
+
+        cmd.Parameters.Add("@paymentApplicantID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@paymentApplicantID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@paymentApplicantID"].Value = paymentApplicantID;
+
+        cmd.Parameters.Add("@paymentApplicant", SqlDbType.VarChar, 10);
+        cmd.Parameters["@paymentApplicant"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@paymentApplicant"].Value = paymentApplicant;
+
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
+        cmd.Parameters["@lockManID"].Value = lockManID;
+
+        cmd.Parameters.Add("@Ret", SqlDbType.Int);
+        cmd.Parameters["@Ret"].Direction = ParameterDirection.Output;
+
+
+        try
+        {
+            cmd.ExecuteNonQuery();
+            ret = (int)cmd.Parameters["@Ret"].Value;
+            lockManID = (string)cmd.Parameters["@lockManID"].Value;
+            if (ret == 0)
+                return "编辑成功！";
+            else if (ret == 1)
+                return "Error:支出明细" + expensesID + "不存在!";
+            else if (ret == 2)
+                return "Error:该支出明细已经被用户" + lockManID + "锁定！";
+            else if (ret == 3)
+                return "Error:请先锁定该支出明细再编辑，避免冲突！";
+            else if (ret == 4)
+                return "Error:该支出明细已确认，无法编辑！";
+            else
+                return "Error:未知错误！";
+        }
+        catch (Exception e)
+        {
+            return "Error:" + e.Message;
+        }
+        finally
+        {
+            cmd.Dispose();
+            sqlCon.Close();
+            sqlCon.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// 功    能：锁定指定收入明细
+    /// 作    者：卢嘉诚
+    /// 编写日期：2016-5-4
+    /// </summary>
+    /// <param name="incomeInformationID">收入明细ID</param>
+    /// <param name="lockManID">锁定人ID</param>
+    /// <returns>成功：锁定成功；失败："Error：..."</returns>
+    [WebMethod(Description = "锁定指定收入明细<br />"
+                           + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
+    //[SoapHeader("PageHeader")]
+    public string lockIncomeEdit(string incomeInformationID, string lockManID)
+    {
+        //verifyPageHeader(this);
+        int ret = 9;
+        //从web.config获取连接字符串
+        string conStr = WebConfigurationManager.ConnectionStrings["conStr"].ToString();
+        SqlConnection sqlCon = new SqlConnection(conStr);
+        sqlCon.Open();
+        /*
+	        name:		lockAccountDetailsEdit
+	        function: 	锁定收入明细编辑，避免编辑冲突
+	        input: 
+				        @incomeInformationID varchar(16),		--收入信息ID
+				        @lockManID varchar(13) output,	--锁定人，如果当前收入明细正在被人占用编辑则返回该人的工号
+	        output: 
+				        @Ret		int output		--操作成功标识0:成功，1：要锁定的收入明细不存在，2:要锁定的收入明细正在被别人编辑，9：未知错误
+	        author:		卢嘉诚
+	        CreateDate:	2016-4-16
+	        UpdateDate: 
+         */
+        SqlCommand cmd = new SqlCommand("lockIncomeEdit", sqlCon);
+        cmd.CommandType = CommandType.StoredProcedure;
+
+        cmd.Parameters.Add("@incomeInformationID", SqlDbType.VarChar, 16);
+        cmd.Parameters["@incomeInformationID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@incomeInformationID"].Value = incomeInformationID;
+
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
+        cmd.Parameters["@lockManID"].Value = lockManID;
+
+        cmd.Parameters.Add("@Ret", SqlDbType.Int);
+        cmd.Parameters["@Ret"].Direction = ParameterDirection.Output;
+
+
+
+        try
+        {
+            cmd.ExecuteNonQuery();
+            ret = (int)cmd.Parameters["@Ret"].Value;
+            lockManID = (string)cmd.Parameters["@lockManID"].Value;
+            if (ret == 0)
+                return "锁定成功！";
+            else if (ret == 1)
+                return "收入明细" + incomeInformationID + "不存在！";
+            else if (ret == 2)
+                return "要锁定的收入明细正在被用户" + lockManID + "锁定编辑";
+            else
+                return "Error:未知错误！";
+        }
+        catch (Exception e)
+        {
+            return "Error:" + e.Message;
+        }
+        finally
+        {
+            cmd.Dispose();
+            sqlCon.Close();
+            sqlCon.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// 功    能：释放指定收入明细锁定
+    /// 作    者：卢嘉诚
+    /// 编写日期：2016-4-28
+    /// </summary>
+    /// <param name="incomeInformationID">收入明细ID</param>
+    /// <param name="lockManID">锁定人ID</param>
+    /// <returns>成功：释放锁定成功！；失败："Error：..."</returns>
+    [WebMethod(Description = "释放指定收入明细锁定<br />"
+                           + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
+    //[SoapHeader("PageHeader")]
+    public string unlockIncomeEdit(string incomeInformationID, string lockManID)
+    {
+        //verifyPageHeader(this);
+        int ret = 9;
+        //从web.config获取连接字符串
+        string conStr = WebConfigurationManager.ConnectionStrings["conStr"].ToString();
+        SqlConnection sqlCon = new SqlConnection(conStr);
+        sqlCon.Open();
+        /*
+	        name:		unlockIncomeEdit
+	        function: 	释放锁定收入明细编辑，避免编辑冲突
+	        input: 
+				        @incomeInformationID varchar(16),		--收入明细ID
+				        @lockManID varchar(13) output,			--锁定人，如果当前收入正在被人占用编辑则返回该人的工号
+	        output: 
+				        @Ret		int output		--操作成功标识0:成功，1：要释放锁定的收入明细不存在，2:要释放锁定的收入明细正在被别人编辑，8：该收入明细未被任何人锁定9：未知错误
+	        author:		卢嘉诚
+	        CreateDate:	2016-4-16
+	        UpdateDate: 
+         */
+        SqlCommand cmd = new SqlCommand("unlockIncomeEdit", sqlCon);
+        cmd.CommandType = CommandType.StoredProcedure;
+
+        cmd.Parameters.Add("@incomeInformationID", SqlDbType.VarChar, 16);
+        cmd.Parameters["@incomeInformationID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@incomeInformationID"].Value = incomeInformationID;
+
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
+        cmd.Parameters["@lockManID"].Value = lockManID;
+
+        cmd.Parameters.Add("@Ret", SqlDbType.Int);
+        cmd.Parameters["@Ret"].Direction = ParameterDirection.Output;
+
+
+        try
+        {
+            cmd.ExecuteNonQuery();
+            ret = (int)cmd.Parameters["@Ret"].Value;
+            lockManID = (string)cmd.Parameters["@lockManID"].Value;
+            if (ret == 0)
+                return "释放锁定成功！";
+            else if (ret == 1)
+                return "Error:收入明细" + incomeInformationID + "不存在！";
+            else if (ret == 2)
+                return "Error:该收入明细已被用户" + lockManID + "锁定无法编辑！";
+            else if (ret == 8)
+                return "Error:该收入明细未被任何人锁定！";
+            else
+                return "Error:未知错误！";
+        }
+        catch (Exception e)
+        {
+            return "Error:" + e.Message;
+        }
+        finally
+        {
+            cmd.Dispose();
+            sqlCon.Close();
+            sqlCon.Dispose();
+        }
+    }
+
+
+
+    /// <summary>
+    /// 功    能：锁定指定支出明细
+    /// 作    者：卢嘉诚
+    /// 编写日期：2016-5-4
+    /// </summary>
+    /// <param name="expensesID">支出明细ID</param>
+    /// <param name="lockManID">锁定人ID</param>
+    /// <returns>成功：锁定成功；失败："Error：..."</returns>
+    [WebMethod(Description = "锁定指定支出明细<br />"
+                           + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
+    //[SoapHeader("PageHeader")]
+    public string lockExpensesEdit(string expensesID, string lockManID)
+    {
+        //verifyPageHeader(this);
+        int ret = 9;
+        //从web.config获取连接字符串
+        string conStr = WebConfigurationManager.ConnectionStrings["conStr"].ToString();
+        SqlConnection sqlCon = new SqlConnection(conStr);
+        sqlCon.Open();
+        /*
+	        name:		lockAccountDetailsEdit
+	        function: 	锁定支出明细编辑，避免编辑冲突
+	        input: 
+				        @expensesID varchar(16),		--支出信息ID
+				        @lockManID varchar(13) output,	--锁定人，如果当前支出明细正在被人占用编辑则返回该人的工号
+	        output: 
+				        @Ret		int output		--操作成功标识0:成功，1：要锁定的支出明细不存在，2:要锁定的支出明细正在被别人编辑，9：未知错误
+	        author:		卢嘉诚
+	        CreateDate:	2016-4-16
+	        UpdateDate: 
+         */
+        SqlCommand cmd = new SqlCommand("lockExpensesEdit", sqlCon);
+        cmd.CommandType = CommandType.StoredProcedure;
+
+        cmd.Parameters.Add("@expensesID", SqlDbType.VarChar, 16);
+        cmd.Parameters["@expensesID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@expensesID"].Value = expensesID;
+
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
+        cmd.Parameters["@lockManID"].Value = lockManID;
+
+        cmd.Parameters.Add("@Ret", SqlDbType.Int);
+        cmd.Parameters["@Ret"].Direction = ParameterDirection.Output;
+
+
+
+        try
+        {
+            cmd.ExecuteNonQuery();
+            ret = (int)cmd.Parameters["@Ret"].Value;
+            lockManID = (string)cmd.Parameters["@lockManID"].Value;
+            if (ret == 0)
+                return "锁定成功！";
+            else if (ret == 1)
+                return "支出明细" + expensesID + "不存在！";
+            else if (ret == 2)
+                return "要锁定的支出明细正在被用户" + lockManID + "锁定编辑";
+            else
+                return "Error:未知错误！";
+        }
+        catch (Exception e)
+        {
+            return "Error:" + e.Message;
+        }
+        finally
+        {
+            cmd.Dispose();
+            sqlCon.Close();
+            sqlCon.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// 功    能：释放指定支出明细锁定
+    /// 作    者：卢嘉诚
+    /// 编写日期：2016-4-28
+    /// </summary>
+    /// <param name="expensesID">支出明细ID</param>
+    /// <param name="lockManID">锁定人ID</param>
+    /// <returns>成功：释放锁定成功！；失败："Error：..."</returns>
+    [WebMethod(Description = "释放指定支出明细锁定<br />"
+                           + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
+    //[SoapHeader("PageHeader")]
+    public string unlockExpensesEdit(string expensesID, string lockManID)
+    {
+        //verifyPageHeader(this);
+        int ret = 9;
+        //从web.config获取连接字符串
+        string conStr = WebConfigurationManager.ConnectionStrings["conStr"].ToString();
+        SqlConnection sqlCon = new SqlConnection(conStr);
+        sqlCon.Open();
+        /*
+	 	    name:		unlockExpensesEdit
+	        function: 	释放锁定支出明细编辑，避免编辑冲突
+	        input: 
+				        @expensesID varchar(16),		--支出明细ID
+				        @lockManID varchar(13) output,			--锁定人，如果当前支出正在被人占用编辑则返回该人的工号
+	        output: 
+				        @Ret		int output		--操作成功标识0:成功，1：要释放锁定的支出明细不存在，2:要释放锁定的支出明细正在被别人编辑，8：该支出明细未被任何人锁定9：未知错误
+	        author:		卢嘉诚
+	        CreateDate:	2016-4-16
+	        UpdateDate: 
+         */
+        SqlCommand cmd = new SqlCommand("unlockExpensesEdit", sqlCon);
+        cmd.CommandType = CommandType.StoredProcedure;
+
+        cmd.Parameters.Add("@expensesID", SqlDbType.VarChar, 16);
+        cmd.Parameters["@expensesID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@expensesID"].Value = expensesID;
+
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
+        cmd.Parameters["@lockManID"].Value = lockManID;
+
+        cmd.Parameters.Add("@Ret", SqlDbType.Int);
+        cmd.Parameters["@Ret"].Direction = ParameterDirection.Output;
+
+
+        try
+        {
+            cmd.ExecuteNonQuery();
+            ret = (int)cmd.Parameters["@Ret"].Value;
+            lockManID = (string)cmd.Parameters["@lockManID"].Value;
+            if (ret == 0)
+                return "释放锁定成功！";
+            else if (ret == 1)
+                return "Error:支出明细" + expensesID + "不存在！";
+            else if (ret == 2)
+                return "Error:该支出明细已被用户" + lockManID + "锁定无法编辑！";
+            else if (ret == 8)
+                return "Error:该支出明细未被任何人锁定！";
+            else
+                return "Error:未知错误！";
+        }
+        catch (Exception e)
+        {
+            return "Error:" + e.Message;
+        }
+        finally
+        {
+            cmd.Dispose();
+            sqlCon.Close();
+            sqlCon.Dispose();
+        }
+    }
+
+
+
+
+    /// <summary>
+    /// 功    能：确认指定收入明细
+    /// 作    者：卢嘉诚
+    /// 编写日期：2016-4-28
+    /// </summary>
+    /// <param name="incomeInformationID">收入明细ID</param>
+    /// <param name="confirmationDate">确认日期</param>
+    /// <param name="confirmationPersonID">确认人ID</param>
+    /// <param name="confirmationPerson">确认人</param>
+    /// <param name="approvalOpinion">审批意见ID</param>
+    /// <param name="lockManID">锁定人ID</param>
+    /// <returns>成功：释放锁定成功！；失败："Error：..."</returns>
+    [WebMethod(Description = "确认指定收入明细<br />"
+                           + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
+    //[SoapHeader("PageHeader")]
+    public string confirmIncome(string incomeInformationID, string confirmationDate, string confirmationPersonID, string confirmationPerson, string approvalOpinion, string lockManID)
+    {
+        //verifyPageHeader(this);
+        int ret = 9;
+        //从web.config获取连接字符串
+        string conStr = WebConfigurationManager.ConnectionStrings["conStr"].ToString();
+        SqlConnection sqlCon = new SqlConnection(conStr);
+        sqlCon.Open();
+        /*
+	        name:		confirmIncome
+	        function: 	该存储过程锁定账户编辑，避免编辑冲突
+	        input: 
+				        @incomeInformationID varchar(16)	,	--收入信息ID，主键
+				        @confirmationDate	smalldatetime	,	--确认日期
+				        @confirmationPersonID	varchar(13),	--确认人ID
+				        @confirmationPerson		varchar(10),	--确认人
+				        @approvalOpinion			varchar(200),	--审批意见
+
+				
+	        output: 
+				        @lockManID varchar(13) output,	--锁定人，如果当前借支单正在被人占用编辑则返回该人的工号
+				        @Ret		int output		--操作成功标识0:成功，1：要确认的收入明细不存在，2:要确认的收入明细正在被别人锁定，3:该收入明细未锁定，请先锁定9：未知错误
+	        author:		卢嘉诚
+	        CreateDate:	2016-4-16
+	        UpdateDate: 
+         */
+        SqlCommand cmd = new SqlCommand("confirmIncome", sqlCon);
+        cmd.CommandType = CommandType.StoredProcedure;
+
+        cmd.Parameters.Add("@incomeInformationID", SqlDbType.VarChar, 16);
+        cmd.Parameters["@incomeInformationID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@incomeInformationID"].Value = incomeInformationID;
+
+        cmd.Parameters.Add("@confirmationDate", SqlDbType.SmallDateTime);
+        cmd.Parameters["@confirmationDate"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@confirmationDate"].Value = confirmationDate;
+
+        cmd.Parameters.Add("@confirmationPersonID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@confirmationPersonID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@confirmationPersonID"].Value = confirmationPersonID;
+
+        cmd.Parameters.Add("@confirmationPerson", SqlDbType.VarChar, 10);
+        cmd.Parameters["@confirmationPerson"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@confirmationPerson"].Value = confirmationPerson;
+
+        cmd.Parameters.Add("@approvalOpinion", SqlDbType.VarChar, 200);
+        cmd.Parameters["@approvalOpinion"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@approvalOpinion"].Value = approvalOpinion;
+
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
+        cmd.Parameters["@lockManID"].Value = lockManID;
+
+        cmd.Parameters.Add("@Ret", SqlDbType.Int);
+        cmd.Parameters["@Ret"].Direction = ParameterDirection.Output;
+
+
+        try
+        {
+            cmd.ExecuteNonQuery();
+            ret = (int)cmd.Parameters["@Ret"].Value;
+            lockManID = (string)cmd.Parameters["@lockManID"].Value;
+            if (ret == 0)
+                return "收入确认成功！";
+            else if (ret == 1)
+                return "Error:收入明细" + incomeInformationID + "不存在！";
+            else if (ret == 2)
+                return "Error:该收入明细已被用户" + lockManID + "锁定无法编辑！";
+            else if (ret == 3)
+                return "Error:该收入明细未锁定，请先锁定再确认，避免冲突";
+            else
+                return "Error:未知错误！";
+        }
+        catch (Exception e)
+        {
+            return "Error:" + e.Message;
+        }
+        finally
+        {
+            cmd.Dispose();
+            sqlCon.Close();
+            sqlCon.Dispose();
+        }
+    }
+
+
+    /// <summary>
+    /// 功    能：确认指定支出明细
+    /// 作    者：卢嘉诚
+    /// 编写日期：2016-4-28
+    /// </summary>
+    /// <param name="expensesID">支出明细ID</param>
+    /// <param name="confirmationDate">确认日期</param>
+    /// <param name="confirmationPersonID">确认人ID</param>
+    /// <param name="confirmationPerson">确认人</param>
+    /// <param name="approvalOpinion">审批意见ID</param>
+    /// <param name="lockManID">锁定人ID</param>
+    /// <returns>成功：释放锁定成功！；失败："Error：..."</returns>
+    [WebMethod(Description = "确认指定支出明细<br />"
+                           + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
+    //[SoapHeader("PageHeader")]
+    public string confirmexpenses(string expensesID, string confirmationDate, string confirmationPersonID, string confirmationPerson, string approvalOpinion, string lockManID)
+    {
+        //verifyPageHeader(this);
+        int ret = 9;
+        //从web.config获取连接字符串
+        string conStr = WebConfigurationManager.ConnectionStrings["conStr"].ToString();
+        SqlConnection sqlCon = new SqlConnection(conStr);
+        sqlCon.Open();
+        /*
+	            name:		confirmexpenses
+	            function: 	该存储过程锁定账户编辑，避免编辑冲突
+	            input: 
+				            @expensesID varchar(16)	,	--支出信息ID，主键
+				            @confirmationDate	smalldatetime	,	--确认日期
+				            @confirmationPersonID	varchar(13),	--确认人ID
+				            @confirmationPerson		varchar(10),	--确认人
+				            @approvalOpinion			varchar(200),	--审批意见
+
+				
+	            output: 
+				            @lockManID varchar(13) output,	--锁定人，如果当前借支单正在被人占用编辑则返回该人的工号
+				            @Ret		int output		--操作成功标识0:成功，1：要确认的支出明细不存在，2:要确认的支出明细正在被别人锁定，3:该支出明细未锁定，请先锁定9：未知错误
+	            author:		卢嘉诚
+	            CreateDate:	2016-4-16
+	            UpdateDate: 
+         */
+        SqlCommand cmd = new SqlCommand("confirmexpenses", sqlCon);
+        cmd.CommandType = CommandType.StoredProcedure;
+
+        cmd.Parameters.Add("@expensesID", SqlDbType.VarChar, 16);
+        cmd.Parameters["@expensesID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@expensesID"].Value = expensesID;
+
+        cmd.Parameters.Add("@confirmationDate", SqlDbType.SmallDateTime);
+        cmd.Parameters["@confirmationDate"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@confirmationDate"].Value = confirmationDate;
+
+        cmd.Parameters.Add("@confirmationPersonID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@confirmationPersonID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@confirmationPersonID"].Value = confirmationPersonID;
+
+        cmd.Parameters.Add("@confirmationPerson", SqlDbType.VarChar, 10);
+        cmd.Parameters["@confirmationPerson"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@confirmationPerson"].Value = confirmationPerson;
+
+        cmd.Parameters.Add("@approvalOpinion", SqlDbType.VarChar, 200);
+        cmd.Parameters["@approvalOpinion"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@approvalOpinion"].Value = approvalOpinion;
+
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
+        cmd.Parameters["@lockManID"].Value = lockManID;
+
+        cmd.Parameters.Add("@Ret", SqlDbType.Int);
+        cmd.Parameters["@Ret"].Direction = ParameterDirection.Output;
+
+
+        try
+        {
+            cmd.ExecuteNonQuery();
+            ret = (int)cmd.Parameters["@Ret"].Value;
+            lockManID = (string)cmd.Parameters["@lockManID"].Value;
+            if (ret == 0)
+                return "支出确认成功！";
+            else if (ret == 1)
+                return "Error:支出明细" + expensesID + "不存在！";
+            else if (ret == 2)
+                return "Error:该支出明细已被用户" + lockManID + "锁定无法编辑！";
+            else if (ret == 3)
+                return "Error:该支出明细未锁定，请先锁定再确认，避免冲突";
+            else
+                return "Error:未知错误！";
+        }
+        catch (Exception e)
+        {
+            return "Error:" + e.Message;
+        }
+        finally
+        {
+            cmd.Dispose();
+            sqlCon.Close();
+            sqlCon.Dispose();
+        }
+    }
+
+    #endregion
+
+
+
+
+
+
 }

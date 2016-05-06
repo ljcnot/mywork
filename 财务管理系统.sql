@@ -3101,31 +3101,7 @@ drop PROCEDURE addIncome
 	name:		addIncome
 	function: 	该存储过程锁定账户编辑，避免编辑冲突
 	input: 
-				incomeInformationID varchar(16)	not null,	--收入信息ID
-				projectID	varchar(13)	not null,	--项目ID
-				project		varchar(50)	not null,	--项目名称
-				customerID	varchar(13)	not null,	--客户ID
-				customerName	varchar(30)	not null,	--客户名称
-				abstract	varchar(200)	not null,	--摘要
-				incomeSum	money not null,	--收入金额
-				contractAmount money ,	--合同金额
-				receivedAmount	money,	--已收金额
-				remarks	varchar(200),	--备注
-				collectionModeID	varchar(13) not null,	--收款方式ID
-				collectionMode		varchar(50)	not null,	--收款方式
-				startDate	smalldatetime	not null,	--收款日期
-				paymentApplicantID	varchar(13)	not null,	--收款申请人ID
-				payee	varchar(10)	not null,	--收款人
-				@lockManID varchar(13) output,	--锁定人，如果当前借支单正在被人占用编辑则返回该人的工号
-				
-	output: 
-				@Ret		int output		--操作成功标识0:成功，1：要移交的的账户不存在，2:要移交的的账户正在被别人锁定，9：未知错误
-	author:		卢嘉诚
-	CreateDate:	2016-4-16
-	UpdateDate: 
-*/
-create PROCEDURE addIncome
-				@incomeInformationID varchar(16)	output,	--收入信息ID
+
 				@projectID	varchar(13),	--项目ID
 				@project		varchar(50),	--项目名称
 				@customerID	varchar(13),	--客户ID
@@ -3140,14 +3116,134 @@ create PROCEDURE addIncome
 				@startDate	smalldatetime	,	--收款日期
 				@paymentApplicantID	varchar(13),	--收款申请人ID
 				@payee	varchar(10),	--收款人
+				@createManID varchar(13),	--创建人
+
+				
+	output: 
+				@incomeInformationID varchar(16)	output,	--收入信息ID，主键，使用411号号码发生器生成
+				@Ret int output				--操作成功标识0:成功，9：未知错误
+	author:		卢嘉诚
+	CreateDate:	2016-4-16
+	UpdateDate: 
+*/
+create PROCEDURE addIncome
+				@incomeInformationID varchar(16)	output,	--收入信息ID，主键，使用411号号码发生器生成
+				@projectID	varchar(13),	--项目ID
+				@project		varchar(50),	--项目名称
+				@customerID	varchar(13),	--客户ID
+				@customerName	varchar(30),	--客户名称
+				@abstract	varchar(200),	--摘要
+				@incomeSum	money,	--收入金额
+				@contractAmount money,	--合同金额
+				@receivedAmount	money,	--已收金额
+				@remarks	varchar(200),	--备注
+				@collectionModeID	varchar(13),	--收款方式ID
+				@collectionMode		varchar(50),	--收款方式
+				@startDate	smalldatetime	,	--收款日期
+				@paymentApplicantID	varchar(13),	--收款申请人ID
+				@payee	varchar(10),	--收款人
+				@createManID varchar(13),	--创建人
+				@Ret int output				--操作成功标识0:成功，9：未知错误
+	WITH ENCRYPTION 
+AS
+	set @Ret = 9
+	--使用号码发生器产生新的号码：
+	declare @curNumber varchar(50)
+	exec dbo.getClassNumber 411, 1, @curNumber output
+	set @incomeInformationID = @curNumber
+
+	----取维护人的姓名：
+	declare @createManName nvarchar(30),@createTime smalldatetime
+	--set @lockManName = isnull((select userCName from activeUsers where userID = @lockManID),'')
+	set @createManName = '卢嘉诚'
+	set @createTime = getdate()
+	insert incomeList (
+						incomeInformationID,	--收入信息ID，主键，使用411号号码发生器生成
+						projectID,	--项目ID
+						project,	--项目名称
+						customerID,	--客户ID
+						customerName,	--客户名称
+						abstract	,	--摘要
+						incomeSum,	--收入金额
+						contractAmount,	--合同金额
+						receivedAmount,	--已收金额
+						remarks,	--备注
+						collectionModeID,	--收款方式ID
+						collectionMode,	--收款方式
+						startDate,	--收款日期
+						paymentApplicantID,	--收款申请人ID
+						payee,	--收款人
+						createManID,	--创建人ID
+						createManName,	--创建人
+						createTime		--创建时间
+									)
+						values     (
+						@incomeInformationID,	--收入信息ID，主键，使用411号号码发生器生成
+						@projectID,	--项目ID
+						@project,	--项目名称
+						@customerID,	--客户ID
+						@customerName,	--客户名称
+						@abstract	,	--摘要
+						@incomeSum,	--收入金额
+						@contractAmount,	--合同金额
+						@receivedAmount,	--已收金额
+						@remarks,	--备注
+						@collectionModeID,	--收款方式ID
+						@collectionMode,	--收款方式
+						@startDate,	--收款日期
+						@paymentApplicantID,	--收款申请人ID
+						@payee,	--收款人
+						@createManID,	--创建人ID
+						@createManName,	--创建人
+						@createTime		--创建时间
+									)
+			set @Ret = 0
+
+			if @@ERROR <>0
+			begin
+				set @Ret = 9
+				return
+			end
+
+				--登记工作日志：
+				insert workNote (userID, userName, actionTime, actions, actionObject)
+				values(@createManID, @createManName, getdate(), '添加收入详情', '系统根据用户' + @createManName	+ '的要求添加了收入详情['+ @incomeInformationID +']。')
+GO
+
+--确认指定收入明细
+drop PROCEDURE confirmIncome
+/*				确认指定收入明细
+	name:		confirmIncome
+	function: 	该存储过程锁定账户编辑，避免编辑冲突
+	input: 
+				@incomeInformationID varchar(16)	,	--收入信息ID，主键
+				@confirmationDate	smalldatetime	,	--确认日期
+				@confirmationPersonID	varchar(13),	--确认人ID
+				@confirmationPerson		varchar(10),	--确认人
+				@approvalOpinion			varchar(200),	--审批意见
+
+				
+	output: 
 				@lockManID varchar(13) output,	--锁定人，如果当前借支单正在被人占用编辑则返回该人的工号
-				@Ret int output				--操作成功标识0:成功，1：要移交的的账户不存在，2:要移交的的账户正在被别人锁定，3:该账户未锁定，请先锁定账户9：未知错误
+				@Ret		int output		--操作成功标识0:成功，1：要确认的收入明细不存在，2:要确认的收入明细正在被别人锁定，3:该收入明细未锁定，请先锁定9：未知错误
+	author:		卢嘉诚
+	CreateDate:	2016-4-16
+	UpdateDate: 
+*/
+create PROCEDURE confirmIncome
+				@incomeInformationID varchar(16)	,	--收入信息ID，主键
+				@confirmationDate	smalldatetime	,	--确认日期
+				@confirmationPersonID	varchar(13),	--确认人ID
+				@confirmationPerson		varchar(10),	--确认人
+				@approvalOpinion			varchar(200),	--审批意见
+				@lockManID varchar(13) output,	--锁定人，如果当前借收入明细正在被人占用编辑则返回该人的工号
+				@Ret int output				--操作成功标识0:成功，1：要确认的收入明细不存在，2:要确认的收入明细正在被别人锁定，3:该收入明细未锁定，请先锁定9：未知错误
 	WITH ENCRYPTION 
 AS
 	set @Ret = 9
 	--判断要锁定的账户是否存在
 	declare @count as int
-	set @count=(select count(*) from accountList where accountID= @transferAccountID)	
+	set @count=(select count(*) from incomeList where incomeInformationID= @incomeInformationID)	
 	if (@count = 0)	--不存在
 	begin
 		set @Ret = 1
@@ -3156,8 +3252,8 @@ AS
 
 	--检查编辑锁：
 	declare @thisLockMan varchar(13)
-	set @thisLockMan = (select lockManID from accountList
-					where accountID = @transferAccountID
+	set @thisLockMan = (select lockManID from incomeList
+					where incomeInformationID = @incomeInformationID
 					and	  ISNULL(lockManID,'')<>'')
 	if (@thisLockMan<>'')
 		begin
@@ -3167,36 +3263,366 @@ AS
 				set @Ret = 2
 				return
 			end
-				--使用号码发生器产生新的号码：
-			declare @curNumber varchar(50)
-			exec dbo.getClassNumber 410, 1, @curNumber output
-			set @accountTransferID = @curNumber
-			--更改账户管理人
-			update accountList set administratorID = @handoverPersonID,administrator =  @handoverPerson where accountID = @transferAccountID
-			insert accountTransferList (
-									accountTransferID,	--账户移交ID,主键，使用410号号码发生器生成
-									handoverDate	,	--移交日期
-									transferAccountID,	--移交账户ID
-									transferAccount,	--移交账户
-									transferPersonID,	--移交人ID
-									transferPerson,	--移交人
-									handoverPersonID,	--交接人ID
-									handoverPerson,	--交接人
-									transferMatters,	--移交事项
-									remarks			--备注
-									)
-						values     (
-									@accountTransferID,	--账户移交ID,主键，使用410号号码发生器生成
-									@handoverDate	,	--移交日期
-									@transferAccountID,--移交账户ID
-									@transferAccount,	--移交账户
-									@transferPersonID,	--移交人ID
-									@transferPerson,	--移交人
-									@handoverPersonID,	--交接人ID
-									@handoverPerson,	--交接人
-									@transferMatters,	--移交事项
-									@remarks			--备注
-									)
+			--取维护人的姓名：
+			declare @lockManName nvarchar(30),@modiTime smalldatetime
+			--set @lockManName = isnull((select userCName from activeUsers where userID = @lockManID),'')
+			set @lockManName = '卢嘉诚'
+			set @modiTime = getdate()
+			--添加确认信息
+			update incomeList set confirmationDate = @confirmationDate,	--确认日期
+								confirmationPersonID =  @confirmationPersonID	,	--确认人ID
+								confirmationPerson = @confirmationPerson,	--确认人
+								approvalOpinion = @approvalOpinion,		--审批意见
+								modiManID = @lockManID,			--维护ID	
+								modiManName = @lockManName,			--维护人姓名	
+								modiTime = @modiTime				--维护时间
+								where incomeInformationID = @incomeInformationID
+			set @Ret = 0
+
+			if @@ERROR <>0
+			begin
+				set @Ret = 9
+				return
+			end
+
+				--登记工作日志：
+				insert workNote (userID, userName, actionTime, actions, actionObject)
+				values(@lockManID, @lockManName, getdate(), '确认收入明细', '系统根据用户' + @lockManName	+ '的要求确认了收入明细['+ @incomeInformationID +']。')
+		end
+	else
+		begin
+			set @Ret = 3
+			return
+		end 
+GO
+
+--删除收入明细
+drop PROCEDURE delIncome
+/*
+	name:		delIncome
+	function:		1.删除收入明细
+				注意：本存储过程锁定编辑！
+	input: 
+				@incomeInformationID	varchar(16) output,	--收入信息ID，主键
+				@lockManID varchar(13),		--锁定人ID
+	output: 
+				@Ret		int output		--操作成功标识;--操作成功标示；0:成功，1：该收入明细不存在，2：该收入明细被其他用户锁定，3：请先锁定该收入明细再删除避免冲突，9：未知错误
+	author:		卢嘉诚
+	CreateDate:	2016-5-6
+*/
+
+create PROCEDURE delIncome		
+				@incomeInformationID	varchar(16),	--收入信息ID，主键
+				@lockManID   varchar(13) output,		--锁定人ID
+
+				@Ret		int output			--操作成功标识;--操作成功标示；0:成功，1：该收入明细不存在，2：该收入明细被其他用户锁定，3：请先锁定该收入明细再删除避免冲突，9：未知错误
+
+	WITH ENCRYPTION 
+AS
+	
+	set @Ret = 9
+	
+	--判断要删除的账户明细是否存在
+	declare @count as int
+	set @count=(select count(*) from incomeList where incomeInformationID= @incomeInformationID)	
+	if (@count = 0)	--不存在
+	begin
+		set @Ret = 1
+		return
+	end
+
+	--检查编辑锁：
+	declare @thisLockMan varchar(13)
+	set @thisLockMan = (select lockManID from incomeList
+					where incomeInformationID = @incomeInformationID
+					and	  ISNULL(lockManID,'')<>'')
+	if (@thisLockMan<>'')
+		begin
+			if(@thisLockMan<>@lockManID)
+			begin
+				set @lockManID = @thisLockMan
+				set @Ret = 2
+				return
+			end
+				--取维护人的姓名：
+				declare @lockMan nvarchar(30)
+				--set @createManName = isnull((select userCName from activeUsers where userID = @createManID),'')
+				set @lockMan = '卢嘉诚'
+				declare @createTime smalldatetime
+				set @createTime = getdate()
+
+				delete from incomeList where incomeInformationID = @incomeInformationID
+
+				if @@ERROR <> 0 
+					begin
+						set @Ret = 9
+						return
+					end
+				set @Ret = 0
+				--插入明细表：
+				declare @runRet int 
+				--exec dbo.addAlcApplyDetail @alcNum, @alcApplyDetail, @runRet output
+				--登记工作日志：
+				insert workNote(userID, userName, actionTime, actions, actionObject)
+				values(@lockManID, @lockMan, @createTime, '删除收入明细', '系统根据用户' + @lockMan + 
+					'的要求删除了收入明细[' + @incomeInformationID + ']。')		
+		end
+	else
+	set @Ret = 3
+	return
+	
+GO
+
+
+--编辑收入明细
+drop PROCEDURE editIncome	
+/*
+	name:		editIncome
+	function:	1.编辑收入明细
+				注意：本存储过程锁定编辑！
+	input: 
+				@incomeInformationID varchar(16)	output,	--收入信息ID，主键，使用411号号码发生器生成
+				@projectID	varchar(13),	--项目ID
+				@project		varchar(50),	--项目名称
+				@customerID	varchar(13),	--客户ID
+				@customerName	varchar(30),	--客户名称
+				@abstract	varchar(200),	--摘要
+				@incomeSum	money,	--收入金额
+				@contractAmount money,	--合同金额
+				@receivedAmount	money,	--已收金额
+				@remarks	varchar(200),	--备注
+				@collectionModeID	varchar(13),	--收款方式ID
+				@collectionMode		varchar(50),	--收款方式
+				@startDate	smalldatetime	,	--收款日期
+				@paymentApplicantID	varchar(13),	--收款申请人ID
+				@payee	varchar(10),	--收款人
+
+
+	output: 
+				@lockManID varchar(10)output,		--锁定人ID
+				@Ret		int output		--操作成功标示；0:成功，1：该账户明细不存在，2：该账户明细已被其他用户锁定，9：未知错误
+
+	author:		卢嘉诚
+	CreateDate:	2016-3-23
+
+*/
+
+
+
+create PROCEDURE editIncome			
+				@incomeInformationID varchar(16)	output,	--收入信息ID，主键，使用411号号码发生器生成
+				@projectID	varchar(13),	--项目ID
+				@project		varchar(50),	--项目名称
+				@customerID	varchar(13),	--客户ID
+				@customerName	varchar(30),	--客户名称
+				@abstract	varchar(200),	--摘要
+				@incomeSum	money,	--收入金额
+				@contractAmount money,	--合同金额
+				@receivedAmount	money,	--已收金额
+				@remarks	varchar(200),	--备注
+				@collectionModeID	varchar(13),	--收款方式ID
+				@collectionMode		varchar(50),	--收款方式
+				@startDate	smalldatetime	,	--收款日期
+				@paymentApplicantID	varchar(13),	--收款申请人ID
+				@payee	varchar(10),	--收款人
+
+				@lockManID varchar(13) output,		--锁定人ID
+				@Ret		int output			--操作成功标示；0:成功，1：该账户明细不存在，2：该账户已被其他用户锁定，3:请先锁定该收入明细避免编辑冲突4：该收入明细已确认无法编辑9：未知错误
+
+	WITH ENCRYPTION 
+AS
+	--判断要编辑的收入明细是否存在
+	declare @count as int
+	set @count=(select count(*) from incomeList where incomeInformationID= @incomeInformationID)	
+	if (@count = 0)	--不存在
+	begin
+		set @Ret = 1
+		return
+	end
+
+	--检查审核状态
+	declare @thisperson varchar(13)
+	set @thisperson = (select confirmationPersonID from incomeList
+					where incomeInformationID = @incomeInformationID
+					and	  ISNULL(lockManID,'')<>'')
+	if(@thisperson<>'')
+	begin
+		set @Ret = 4 
+		return
+	end
+	--检查编辑锁：
+	declare @thisLockMan varchar(13)
+	set @thisLockMan = (select lockManID from incomeList
+					where incomeInformationID = @incomeInformationID
+					and	  ISNULL(lockManID,'')<>'')
+	if (@thisLockMan<>'')
+		begin
+			if(@thisLockMan<>@lockManID)
+				begin
+					set @lockManID = @thisLockMan
+					set @Ret = 2
+					return
+				end
+			set @Ret = 9
+	
+			--取维护人的姓名：
+			declare @createManName nvarchar(30)
+			--set @createManName = isnull((select userCName from activeUsers where userID = @createManID),'')
+			set @createManName = '卢嘉诚'
+			declare @createTime smalldatetime
+			set @createTime = getdate()
+
+			update incomeList set
+						projectID = @projectID,	--项目ID
+						project = @project,	--项目名称
+						customerID = @customerID,	--客户ID
+						customerName = @customerName,	--客户名称
+						abstract	= @abstract,	--摘要
+						incomeSum = @incomeSum,	--收入金额
+						contractAmount = @contractAmount,	--合同金额
+						receivedAmount = @receivedAmount,	--已收金额
+						remarks = @remarks,	--备注
+						collectionModeID = @collectionModeID,	--收款方式ID
+						collectionMode = @collectionMode,	--收款方式
+						startDate = @startDate,	--收款日期
+						paymentApplicantID = @paymentApplicantID,	--收款申请人ID
+						payee = @payee,	--收款人
+						modiManID = @lockManID,	--维护人ID
+						modiManName = @createManName,	--维护人
+						modiTime = @createTime		--维护时间
+						where	incomeInformationID = @incomeInformationID		--收入信息ID，主键
+
+
+			if @@ERROR <> 0 
+				begin
+					set @Ret = 9
+					return
+				end
+			set @Ret = 0
+			--插入明细表：
+			declare @runRet int 
+			--exec dbo.addAlcApplyDetail @alcNum, @alcApplyDetail, @runRet output
+			--登记工作日志：
+			insert workNote(userID, userName, actionTime, actions, actionObject)
+			values(@lockManID, @createManName, @createTime, '编辑收入明细', '系统根据用户' + @createManName + 
+				'的要求编辑了收入明细[' + @incomeInformationID + ']。')		
+		end
+	else
+	set @Ret = 3
+	return
+
+	
+GO
+
+drop PROCEDURE lockIncomeEdit
+/*
+	name:		lockAccountDetailsEdit
+	function: 	锁定收入明细编辑，避免编辑冲突
+	input: 
+				@incomeInformationID varchar(16),		--收入信息ID
+				@lockManID varchar(13) output,	--锁定人，如果当前收入明细正在被人占用编辑则返回该人的工号
+	output: 
+				@Ret		int output		--操作成功标识0:成功，1：要锁定的收入明细不存在，2:要锁定的收入明细正在被别人编辑，9：未知错误
+	author:		卢嘉诚
+	CreateDate:	2016-4-16
+	UpdateDate: 
+*/
+create PROCEDURE lockIncomeEdit
+				@incomeInformationID varchar(16),		--收入信息ID
+				@lockManID varchar(13) output,	--锁定人，如果当前收入明细正在被人占用编辑则返回该人的工号
+				@Ret int output				--操作成功标识0:成功，1：要锁定的收入明细不存在，2:要锁定的收入明细正在被别人编辑，9：未知错误
+	WITH ENCRYPTION 
+AS
+	set @Ret = 9
+	--判断要锁定的账户是否存在
+	declare @count as int
+	set @count=(select count(*) from incomeList where incomeInformationID= @incomeInformationID)	
+	if (@count = 0)	--不存在
+	begin
+		set @Ret = 1
+		return
+	end
+
+	--检查编辑锁：
+	declare @thisLockMan varchar(13)
+	set @thisLockMan = (select lockManID from incomeList
+					where incomeInformationID = @incomeInformationID
+					and	  ISNULL(lockManID,'')<>'')
+	if (@thisLockMan<>'')
+	begin
+		set @lockManID = @thisLockMan
+		set @Ret = 2
+		return
+	end
+
+	update incomeList
+	set lockManID = @lockManID 
+	where incomeInformationID= @incomeInformationID
+
+	set @Ret = 0
+
+	if @@ERROR <> 0 
+	begin
+		set @Ret = 9
+		return
+	end    
+	
+
+
+	--取维护人的姓名：
+	declare @lockManName nvarchar(30)
+	set @lockManName = '卢嘉诚'
+	--set @lockManName = isnull((select userCName from activeUsers where userID = @lockManID),'')
+
+	--登记工作日志：
+	insert workNote(userID, userName, actionTime, actions, actionObject)
+	values(@lockManID, @lockManName, getdate(), '锁定收入明细编辑', '系统根据用户' + @lockManName
+												+ '的要求锁定了收入明细['+ @incomeInformationID +']为独占式编辑。')
+GO
+
+
+drop PROCEDURE unlockIncomeEdit
+/*
+	name:		unlockIncomeEdit
+	function: 	释放锁定收入明细编辑，避免编辑冲突
+	input: 
+				@incomeInformationID varchar(16),		--收入明细ID
+				@lockManID varchar(13) output,			--锁定人，如果当前收入正在被人占用编辑则返回该人的工号
+	output: 
+				@Ret		int output		--操作成功标识0:成功，1：要释放锁定的收入明细不存在，2:要释放锁定的收入明细正在被别人编辑，8：该收入明细未被任何人锁定9：未知错误
+	author:		卢嘉诚
+	CreateDate:	2016-4-16
+	UpdateDate: 
+*/
+create PROCEDURE unlockIncomeEdit
+				@incomeInformationID varchar(16),			--收入明细ID
+				@lockManID varchar(13) output,	--锁定人ID，如果当前收入明细正在被人占用编辑则返回该人的工号
+	@Ret int output					--操作成功标识0:成功，1：要释放锁定的收入明细不存在，2:要释放锁定的收入明细正在被别人编辑，8：该收入明细未被任何人锁定9：未知错误
+	WITH ENCRYPTION 
+AS
+	set @Ret = 9
+	--判断要锁定的报销单是否存在
+	declare @count as int
+	set @count=(select count(*) from incomeList where incomeInformationID= @incomeInformationID)	
+	if (@count = 0)	    --不存在
+	begin
+		set @Ret = 1
+		return
+	end
+
+	--检查编辑锁：
+	declare @thisLockMan varchar(13)
+	set @thisLockMan = isnull((select lockManID from incomeList where incomeInformationID= @incomeInformationID),'')
+	if (@thisLockMan<>'')
+		begin
+			if (@thisLockMan <> @lockManID)
+			begin
+				set @lockManID = @thisLockMan
+				set @Ret = 2
+				return
+			end
+			--释放报销单锁定
+			update incomeList set lockManID = '' where incomeInformationID = @incomeInformationID
 			set @Ret = 0
 
 			if @@ERROR <>0
@@ -3210,14 +3636,15 @@ AS
 				set @lockManName = '卢嘉诚'
 				--登记工作日志：
 				insert workNote (userID, userName, actionTime, actions, actionObject)
-				values(@lockManID, @lockManName, getdate(), '移交账户', '系统根据用户' + @lockManName	+ '的要求移交了账户，移交详情为['+ @accountTransferID +']。')
+				values(@lockManID, @lockManName, getdate(), '释放收入明细编辑', '系统根据用户' + @lockManName	+ '的要求释放了收入明细['+ @incomeInformationID +']的编辑锁。')
 		end
-	else
+	else   --返回该收入明细未被任何人锁定
 		begin
-			set @Ret = 3
+			set @Ret = 8
 			return
-		end 
+		end
 GO
+
 
 
 --支出一览表
@@ -3254,6 +3681,576 @@ modiTime smalldatetime null,		--最后维护时间
 
 --编辑锁定人：
 lockManID varchar(10)				--当前正在锁定编辑的人工号
-)
+--外键
+foreign key(collectionModeID) references accountList(accountID) on update cascade on delete cascade,
+--主键
+	 CONSTRAINT [PK_expensesID] PRIMARY KEY CLUSTERED 
+(
+	[expensesID] ASC
+)WITH (IGNORE_DUP_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
 
+
+
+
+drop PROCEDURE confirmexpenses
+/*
+	name:		confirmexpenses
+	function: 	该存储过程锁定账户编辑，避免编辑冲突
+	input: 
+				@expensesID varchar(16)	,	--支出信息ID，主键
+				@confirmationDate	smalldatetime	,	--确认日期
+				@confirmationPersonID	varchar(13),	--确认人ID
+				@confirmationPerson		varchar(10),	--确认人
+				@approvalOpinion			varchar(200),	--审批意见
+
+				
+	output: 
+				@lockManID varchar(13) output,	--锁定人，如果当前借支单正在被人占用编辑则返回该人的工号
+				@Ret		int output		--操作成功标识0:成功，1：要确认的支出明细不存在，2:要确认的支出明细正在被别人锁定，3:该支出明细未锁定，请先锁定9：未知错误
+	author:		卢嘉诚
+	CreateDate:	2016-4-16
+	UpdateDate: 
+*/
+create PROCEDURE confirmexpenses
+				@expensesID varchar(16)	,	--支出信息ID，主键
+				@confirmationDate	smalldatetime	,	--确认日期
+				@confirmationPersonID	varchar(13),	--确认人ID
+				@confirmationPerson	varchar(10),	--确认人
+				@approvalOpinion		varchar(200),	--审批意见
+				@lockManID varchar(13) output,	--锁定人，如果当前借支出明细正在被人占用编辑则返回该人的工号
+				@Ret int output				--操作成功标识0:成功，1：要确认的支出明细不存在，2:要确认的支出明细正在被别人锁定，3:该支出明细未锁定，请先锁定9：未知错误
+	WITH ENCRYPTION 
+AS
+	set @Ret = 9
+	--判断要锁定的账户是否存在
+	declare @count as int
+	set @count=(select count(*) from expensesList where expensesID= @expensesID)	
+	if (@count = 0)	--不存在
+	begin
+		set @Ret = 1
+		return
+	end
+
+	--检查编辑锁：
+	declare @thisLockMan varchar(13)
+	set @thisLockMan = (select lockManID from expensesList
+					where expensesID = @expensesID
+					and	  ISNULL(lockManID,'')<>'')
+	if (@thisLockMan<>'')
+		begin
+			if (@thisLockMan <> @lockManID)
+			begin
+				set @lockManID = @thisLockMan
+				set @Ret = 2
+				return
+			end
+			--取维护人的姓名：
+			declare @lockManName nvarchar(30),@modiTime smalldatetime
+			--set @lockManName = isnull((select userCName from activeUsers where userID = @lockManID),'')
+			set @lockManName = '卢嘉诚'
+			set @modiTime = getdate()
+			--添加确认信息
+			update expensesList set confirmationDate = @confirmationDate,	--确认日期
+								confirmationPersonID =  @confirmationPersonID	,	--确认人ID
+								confirmationPerson = @confirmationPerson,	--确认人
+								approvalOpinion = @approvalOpinion,		--审批意见
+								modiManID = @lockManID,			--维护ID	
+								modiManName = @lockManName,			--维护人姓名	
+								modiTime = @modiTime				--维护时间
+								where expensesID = @expensesID
+			set @Ret = 0
+
+			if @@ERROR <>0
+			begin
+				set @Ret = 9
+				return
+			end
+
+				--登记工作日志：
+				insert workNote (userID, userName, actionTime, actions, actionObject)
+				values(@lockManID, @lockManName, getdate(), '确认支出明细', '系统根据用户' + @lockManName	+ '的要求确认了支出明细['+ @expensesID +']。')
+		end
+	else
+		begin
+			set @Ret = 3
+			return
+		end 
+GO
+
+
+--添加支出明细
+drop PROCEDURE addExpenses
+/*
+	name:		addExpenses
+	function:	1.添加支出明细
+				注意：本存储过程不锁定编辑！
+	input: 
+
+				@projectID	varchar(13),	--项目ID
+				@project		varchar(50),	--项目名称
+				@customerID	varchar(13),	--客户ID
+				@customerName	varchar(30),	--客户名称
+				@abstract	     varchar(200),	--摘要
+				@expensesSum	money,	--支出金额
+				@contractAmount money,	--合同金额
+				@receivedAmount money,	--已付金额
+				@remarks	varchar(200),	--备注
+				@collectionModeID	varchar(13) ,	--付款方式ID
+				@collectionMode		varchar(50),	--付款方式
+				@startDate	smalldatetime	,	--付款日期
+				@paymentApplicantID	varchar(13),	--付款申请人ID
+				@paymentApplicant	varchar(10),	--付款申请人
+
+				@createManID varchar(13),		--创建人工号
+	output: 
+				@expensesID	varchar(16),	--支出信息ID，主键，使用412号号码发生器生成
+				@Ret		int output		--操作成功标识
+							0:成功，1：该国别名称或代码已存在，9：未知错误
+				
+	author:		卢嘉诚
+	CreateDate:	2016-3-23
+	UpdateDate: 2016-3-23 by lw 根据编辑要求增加rowNum返回参数
+*/
+
+create PROCEDURE addExpenses			
+				@expensesID	varchar(16) output,	--支出信息ID，主键，使用412号号码发生器生成
+				@projectID	varchar(13),	--项目ID
+				@project		varchar(50),	--项目名称
+				@customerID	varchar(13),	--客户ID
+				@customerName	varchar(30),	--客户名称
+				@abstract	varchar(200),	--摘要
+				@expensesSum	money,	--支出金额
+				@contractAmount money,	--合同金额
+				@receivedAmount money,	--已付金额
+				@remarks	varchar(200),	--备注
+				@collectionModeID	varchar(13) ,	--付款方式ID
+				@collectionMode		varchar(50),	--付款方式
+				@startDate	smalldatetime	,	--付款日期
+				@paymentApplicantID	varchar(13),	--付款申请人ID
+				@paymentApplicant	varchar(10),	--付款申请人
+
+				@createManID varchar(13),		--创建人工号
+
+				@Ret		int output
+
+	WITH ENCRYPTION 
+AS
+	--使用号码发生器产生新的号码：
+	declare @curNumber varchar(50)
+	exec dbo.getClassNumber 412, 1, @curNumber output
+	set @expensesID = @curNumber
+
+	set @Ret = 9
+	
+	--取维护人的姓名：
+	declare @createManName nvarchar(30),@createTime smalldatetime
+	--set @createManName = isnull((select userCName from activeUsers where userID = @createManID),'')
+	set @createManName = '卢嘉诚'
+	set @createTime = getdate()
+
+	insert expensesList(
+				expensesID,	--支出信息ID，主键，使用412号号码发生器生成
+				projectID,	--项目ID
+				project,	--项目名称
+				customerID,	--客户ID
+				customerName,	--客户名称
+				abstract	,	--摘要
+				expensesSum,	--支出金额
+				contractAmount,	--合同金额
+				receivedAmount,	--已付金额
+				remarks,	--备注
+				collectionModeID,	--付款方式ID
+				collectionMode,	--付款方式
+				startDate,	--付款日期
+				paymentApplicantID,	--付款申请人ID
+				paymentApplicant,	--付款申请人
+				createManID,			--创建人工号
+				createManName,	--创建人
+				createTime				--创建时间
+							) 
+	values (		
+				@expensesID,	--支出信息ID，主键，使用412号号码发生器生成
+				@projectID,	--项目ID
+				@project,	--项目名称
+				@customerID,	--客户ID
+				@customerName,	--客户名称
+				@abstract	,	--摘要
+				@expensesSum,	--支出金额
+				@contractAmount,	--合同金额
+				@receivedAmount,	--已付金额
+				@remarks,	--备注
+				@collectionModeID,	--付款方式ID
+				@collectionMode,	--付款方式
+				@startDate,	--付款日期
+				@paymentApplicantID,	--付款申请人ID
+				@paymentApplicant,	--付款申请人
+				@createManID,			--创建人工号
+				@createManName,	--创建人
+				@createTime				--创建时间				
+				) 
+
+
+	if @@ERROR <> 0 
+		begin
+			set @Ret = 9
+			return
+		end
+	set @Ret = 0
+	--插入明细表：
+	declare @runRet int 
+	--exec dbo.addAlcApplyDetail @alcNum, @alcApplyDetail, @runRet output
+	--登记工作日志：
+	insert workNote(userID, userName, actionTime, actions, actionObject)
+	values(@createManID, @createManName, @createTime, '添加支出明细', '系统根据用户' + @createManName + 
+		'的要求添加了支出明细[' + @expensesID + ']。')		
+GO
+
+--删除支出明细
+drop PROCEDURE delExpenses
+/*
+	name:		delExpenses
+	function:		1.删除支出明细
+				注意：本存储过程锁定编辑！
+	input: 
+				@expensesID	varchar(16) output,		--支出信息ID，主键
+				@lockManID varchar(13),		--锁定人ID
+	output: 
+				@Ret		int output		--操作成功标识;--操作成功标示；0:成功，1：该支出明细不存在，2：该支出明细被其他用户锁定，3：请先锁定该支出明细再删除避免冲突，9：未知错误
+	author:		卢嘉诚
+	CreateDate:	2016-5-6
+*/
+
+create PROCEDURE delExpenses	
+				@expensesID	varchar(16),		--支出信息ID，主键
+				@lockManID   varchar(13) output,		--锁定人ID
+
+				@Ret		int output			--操作成功标识;--操作成功标示；0:成功，1：该支出明细不存在，2：该支出明细被其他用户锁定，3：请先锁定该支出明细再删除避免冲突，9：未知错误
+
+	WITH ENCRYPTION 
+AS
+	
+	set @Ret = 9
+	
+	--判断要删除的账户明细是否存在
+	declare @count as int
+	set @count=(select count(*) from expensesList where expensesID= @expensesID)	
+	if (@count = 0)	--不存在
+	begin
+		set @Ret = 1
+		return
+	end
+
+	--检查编辑锁：
+	declare @thisLockMan varchar(13)
+	set @thisLockMan = (select lockManID from expensesList
+					where expensesID = @expensesID
+					and	  ISNULL(lockManID,'')<>'')
+	if (@thisLockMan<>'')
+		begin
+			if(@thisLockMan<>@lockManID)
+			begin
+				set @lockManID = @thisLockMan
+				set @Ret = 2
+				return
+			end
+				--取维护人的姓名：
+				declare @lockMan nvarchar(30)
+				--set @createManName = isnull((select userCName from activeUsers where userID = @createManID),'')
+				set @lockMan = '卢嘉诚'
+				declare @createTime smalldatetime
+				set @createTime = getdate()
+
+				delete from expensesList where expensesID = @expensesID
+
+				if @@ERROR <> 0 
+					begin
+						set @Ret = 9
+						return
+					end
+				set @Ret = 0
+				--插入明细表：
+				declare @runRet int 
+				--exec dbo.addAlcApplyDetail @alcNum, @alcApplyDetail, @runRet output
+				--登记工作日志：
+				insert workNote(userID, userName, actionTime, actions, actionObject)
+				values(@lockManID, @lockMan, @createTime, '删除支出明细', '系统根据用户' + @lockMan + 
+					'的要求删除了支出明细[' + @expensesID + ']。')		
+		end
+	else
+	set @Ret = 3
+	return
+	
+GO
+
+
+--编辑支出明细
+drop PROCEDURE editExpenses	
+/*
+	name:		editExpenses
+	function:	1.编辑支出明细
+				注意：本存储过程锁定编辑！
+	input: 
+				@expensesID	varchar(16) output,	--支出信息ID，主键，使用412号号码发生器生成
+				@projectID	varchar(13),	--项目ID
+				@project		varchar(50),	--项目名称
+				@customerID	varchar(13),	--客户ID
+				@customerName	varchar(30),	--客户名称
+				@abstract	varchar(200),	--摘要
+				@expensesSum	money,	--支出金额
+				@contractAmount money,	--合同金额
+				@receivedAmount money,	--已付金额
+				@remarks	varchar(200),	--备注
+				@collectionModeID	varchar(13) ,	--付款方式ID
+				@collectionMode		varchar(50),	--付款方式
+				@startDate	smalldatetime	,	--付款日期
+				@paymentApplicantID	varchar(13),	--付款申请人ID
+				@paymentApplicant	varchar(10),	--付款申请人
+
+	output: 
+				@lockManID varchar(10)output,		--锁定人ID
+				@Ret		int output			--操作成功标示；0:成功，1：该支出明细不存在，2：该支出明细已被其他用户锁定，3:请先锁定该支出明细避免编辑冲突4：该支出明细已确认无法编辑9：未知错误
+
+	author:		卢嘉诚
+	CreateDate:	2016-3-23
+
+*/
+
+
+
+create PROCEDURE editExpenses		
+				@expensesID	varchar(16) ,	--支出信息ID，主键，使用412号号码发生器生成
+				@projectID	varchar(13),	--项目ID
+				@project		varchar(50),	--项目名称
+				@customerID	varchar(13),	--客户ID
+				@customerName	varchar(30),	--客户名称
+				@abstract	varchar(200),	--摘要
+				@expensesSum	money,	--支出金额
+				@contractAmount money,	--合同金额
+				@receivedAmount money,	--已付金额
+				@remarks	varchar(200),	--备注
+				@collectionModeID	varchar(13) ,	--付款方式ID
+				@collectionMode		varchar(50),	--付款方式
+				@startDate	smalldatetime	,	--付款日期
+				@paymentApplicantID	varchar(13),	--付款申请人ID
+				@paymentApplicant	varchar(10),	--付款申请人
+
+				@lockManID varchar(13) output,		--锁定人ID
+				@Ret		int output			--操作成功标示；0:成功，1：该支出明细不存在，2：该支出明细已被其他用户锁定，3:请先锁定该支出明细避免编辑冲突4：该支出明细已确认无法编辑9：未知错误
+
+	WITH ENCRYPTION 
+AS
+	--判断要编辑的收入明细是否存在
+	declare @count as int
+	set @count=(select count(*) from expensesList where expensesID= @expensesID)	
+	if (@count = 0)	--不存在
+	begin
+		set @Ret = 1
+		return
+	end
+
+	--检查审核状态
+	declare @thisperson varchar(13)
+	set @thisperson = (select confirmationPersonID from expensesList
+					where expensesID = @expensesID
+					and	  ISNULL(lockManID,'')<>'')
+	if(@thisperson<>'')
+	begin
+		set @Ret = 4 
+		return
+	end
+	--检查编辑锁：
+	declare @thisLockMan varchar(13)
+	set @thisLockMan = (select lockManID from expensesList
+					where expensesID = @expensesID
+					and	  ISNULL(lockManID,'')<>'')
+	if (@thisLockMan<>'')
+		begin
+			if(@thisLockMan<>@lockManID)
+				begin
+					set @lockManID = @thisLockMan
+					set @Ret = 2
+					return
+				end
+			set @Ret = 9
+	
+			--取维护人的姓名：
+			declare @createManName nvarchar(30)
+			--set @createManName = isnull((select userCName from activeUsers where userID = @createManID),'')
+			set @createManName = '卢嘉诚'
+			declare @createTime smalldatetime
+			set @createTime = getdate()
+
+			update expensesList set
+						projectID = @projectID,	--项目ID
+						project = @project,	--项目名称
+						customerID = @customerID,	--客户ID
+						customerName = @customerName,	--客户名称
+						abstract	= @abstract,	--摘要
+						expensesSum = @expensesSum,	--收入金额
+						contractAmount = @contractAmount,	--合同金额
+						receivedAmount = @receivedAmount,	--已收金额
+						remarks = @remarks,	--备注
+						collectionModeID = @collectionModeID,	--收款方式ID
+						collectionMode = @collectionMode,	--收款方式
+						startDate = @startDate,	--收款日期
+						paymentApplicantID = @paymentApplicantID,	--收款申请人ID
+						paymentApplicant = @paymentApplicant,	--收款人
+						modiManID = @lockManID,	--维护人ID
+						modiManName = @createManName,	--维护人
+						modiTime = @createTime		--维护时间
+						where	expensesID = @expensesID		--支出明细ID，主键
+
+
+			if @@ERROR <> 0 
+				begin
+					set @Ret = 9
+					return
+				end
+			set @Ret = 0
+			--插入明细表：
+			declare @runRet int 
+			--exec dbo.addAlcApplyDetail @alcNum, @alcApplyDetail, @runRet output
+			--登记工作日志：
+			insert workNote(userID, userName, actionTime, actions, actionObject)
+			values(@lockManID, @createManName, @createTime, '编辑支出明细', '系统根据用户' + @createManName + 
+				'的要求编辑了支出明细[' + @expensesID + ']。')		
+		end
+	else
+	set @Ret = 3
+	return
+
+	
+GO
+
+drop PROCEDURE lockExpensesEdit
+/*
+	name:		lockAccountDetailsEdit
+	function: 	锁定支出明细编辑，避免编辑冲突
+	input: 
+				@expensesID varchar(16),		--支出信息ID
+				@lockManID varchar(13) output,	--锁定人，如果当前支出明细正在被人占用编辑则返回该人的工号
+	output: 
+				@Ret		int output		--操作成功标识0:成功，1：要锁定的支出明细不存在，2:要锁定的支出明细正在被别人编辑，9：未知错误
+	author:		卢嘉诚
+	CreateDate:	2016-4-16
+	UpdateDate: 
+*/
+create PROCEDURE lockExpensesEdit
+				@expensesID varchar(16),		--支出信息ID
+				@lockManID varchar(13) output,	--锁定人，如果当前支出明细正在被人占用编辑则返回该人的工号
+				@Ret int output				--操作成功标识0:成功，1：要锁定的支出明细不存在，2:要锁定的支出明细正在被别人编辑，9：未知错误
+	WITH ENCRYPTION 
+AS
+	set @Ret = 9
+	--判断要锁定的账户是否存在
+	declare @count as int
+	set @count=(select count(*) from expensesList where expensesID= @expensesID)	
+	if (@count = 0)	--不存在
+	begin
+		set @Ret = 1
+		return
+	end
+
+	--检查编辑锁：
+	declare @thisLockMan varchar(13)
+	set @thisLockMan = (select lockManID from expensesList
+					where expensesID = @expensesID
+					and	  ISNULL(lockManID,'')<>'')
+	if (@thisLockMan<>'')
+	begin
+		set @lockManID = @thisLockMan
+		set @Ret = 2
+		return
+	end
+
+	update expensesList
+	set lockManID = @lockManID 
+	where expensesID= @expensesID
+
+	set @Ret = 0
+
+	if @@ERROR <> 0 
+	begin
+		set @Ret = 9
+		return
+	end    
+	
+
+
+	--取维护人的姓名：
+	declare @lockManName nvarchar(30)
+	set @lockManName = '卢嘉诚'
+	--set @lockManName = isnull((select userCName from activeUsers where userID = @lockManID),'')
+
+	--登记工作日志：
+	insert workNote(userID, userName, actionTime, actions, actionObject)
+	values(@lockManID, @lockManName, getdate(), '锁定支出明细编辑', '系统根据用户' + @lockManName
+												+ '的要求锁定了支出明细['+ @expensesID +']为独占式编辑。')
+GO
+
+
+drop PROCEDURE unlockExpensesEdit
+/*
+	name:		unlockExpensesEdit
+	function: 	释放锁定支出明细编辑，避免编辑冲突
+	input: 
+				@expensesID varchar(16),		--支出明细ID
+				@lockManID varchar(13) output,			--锁定人，如果当前支出正在被人占用编辑则返回该人的工号
+	output: 
+				@Ret		int output		--操作成功标识0:成功，1：要释放锁定的支出明细不存在，2:要释放锁定的支出明细正在被别人编辑，8：该支出明细未被任何人锁定9：未知错误
+	author:		卢嘉诚
+	CreateDate:	2016-4-16
+	UpdateDate: 
+*/
+create PROCEDURE unlockExpensesEdit
+				@expensesID varchar(16),			--支出明细ID
+				@lockManID varchar(13) output,	--锁定人ID，如果当前支出明细正在被人占用编辑则返回该人的工号
+	@Ret int output					--操作成功标识0:成功，1：要释放锁定的支出明细不存在，2:要释放锁定的支出明细正在被别人编辑，8：该支出明细未被任何人锁定9：未知错误
+	WITH ENCRYPTION 
+AS
+	set @Ret = 9
+	--判断要锁定的报销单是否存在
+	declare @count as int
+	set @count=(select count(*) from expensesList where expensesID= @expensesID)	
+	if (@count = 0)	    --不存在
+	begin
+		set @Ret = 1
+		return
+	end
+
+	--检查编辑锁：
+	declare @thisLockMan varchar(13)
+	set @thisLockMan = isnull((select lockManID from expensesList where expensesID= @expensesID),'')
+	if (@thisLockMan<>'')
+		begin
+			if (@thisLockMan <> @lockManID)
+			begin
+				set @lockManID = @thisLockMan
+				set @Ret = 2
+				return
+			end
+			--释放报销单锁定
+			update expensesList set lockManID = '' where expensesID = @expensesID
+			set @Ret = 0
+
+			if @@ERROR <>0
+			begin
+				set @Ret = 9
+				return
+			end
+				----取维护人的姓名：
+				declare @lockManName nvarchar(30)
+				--set @lockManName = isnull((select userCName from activeUsers where userID = @lockManID),'')
+				set @lockManName = '卢嘉诚'
+				--登记工作日志：
+				insert workNote (userID, userName, actionTime, actions, actionObject)
+				values(@lockManID, @lockManName, getdate(), '释放支出明细编辑', '系统根据用户' + @lockManName	+ '的要求释放了支出明细['+ @expensesID +']的编辑锁。')
+		end
+	else   --返回该支出明细未被任何人锁定
+		begin
+			set @Ret = 8
+			return
+		end
 GO
