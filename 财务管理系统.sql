@@ -1197,7 +1197,7 @@ AS
 			financialAccount	varchar(200),	--报销科目
 			expSum	money				--金额
 			)
-			insert ExpenseReimbursementDetails
+			insert @temporaryDetails
 			select t.r.value('(@ExpRemSingleID)', 'varchar(15)') ExpRemSingleID,t.r.value('(@abstract)', 'varchar(100)') abstract,
 			t.r.value('(@supplementaryExplanation)', 'varchar(100)') supplementaryExplanation,t.r.value('(@financialAccountID)', 'varchar(13)') financialAccountID,
 			t.r.value('(@financialAccount)', 'varchar(200)') financialAccount,t.r.value('(@expSum)', 'money') expSum
@@ -1211,8 +1211,11 @@ AS
 					--生成报销详情ID
 					exec dbo.getClassNumber 404, 1, @curNumber output
 					set @ExpRemDetailsID = @curNumber
-
+					Update @temporaryDetails Set ExpRemDetailsID=@ExpRemDetailsID Where Current of  tar
 				end
+			close tar
+			deallocate tar
+			insert ExpenseReimbursementDetails select * from @temporaryDetails
 		end
 	
 
