@@ -44,19 +44,147 @@ create table borrowSingle(
 --ON DELETE CASCADE
 GO
 
-
-
-drop table ApprovalDetailsList      --审批详情表
-create table ApprovalDetailsList(
+--借支单审批详情
+drop table AuditBorrowList      
+create table AuditBorrowList(
 	ApprovalDetailsID varchar(16)	not null,	--审批详情ID
-	billID	varchar(17)	not null,	--单据ID
-	approvalStatus int not	null,	--审批情况（同意/不同意）
+	billID	varchar(15)	not null,	--借支单ID
+	approvalStatus smallint default(0) not	null,	--审批情况（同意/不同意）
 	approvalOpinions	varchar(200),	--审批意见
 	examinationPeoplePost varchar(50),	--审批人职务
 	examinationPeopleID	varchar(20),	--审批人ID
 	examinationPeopleName	varchar(20)	--审批人名称
-	)
+--外键
+foreign key(billID) references borrowSingle(borrowSingleID) on update cascade on delete cascade,
+--主键
+ CONSTRAINT [PK_ AuditBorrow_ApprovalDetailsID] PRIMARY KEY CLUSTERED 
+(
+	[ApprovalDetailsID] ASC
+)WITH (IGNORE_DUP_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+
+--审核借支单
+drop PROCEDURE AuditBorrowSingle
+/*
+	name:		AuditBorrowSingle
+	function:	1.审核借支单
+				注意：本存储过程不锁定编辑！
+	input: 
+
+			@billID	varchar(15),	--借支单ID
+			@approvalStatus smallint,	--审批情况（0:同意,1:不同意）
+			@approvalOpinions	varchar(200),	--审批意见
+			@examinationPeoplePost varchar(50),	--审批人职务
+			@examinationPeopleID	varchar(20),	--审批人ID
+			@examinationPeopleName	varchar(20),	--审批人名称
+
+
+
+	output: 
+			@ApprovalDetailsID varchar(16) output,	--审批详情ID，主键，使用402号号码发生器生成
+			@Ret		int output           --操作成功标识,0:成功，1：要审核的借支单不存在，2：该借支单正在被其他用户锁定，3：该借支单为处于审核状态，9：未知错误
+			@createManID varchar(13) output,			--创建人ID
+				@createTime smalldatetime output
+	author:		卢嘉诚
+	CreateDate:	2016-5-7
+
+*/
+create PROCEDURE AuditBorrowSingle				
+			@ApprovalDetailsID varchar(16) output,	--审批详情ID，主键，使用402号号码发生器生成
+			@billID	varchar(15),	--借支单ID
+			@approvalStatus smallint,	--审批情况（0:同意,1:不同意）
+			@approvalOpinions	varchar(200),	--审批意见
+			@examinationPeoplePost varchar(50),	--审批人职务
+			@examinationPeopleID	varchar(20),	--审批人ID
+			@examinationPeopleName	varchar(20),	--审批人名称
+
+			@createManID varchar(13) output,			--创建人ID
+			@Ret		int output           --操作成功标识,0:成功，1：要审核的借支单不存在，2：该借支单正在被其他用户锁定，3：该借支单为处于审核状态，4:请先锁定该借支单再审核避免冲突，9：未知错误
+	WITH ENCRYPTION 
+AS
+
+	--判断要审核的借支单是否存在
+	declare @count as int
+	set @count=(select count(*) from borrowSingle where borrowSingleID= @billID)	
+	if (@count = 0)	--不存在
+	begin
+		set @Ret = 1
+		return
+	end
+
+	--检查审核状态
+	declare @thisperson varchar(13)
+	set @thisperson = (select flowProgress from borrowSingle
+					where borrowSingleID = @billID
+					and	  ISNULL(lockManID,'')<>'')
+	if(@thisperson<>1)
+	begin
+		set @Ret = 3
+		return
+	end
+	--检查编辑锁：
+	declare @thisLockMan varchar(13)
+	set @thisLockMan = (select lockManID from borrowSingle
+					where borrowSingleID = @billID
+					and	  ISNULL(lockManID,'')<>'')
+	if (@thisLockMan<>'')
+		begin
+			if(@thisLockMan<>@createManID)
+				begin
+					set @createManID = @thisLockMan
+					set @Ret = 2
+					return
+				end
+			
+
+
+			--使用402号码发生器产生新的号码：
+			declare @curNumber varchar(50)
+			exec dbo.getClassNumber 402, 1, @curNumber output
+			set @ApprovalDetailsID = @curNumber
+
+	
+			----取维护人的姓名：
+			--declare @createManName nvarchar(30)
+			--set @createManName = isnull((select userCName from activeUsers where userID = @createManID),'')
+			declare @createTime smalldatetime, @createManName varchar(30)
+			set @createManName = '卢嘉诚'
+			set @createTime = getdate()
+			insert AuditBorrowList(
+					ApprovalDetailsID,	--审批详情ID，主键，使用402号号码发生器生成
+					billID,	--借支单ID
+					approvalStatus,	--审批情况（同意/不同意）
+					approvalOpinions,	--审批意见
+					examinationPeoplePost,	--审批人职务
+					examinationPeopleID,	--审批人ID
+					examinationPeopleName	--审批人名称
+									) 
+			values (			
+					@ApprovalDetailsID,	--审批详情ID，主键，使用402号号码发生器生成
+					@billID,	--单据ID
+					@approvalStatus,	--审批情况（同意/不同意）
+					@approvalOpinions,	--审批意见
+					@examinationPeoplePost,	--审批人职务
+					@examinationPeopleID,	--审批人ID
+					@examinationPeopleName	--审批人名称
+					) 
+			set @Ret = 0
+			if @@ERROR <> 0 
+			set @Ret = 9
+			--登记工作日志：
+			insert workNote(userID, userName, actionTime, actions, actionObject)
+			values(@createManID,@createManName, @createTime, '审核单据', '系统根据用户'+@createManName+'的要求审核了单据，审批详情为[' + @ApprovalDetailsID + ']。')
+		end
+	else
+		begin
+		set @Ret = 4
+		return
+		end
 GO
+
+
+
+
 
 
 
@@ -611,6 +739,141 @@ create table ExpRemSingle(
 GO
 
 
+--报销单审批详情
+drop table AuditExpRemList      
+create table AuditExpRemList(
+	ApprovalDetailsID varchar(16)	not null,	--审批详情ID
+	billID	varchar(15)	not null,	--报销单ID
+	approvalStatus smallint default(0) not	null,	--审批情况（同意/不同意）
+	approvalOpinions	varchar(200),	--审批意见
+	examinationPeoplePost varchar(50),	--审批人职务
+	examinationPeopleID	varchar(20),	--审批人ID
+	examinationPeopleName	varchar(20)	--审批人名称
+--外键
+foreign key(billID) references ExpRemSingle(ExpRemSingleID) on update cascade on delete cascade,
+--主键
+ CONSTRAINT [PK_ExpRemSingleID_ApprovalDetailsID] PRIMARY KEY CLUSTERED 
+(
+	[ApprovalDetailsID] ASC
+)WITH (IGNORE_DUP_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+
+drop PROCEDURE AudiExpRemSingle
+/*
+	name:		AudiExpRemSingle
+	function:	1.审核报销单
+				注意：本存储过程不锁定编辑！
+	input: 
+
+			@billID	varchar(15),	--报销单ID
+			@approvalStatus int,	--审批情况（同意/不同意）
+			@approvalOpinions	varchar(200),	--审批意见
+			@examinationPeoplePost varchar(50),	--审批人职务
+			@examinationPeopleID	varchar(20),	--审批人ID
+			@examinationPeopleName	varchar(20),	--审批人名称
+
+
+
+	output: 
+			@ApprovalDetailsID varchar(16) output,	--审批详情ID，主键，使用402号号码发生器生成
+			@Ret		int output           --操作成功标识,0:成功，1：要审核的报销单不存在，2：该报销单正在被其他用户锁定，3：该报销单为处于审核状态，9：未知错误
+			@createManID varchar(13) output,			--创建人ID
+				@createTime smalldatetime output
+	author:		卢嘉诚
+	CreateDate:	2016-5-7
+
+*/
+create PROCEDURE AudiExpRemSingle				
+			@ApprovalDetailsID varchar(16) output,	--审批详情ID，主键，使用402号号码发生器生成
+			@billID	varchar(15),	--报销单ID
+			@approvalStatus smallint,	--审批情况（同意/不同意）
+			@approvalOpinions	varchar(200),	--审批意见
+			@examinationPeoplePost varchar(50),	--审批人职务
+			@examinationPeopleID	varchar(20),	--审批人ID
+			@examinationPeopleName	varchar(20),	--审批人名称
+
+			@createManID varchar(13) output,			--创建人ID
+			@Ret		int output           --操作成功标识,0:成功，1：要审核的报销单不存在，2：该报销单正在被其他用户锁定，3：该报销单为处于审核状态，4：请先锁定报销单再审核避免冲突9：未知错误
+	WITH ENCRYPTION 
+AS
+
+	--判断要审核的报销单是否存在
+	declare @count as int
+	set @count=(select count(*) from ExpRemSingle where ExpRemSingleID= @billID)	
+	if (@count = 0)	--不存在
+	begin
+		set @Ret = 1
+		return
+	end
+
+	--检查审核状态
+	declare @thisperson varchar(13)
+	set @thisperson = (select approvalProgress from ExpRemSingle
+					where ExpRemSingleID = @billID
+					and	  ISNULL(lockManID,'')<>'')
+	if(@thisperson<>1)
+	begin
+		set @Ret = 3
+		return
+	end
+	--检查编辑锁：
+	declare @thisLockMan varchar(13)
+	set @thisLockMan = (select lockManID from ExpRemSingle
+					where ExpRemSingleID = @billID
+					and	  ISNULL(lockManID,'')<>'')
+	if (@thisLockMan<>'')
+		begin
+			if(@thisLockMan<>@createManID)
+				begin
+					set @createManID = @thisLockMan
+					set @Ret = 2
+					return
+				end
+			set @Ret = 9
+
+
+			--使用402号码发生器产生新的号码：
+			declare @curNumber varchar(50)
+			exec dbo.getClassNumber 402, 1, @curNumber output
+			set @ApprovalDetailsID = @curNumber
+
+	
+			----取维护人的姓名：
+			--declare @createManName nvarchar(30)
+			--set @createManName = isnull((select userCName from activeUsers where userID = @createManID),'')
+			declare @createTime smalldatetime, @createManName varchar(30)
+			set @createManName = '卢嘉诚'
+			set @createTime = getdate()
+			insert AuditExpRemList(
+					ApprovalDetailsID,	--审批详情ID，主键，使用402号号码发生器生成
+					billID,	--借支单ID
+					approvalStatus,	--审批情况（同意/不同意）
+					approvalOpinions,	--审批意见
+					examinationPeoplePost,	--审批人职务
+					examinationPeopleID,	--审批人ID
+					examinationPeopleName	--审批人名称
+									) 
+			values (			
+					@ApprovalDetailsID,	--审批详情ID，主键，使用402号号码发生器生成
+					@billID,	--单据ID
+					@approvalStatus,	--审批情况（同意/不同意）
+					@approvalOpinions,	--审批意见
+					@examinationPeoplePost,	--审批人职务
+					@examinationPeopleID,	--审批人ID
+					@examinationPeopleName	--审批人名称
+					) 
+			set @Ret = 0
+			--if @@ERROR <> 0 
+			--登记工作日志：
+			insert workNote(userID, userName, actionTime, actions, actionObject)
+			values(@createManID,@createManName, @createTime, '审核报销单', '系统根据用户'+@createManName+'的要求审核了报销单，审批详情为[' + @ApprovalDetailsID + ']。')
+		end
+	else
+		begin
+		set @Ret = 4
+		return
+	end
+GO
 
 --差旅费报销详情
 drop table TravelExpensesDetails 
@@ -661,8 +924,6 @@ foreign key(ExpRemSingleID) references ExpRemSingle(ExpRemSingleID) on update ca
 )WITH (IGNORE_DUP_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-
-
 --添加费用报销单
 drop PROCEDURE addExpRemSingle
 /*
@@ -784,6 +1045,177 @@ AS
 				@businessPeople,
 				@businessReason ,
 				@approvalProgress ) 
+
+
+
+	if @@ERROR <> 0 
+		begin
+			set @Ret = 9
+			return
+		end
+	set @Ret = 0
+	--插入明细表：
+	declare @runRet int 
+	--exec dbo.addAlcApplyDetail @alcNum, @alcApplyDetail, @runRet output
+	--登记工作日志：
+	insert workNote(userID, userName, actionTime, actions, actionObject)
+	values(@createManID, @createManName, @createTime, '添加报销单', '系统根据用户' + @createManName + 
+		'的要求添加了报销单[' + @ExpRemSingleID + ']。')		
+GO
+
+--添加费用报销单(XML)
+drop PROCEDURE addExpRemSingleForXML
+/*
+	name:		addExpRemSingleForXML
+	function:	1.添加费用报销单
+				注意：本存储过程不锁定编辑！
+	input: 
+				@ExpRemSingleID varchar(15) not null,  --报销单编号
+				@departmentID varchar(13) not null,	--部门ID
+				@ExpRemDepartment varchar(20)	not null,	--报销部门
+				@ExpRemDate smalldatetime not null,	--报销日期
+				@projectID varchar(13) not null,	--项目ID
+				@projectName varchar(50) not null,	--项目名称
+				@ExpRemSingleNum int ,	--报销单据及附件
+				@note varchar(200),	--备注
+				@expRemSingleType smallint default,	--报销单类型，0：费用报销单，1：差旅费报销单
+				@amount money not null,	--合计金额
+				@borrowSingleID varchar(15) ,	--原借支单ID
+				@originalloan money not null,	--原借款
+				@replenishment money not null,	--应补款
+				@shouldRefund money not null,	--应退款
+				@ExpRemPersonID varchar(14) not null,	--报销人编号
+				@ExpRemPerson varchar(10)	not	null,	--报销人姓名
+				@businessPeopleID	varchar(14) not null,	--出差人编号
+				@businessPeople	varchar(10) not null,	--出差人
+				@businessReason varchar(200)	not null,	--出差事由
+				@approvalProgress smallint default(0) not null,	--审批进度
+				@xVar XML,					--XML格式的详情
+
+			@createManID varchar(10),		--创建人工号
+	output: 
+				@Ret		int output		--操作成功标识
+							0:成功，1：该国别名称或代码已存在，9：未知错误
+				@rowNum		int output,		--序号
+				@createTime smalldatetime output
+	author:		卢嘉诚
+	CreateDate:	2016-3-23
+	UpdateDate: 2016-3-23 by lw 根据编辑要求增加rowNum返回参数
+*/
+
+create PROCEDURE addExpRemSingleForXML			
+				@departmentID varchar(13) ,	--部门ID
+				@ExpRemDepartment varchar(20)	,	--报销部门
+				@ExpRemDate smalldatetime ,	--报销日期
+				@projectID varchar(13) ,	--项目ID
+				@projectName varchar(50) ,	--项目名称
+				@ExpRemSingleNum smallint ,	--报销单据及附件
+				@note varchar(200),	--备注
+				@expRemSingleType smallint ,	--报销单类型，0：费用报销单，1：差旅费报销单
+				@amount money ,	--合计金额
+				@borrowSingleID varchar(15) ,	--原借支单ID
+				@originalloan money ,	--原借款
+				@replenishment money ,	--应补款
+				@shouldRefund money ,	--应退款
+				@ExpRemPersonID varchar(14) ,	--报销人编号
+				@ExpRemPerson varchar(10),	--报销人姓名
+				@businessPeopleID	varchar ,	--出差人编号
+				@businessPeople	varchar(10) ,	--出差人
+				@businessReason varchar(200)	,	--出差事由
+				@approvalProgress smallint ,	--审批进度:0：新建，1：待审批，2：审批中,3:已审结
+				@xVar XML,					--XML格式的详情
+
+	@createManID varchar(13),		--创建人工号
+
+	@Ret		int output,
+	@createTime smalldatetime output,
+	@ExpRemSingleID varchar(15) output	--主键：报销单编号，使用第 号号码发生器产生
+	WITH ENCRYPTION 
+AS
+	--使用号码发生器产生新的号码：
+	declare @curNumber varchar(50)
+	exec dbo.getClassNumber 403, 1, @curNumber output
+	set @ExpRemSingleID = @curNumber
+
+	set @Ret = 9
+	
+	--取维护人的姓名：
+	declare @createManName nvarchar(30)
+	--set @createManName = isnull((select userCName from activeUsers where userID = @createManID),'')
+	set @createManName = '卢嘉诚'
+	set @createTime = getdate()
+
+	insert ExpRemSingle(ExpRemSingleID,		--报销单ID
+							departmentID,	--部门ID
+							ExpRemDepartment,		--报销部门
+							ExpRemDate,		--报销日期
+							projectID,	--项目ID
+							projectName,	--项目名称
+							ExpRemSingleNum,	--报销单据及附件
+							note,			--备注
+							expRemSingleType,	--报销单类型，0：费用报销单，1：差旅费报销单
+							amount,			--合计金额
+							borrowSingleID,	--原借支单ID
+							originalloan,	--原借款
+							replenishment,	--应补款
+							shouldRefund,	--应退款
+							ExpRemPersonID,	--报销人ID
+							ExpRemPerson,	--报销人姓名
+							businessPeopleID,	--出差人ID
+							businessPeople,		--出差人
+							businessReason,		--出差事由
+							approvalProgress	--审批进度:0：新建，1：待审批，2：审批中,3:已审结
+							) 
+	values (	@ExpRemSingleID,
+				@departmentID ,	
+				@ExpRemDepartment,
+				@ExpRemDate,
+				@projectID,
+				@projectName,
+				@ExpRemSingleNum,
+				@note,
+				@expRemSingleType,
+				@amount,
+				@borrowSingleID,
+				@originalloan,
+				@replenishment,
+				@shouldRefund ,
+				@ExpRemPersonID,
+				@ExpRemPerson ,
+				@businessPeopleID,
+				@businessPeople,
+				@businessReason ,
+				@approvalProgress ) 
+	if(@expRemSingleType =0)
+		begin
+			declare @temporaryDetails table(
+			ExpRemDetailsID	varchar(17),	--报销详情ID
+			ExpRemSingleID	varchar(15),	--报销单ID
+			abstract	varchar(100),	--摘要
+			supplementaryExplanation	varchar(100),	--补充说明
+			financialAccountID	varchar(13),	--报销科目ID
+			financialAccount	varchar(200),	--报销科目
+			expSum	money				--金额
+			)
+			insert ExpenseReimbursementDetails
+			select t.r.value('(@ExpRemSingleID)', 'varchar(15)') ExpRemSingleID,t.r.value('(@abstract)', 'varchar(100)') abstract,
+			t.r.value('(@supplementaryExplanation)', 'varchar(100)') supplementaryExplanation,t.r.value('(@financialAccountID)', 'varchar(13)') financialAccountID,
+			t.r.value('(@financialAccount)', 'varchar(200)') financialAccount,t.r.value('(@expSum)', 'money') expSum
+			from @xVar.nodes('root/row') as t(r)
+			declare @ExpRemDetailsID varchar(17)
+			declare tar cursor for select ExpRemDetailsID from @temporaryDetails
+			open tar
+			fetch next from tar into @ExpRemDetailsID
+			while @@fetch_status = 0
+				begin
+					--生成报销详情ID
+					exec dbo.getClassNumber 404, 1, @curNumber output
+					set @ExpRemDetailsID = @curNumber
+
+				end
+		end
+	
+
 
 
 	if @@ERROR <> 0 
