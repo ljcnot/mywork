@@ -321,7 +321,7 @@ insert sysEncoder(encoderID, encoderName, encoderPrefix, encoderDateType, encode
 values(402, '审批详情号','SPXQ',1,4,1,'')
 
 insert sysEncoder(encoderID, encoderName, encoderPrefix, encoderDateType, encoderSerialNumLen, encoderSerialNumInc, encoderSuffix)
-values(403, '报销单号','BXD',1,4,1,'')
+values(403, '报销单号','B',1,4,1,'')
 
 insert sysEncoder(encoderID, encoderName, encoderPrefix, encoderDateType, encoderSerialNumLen, encoderSerialNumInc, encoderSuffix)
 values(404, '费用报销详情号','BXXQ',1,5,1,'')

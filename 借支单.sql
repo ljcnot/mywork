@@ -44,19 +44,147 @@ create table borrowSingle(
 --ON DELETE CASCADE
 GO
 
-
-
-drop table ApprovalDetailsList      --审批详情表
-create table ApprovalDetailsList(
+--借支单审批详情
+drop table AuditBorrowList      
+create table AuditBorrowList(
 	ApprovalDetailsID varchar(16)	not null,	--审批详情ID
-	billID	varchar(17)	not null,	--单据ID
-	approvalStatus int not	null,	--审批情况（同意/不同意）
+	billID	varchar(15)	not null,	--借支单ID
+	approvalStatus smallint default(0) not	null,	--审批情况（同意/不同意）
 	approvalOpinions	varchar(200),	--审批意见
 	examinationPeoplePost varchar(50),	--审批人职务
 	examinationPeopleID	varchar(20),	--审批人ID
 	examinationPeopleName	varchar(20)	--审批人名称
-	)
+--外键
+foreign key(billID) references borrowSingle(borrowSingleID) on update cascade on delete cascade,
+--主键
+ CONSTRAINT [PK_ AuditBorrow_ApprovalDetailsID] PRIMARY KEY CLUSTERED 
+(
+	[ApprovalDetailsID] ASC
+)WITH (IGNORE_DUP_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+
+--审核借支单
+drop PROCEDURE AuditBorrowSingle
+/*
+	name:		AuditBorrowSingle
+	function:	1.审核借支单
+				注意：本存储过程不锁定编辑！
+	input: 
+
+			@billID	varchar(15),	--借支单ID
+			@approvalStatus smallint,	--审批情况（0:同意,1:不同意）
+			@approvalOpinions	varchar(200),	--审批意见
+			@examinationPeoplePost varchar(50),	--审批人职务
+			@examinationPeopleID	varchar(20),	--审批人ID
+			@examinationPeopleName	varchar(20),	--审批人名称
+
+
+
+	output: 
+			@ApprovalDetailsID varchar(16) output,	--审批详情ID，主键，使用402号号码发生器生成
+			@Ret		int output           --操作成功标识,0:成功，1：要审核的借支单不存在，2：该借支单正在被其他用户锁定，3：该借支单为处于审核状态，9：未知错误
+			@createManID varchar(13) output,			--创建人ID
+				@createTime smalldatetime output
+	author:		卢嘉诚
+	CreateDate:	2016-5-7
+
+*/
+create PROCEDURE AuditBorrowSingle				
+			@ApprovalDetailsID varchar(16) output,	--审批详情ID，主键，使用402号号码发生器生成
+			@billID	varchar(15),	--借支单ID
+			@approvalStatus smallint,	--审批情况（0:同意,1:不同意）
+			@approvalOpinions	varchar(200),	--审批意见
+			@examinationPeoplePost varchar(50),	--审批人职务
+			@examinationPeopleID	varchar(20),	--审批人ID
+			@examinationPeopleName	varchar(20),	--审批人名称
+
+			@createManID varchar(13) output,			--创建人ID
+			@Ret		int output           --操作成功标识,0:成功，1：要审核的借支单不存在，2：该借支单正在被其他用户锁定，3：该借支单为处于审核状态，4:请先锁定该借支单再审核避免冲突，9：未知错误
+	WITH ENCRYPTION 
+AS
+
+	--判断要审核的借支单是否存在
+	declare @count as int
+	set @count=(select count(*) from borrowSingle where borrowSingleID= @billID)	
+	if (@count = 0)	--不存在
+	begin
+		set @Ret = 1
+		return
+	end
+
+	--检查审核状态
+	declare @thisperson varchar(13)
+	set @thisperson = (select flowProgress from borrowSingle
+					where borrowSingleID = @billID
+					and	  ISNULL(lockManID,'')<>'')
+	if(@thisperson<>1)
+	begin
+		set @Ret = 3
+		return
+	end
+	--检查编辑锁：
+	declare @thisLockMan varchar(13)
+	set @thisLockMan = (select lockManID from borrowSingle
+					where borrowSingleID = @billID
+					and	  ISNULL(lockManID,'')<>'')
+	if (@thisLockMan<>'')
+		begin
+			if(@thisLockMan<>@createManID)
+				begin
+					set @createManID = @thisLockMan
+					set @Ret = 2
+					return
+				end
+			
+
+
+			--使用402号码发生器产生新的号码：
+			declare @curNumber varchar(50)
+			exec dbo.getClassNumber 402, 1, @curNumber output
+			set @ApprovalDetailsID = @curNumber
+
+	
+			----取维护人的姓名：
+			--declare @createManName nvarchar(30)
+			--set @createManName = isnull((select userCName from activeUsers where userID = @createManID),'')
+			declare @createTime smalldatetime, @createManName varchar(30)
+			set @createManName = '卢嘉诚'
+			set @createTime = getdate()
+			insert AuditBorrowList(
+					ApprovalDetailsID,	--审批详情ID，主键，使用402号号码发生器生成
+					billID,	--借支单ID
+					approvalStatus,	--审批情况（同意/不同意）
+					approvalOpinions,	--审批意见
+					examinationPeoplePost,	--审批人职务
+					examinationPeopleID,	--审批人ID
+					examinationPeopleName	--审批人名称
+									) 
+			values (			
+					@ApprovalDetailsID,	--审批详情ID，主键，使用402号号码发生器生成
+					@billID,	--单据ID
+					@approvalStatus,	--审批情况（同意/不同意）
+					@approvalOpinions,	--审批意见
+					@examinationPeoplePost,	--审批人职务
+					@examinationPeopleID,	--审批人ID
+					@examinationPeopleName	--审批人名称
+					) 
+			set @Ret = 0
+			if @@ERROR <> 0 
+			set @Ret = 9
+			--登记工作日志：
+			insert workNote(userID, userName, actionTime, actions, actionObject)
+			values(@createManID,@createManName, @createTime, '审核单据', '系统根据用户'+@createManName+'的要求审核了单据，审批详情为[' + @ApprovalDetailsID + ']。')
+		end
+	else
+		begin
+		set @Ret = 4
+		return
+		end
 GO
+
+
+
+
 
 
 
@@ -276,7 +404,7 @@ AS
 					'的要求修改了借支单[' + @borrowSingleID + ']。')
 GO
 
-select * from borrowSingle where borrowSingleID = 'JZD201604250001'
+
 
 
 drop PROCEDURE lockborrowSingleEdit
@@ -348,14 +476,6 @@ AS
 												+ '的要求锁定了借支单['+ @borrowSingleID +']为独占式编辑。')
 GO
 
-select lockManID from borrowSingle
-					where borrowSingleID = 'JZD201604250002'
-					and	  ISNULL(lockManID,'')<>''
-
-select COUNT(*) from borrowSingle
-					where borrowSingleID = 'JZD201604250002'
-					and	  ISNULL(lockManID,'')<>''
-
 
 drop PROCEDURE unlockborrowSingleEdit
 /*
@@ -424,7 +544,6 @@ AS
 GO
 
 
-select count(*) from borrowSingle where borrowSingleID= 'JZD201604250002'
 
 drop PROCEDURE delborrowSingle
 /*
@@ -435,9 +554,10 @@ drop PROCEDURE delborrowSingle
 				@lockManID varchar(13) output,	--锁定人，如果当前设备借用申请单正在被人占用编辑则返回该人的工号
 	output: 
 				@Ret		int output		--操作成功标识
-							0:成功，1：指定的借支单不存在，
+							0:成功，
+							1：指定的借支单不存在，
 							2:要删除的借支单正被别人锁定，
-							3:该单据已经批复，不能编辑锁定，
+							3:该单据已经批复，不能删除，
 							9：未知错误
 	author:		卢嘉诚
 	CreateDate:	2016-4-16
@@ -451,6 +571,82 @@ create PROCEDURE delborrowSingle
 AS
 	set @Ret = 9
 	--判断要删除的借支单是否存在
+	declare @count as int
+	set @count=(select count(*) from borrowSingle where borrowSingleID= @borrowSingleID)	
+	if (@count = 0)	--不存在
+		begin
+			set @Ret = 1
+			return
+		end
+
+	--查询借支单是否为审核状态
+	declare @thisflowProgress smallint
+	set @thisflowProgress = (select flowProgress from borrowSingle where borrowSingleID = @borrowSingleID)
+	if (@thisflowProgress<>0)
+		begin
+			set @Ret = 3
+			return
+		end
+
+	--检查编辑锁：
+	declare @thisLockMan varchar(14)
+	set @thisLockMan = (select lockManID from borrowSingle
+					where borrowSingleID = @borrowSingleID)
+					
+	if (@thisLockMan<>'')
+		begin
+			set @lockManID = @thisLockMan
+			set @Ret = 2
+			return
+		end
+	--删除指定借支单
+	delete borrowSingle
+	where borrowSingleID= @borrowSingleID
+	--判断有无错误
+	if @@ERROR <> 0 
+		begin
+			set @Ret = 9
+			return
+		end    
+	
+	set @Ret = 0
+
+
+	----取维护人的姓名：
+	declare @lockManName nvarchar(30)
+	--set @lockManName = isnull((select userCName from activeUsers where userID = @lockManID),'')
+	set @lockManName = '卢嘉诚'
+	--登记工作日志：
+	insert workNote(userID, userName, actionTime, actions, actionObject)
+	values(@lockManID, @lockManName, getdate(), '删除借支单', '系统根据用户' + @lockManName
+												+ '删除了借支单['+ @borrowSingleID +']。')
+GO
+
+drop PROCEDURE examineborrowSingle
+/*
+	name:		borrowSingle
+	function:	审核借支单
+	input: 
+				@borrowSingleID varchar(15),			--借支单ID
+				@ApprovalDetailsID varchar(16)	ouput,	--审批详情ID，使用号码发生器生成
+				@lockManID varchar(13) output,	--锁定人，如果当前设备借用申请单正在被人占用编辑则返回该人的工号
+	output: 
+				@Ret		int output		--操作成功标识
+							0:成功，1：要锁定的借支单不存在，2:要锁定的借支单正在被别人编辑，
+							3:该单据已经批复，不能编辑锁定，
+							9：未知错误
+	author:		卢嘉诚
+	CreateDate:	2016-4-16
+	UpdateDate: 
+*/
+create PROCEDURE lockborrowSingleEdit
+				@borrowSingleID varchar(15),			--借支单ID
+				@lockManID varchar(13) output,	--锁定人，如果当前借支单正在被人占用编辑则返回该人的工号
+	@Ret int output					--操作成功标识
+	WITH ENCRYPTION 
+AS
+	set @Ret = 9
+	--判断要锁定的借支单是否存在
 	declare @count as int
 	set @count=(select count(*) from borrowSingle where borrowSingleID= @borrowSingleID)	
 	if (@count = 0)	--不存在
@@ -470,10 +666,10 @@ AS
 		set @Ret = 2
 		return
 	end
-	--删除指定借支单
-	delete borrowSingle
+
+	update borrowSingle
+	set lockManID = @lockManID 
 	where borrowSingleID= @borrowSingleID
-	--判断有无错误
 	if @@ERROR <> 0 
 	begin
 		set @Ret = 9
@@ -488,6 +684,6 @@ AS
 
 	--登记工作日志：
 	insert workNote(userID, userName, actionTime, actions, actionObject)
-	values(@lockManID, @lockManName, getdate(), '删除借支单', '系统根据用户' + @lockManName
-												+ '删除了借支单['+ @borrowSingleID +']。')
+	values(@lockManID, @lockManName, getdate(), '锁定借支单编辑', '系统根据用户' + @lockManName
+												+ '的要求锁定了借支单['+ @borrowSingleID +']为独占式编辑。')
 GO
