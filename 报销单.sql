@@ -484,7 +484,12 @@ AS
 			select t.r.value('(@ExpRemSingleID)', 'varchar(13)') ExpRemSingleID,t.r.value('(@StartDate)', 'smalldatetime') StartDate,
 			t.r.value('(@endDate)', 'smalldatetime') endDate,t.r.value('(@startingPoint)', 'varchar(20)') startingPoint,
 			t.r.value('(@destination)', 'varchar(20)') destination,t.r.value('(@vehicle)', 'varchar(12)') vehicle,
-			t.r.value('(@documentsNum)', 'int') documentsNum,
+			t.r.value('(@documentsNum)', 'int') documentsNum,t.r.value('(@vehicleSum)', 'numeric(15,2)') vehicleSum,
+			t.r.value('(@financialAccountID)', 'varchar(13)') vehicleSum,t.r.value('(@financialAccount)', 'varchar(20)') financialAccount,
+			t.r.value('(@peopleNum)', 'int') peopleNum,t.r.value('(@travelDays)', 'float') travelDays,
+			t.r.value('(@TravelAllowanceStandard)', 'numeric(15,2)') TravelAllowanceStandard,
+			t.r.value('(@travelAllowancesum)', 'numeric(15,2)') travelAllowancesum,
+			t.r.value('(@otherExpenses)', 'varchar(20)') otherExpenses,t.r.value('(@otherExpensesSum)', 'numeric(15,2)') otherExpensesSum
 			from @xVar.nodes('root/row') as t(r)
 		end
 
@@ -544,14 +549,10 @@ create PROCEDURE addExpenseReimbursementDetails
 				@createManID varchar(10),		--创建人工号
 
 				@Ret		int output,
-				@createTime smalldatetime output,
-				@ExpRemDetailsID varchar(17) output	--主键：报销详情ID，使用第404号号码发生器产生
+				@createTime smalldatetime output
 	WITH ENCRYPTION 
 AS
-	--使用号码发生器产生新的号码：
-	declare @curNumber varchar(50)
-	exec dbo.getClassNumber 404, 1, @curNumber output
-	set @ExpRemDetailsID = @curNumber
+
 
 	set @Ret = 9
 	
@@ -562,7 +563,6 @@ AS
 	set @createTime = getdate()
 
 	insert ExpenseReimbursementDetails(
-				ExpRemDetailsID,			--报销详情ID
 				ExpRemSingleID,				--报销单ID
 				abstract,					--摘要
 				supplementaryExplanation,	--补充说明
@@ -571,7 +571,6 @@ AS
 				expSum						--金额
 							) 
 	values (		
-				@ExpRemDetailsID,			--报销详情ID
 				@ExpRemSingleID,				--报销单ID
 				@abstract,					--摘要
 				@supplementaryExplanation,	--补充说明
@@ -603,7 +602,6 @@ drop PROCEDURE addTravelExpensesDetails
 	function:	1.添加差旅费报销详情
 				注意：本存储过程不锁定编辑！
 	input: 
-				TravelExpensesDetailsID varchar(18) not null,	--差旅费报销详情ID
 				ExpRemSingleID varchar(13) not null,	--报销单编号
 				StartDate smalldatetime	not null,	--起始时间
 				endDate smalldatetime not null,	--结束日期
@@ -653,14 +651,10 @@ create PROCEDURE addTravelExpensesDetails
 				@createManID varchar(10),		--创建人工号
 
 				@Ret		int output,
-				@createTime smalldatetime output,
-				@TravelExpensesDetailsID varchar(18) output	--主键：差旅费报销详情ID，使用第405号号码发生器产生
+				@createTime smalldatetime output
 	WITH ENCRYPTION 
 AS
-	--使用号码发生器产生新的号码：
-	declare @curNumber varchar(50)
-	exec dbo.getClassNumber 405, 1, @curNumber output
-	set @TravelExpensesDetailsID = @curNumber
+
 
 	set @Ret = 9
 	
@@ -671,7 +665,6 @@ AS
 	set @createTime = getdate()
 
 	insert TravelExpensesDetails(
-				TravelExpensesDetailsID,	--差旅费报销详情
 				ExpRemSingleID,			--报销单编号
 				StartDate,					--起始时间
 				endDate,					--结束日期
@@ -690,7 +683,6 @@ AS
 				otherExpensesSum			--其他费用金额
 							) 
 	values (	
-				@TravelExpensesDetailsID,	--差旅费报销详情
 				@ExpRemSingleID,			--报销单编号
 				@StartDate,					--起始时间
 				@endDate,					--结束日期
@@ -839,7 +831,7 @@ AS
 	end
 
 	--检查编辑锁：
-	declare @thisLockMan varchar(13)
+	declare @thisLockMan varchar(10)
 	set @thisLockMan = (select lockManID from ExpRemSingle
 					where ExpRemSingleID = @ExpRemSingleID
 					and	  ISNULL(lockManID,'')<>'')
@@ -1064,6 +1056,164 @@ AS
 				businessReason = @businessReason,	--出差事由
 				approvalStatus = @approvalStatus	--审批进度:0：新建，1：待审批，2：审批中,3:已审结
 				where ExpRemSingleID = @ExpRemSingleID--报销单ID
+	set @Ret = 0
+	if @@ERROR <> 0 
+	----插入明细表：
+	--declare @runRet int 
+	--exec dbo.addAlcApplyDetail @alcNum, @alcApplyDetail, @runRet output
+	--登记工作日志：
+	insert workNote(userID, userName, actionTime, actions, actionObject)
+	values(@lockManID, @createManName,  getdate(), '编辑报销单', '系统根据用户' + @createManName + 
+					'的要求编辑了报销单单[' + @ExpRemSingleID + ']。')
+GO
+
+
+
+drop PROCEDURE editExpRemSingleXML
+/*
+	name:		editExpRemSingle
+	function:	1.编辑报销单
+				注意：本存储过程不锁定编辑！
+	input: 
+				@ExpRemSingleID varchar(13),  --报销单ID			
+				@departmentID varchar(13) ,	--部门ID
+				@ExpRemDepartment varchar(30)	,	--报销部门
+				@ExpRemDate smalldatetime ,	--报销日期
+				@projectID varchar(13) ,	--项目ID
+				@projectName varchar(50) ,	--项目名称
+				@ExpRemSingleNum smallint ,	--报销单据及附件
+				@note varchar(200),	--备注
+				@expRemSingleType smallint ,	--报销单类型，0：费用报销单，1：差旅费报销单
+				@amount numeric(15,2) ,	--合计金额
+				@borrowSingleID varchar(15) ,	--原借支单ID
+				@originalloan numeric(15,2) ,	--原借款
+				@replenishment numeric(15,2) ,	--应补款
+				@shouldRefund numeric(15,2) ,	--应退款
+				@ExpRemPersonID varchar(10) ,	--报销人编号
+				@ExpRemPerson varchar(30),	--报销人姓名
+				@businessPeopleID	varchar(10) ,	--出差人编号
+				@businessPeople	varchar(30) ,	--出差人
+				@businessReason varchar(200)	,	--出差事由
+				@approvalStatus smallint ,	--审批进度:0：新建，1：待审批，2：审批中,3:已审结
+				@xVar XML,					--XML格式的详情
+
+				@lockManID varchar(10),		--锁定人工号
+	output: 
+				@Ret		int output		--操作成功标识
+							0:成功，1：该借支单已被锁定，2：该借支单为审核状态9：未知错误
+				@createTime smalldatetime output
+	author:		卢嘉诚
+	CreateDate:	2016-3-23
+	UpdateDate: 2016-3-23 by 
+*/
+create PROCEDURE editExpRemSingleXML	
+				@ExpRemSingleID varchar(13),  --报销单ID			
+				@departmentID varchar(13) ,	--部门ID
+				@ExpRemDepartment varchar(30)	,	--报销部门
+				@ExpRemDate smalldatetime ,	--报销日期
+				@projectID varchar(13) ,	--项目ID
+				@projectName varchar(50) ,	--项目名称
+				@ExpRemSingleNum smallint ,	--报销单据及附件
+				@note varchar(200),	--备注
+				@expRemSingleType smallint ,	--报销单类型，0：费用报销单，1：差旅费报销单
+				@amount numeric(15,2) ,	--合计金额
+				@borrowSingleID varchar(15) ,	--原借支单ID
+				@originalloan numeric(15,2) ,	--原借款
+				@replenishment numeric(15,2) ,	--应补款
+				@shouldRefund numeric(15,2) ,	--应退款
+				@ExpRemPersonID varchar(10) ,	--报销人编号
+				@ExpRemPerson varchar(30),	--报销人姓名
+				@businessPeopleID	varchar(10) ,	--出差人编号
+				@businessPeople	varchar(30) ,	--出差人
+				@businessReason varchar(200)	,	--出差事由
+				@approvalStatus smallint ,	--审批进度:0：新建，1：待审批，2：审批中,3:已审结
+				@xVar XML,					--XML格式的详情
+
+				@lockManID  varchar(10),		--锁定人ID
+				@Ret		int output			--成功表示，0：成功，1：该单据已被其他用户锁定，2：该单据处于审核状态无法编辑，3：该单据不存在
+	WITH ENCRYPTION 
+AS
+	set @Ret = 9
+	
+	--判断要锁定的报销单是否存在
+	declare @count as int
+	set @count=(select count(*) from ExpRemSingle where ExpRemSingleID= @ExpRemSingleID)	
+	if (@count = 0)	    --不存在
+	begin
+		set @Ret = 3
+		return
+	end
+	--查询报销单是否为审核状态
+	declare @thisflowProgress smallint
+	set @thisflowProgress = (select approvalStatus from ExpRemSingle where ExpRemSingleID = @ExpRemSingleID)
+	if (@thisflowProgress<>0)
+		begin
+			set @Ret = 2
+			return
+		end
+
+	--检查编辑的报销单是否有编辑锁或长事务锁：
+	declare @thislockMan varchar(10)
+	set @thislockMan = (select lockManID from ExpRemSingle
+					where ExpRemSingleID = @ExpRemSingleID)
+						
+	if (@thislockMan<>'')
+		if(@thislockMan<>@lockManID)
+		begin
+			set @Ret = 1
+			set @lockManID = @thislockMan
+			return
+		end
+			
+	--取维护人的姓名：
+	declare @createManName nvarchar(30)
+	--set @createManName = isnull((select userCName from activeUsers where userID = @createManID),'')
+	set @createManName = '卢嘉诚'
+	update ExpRemSingle set		
+				departmentID = @departmentID,	--部门ID
+				ExpRemDepartment = @ExpRemDepartment,	--报销部门
+				ExpRemDate = @ExpRemDate,	--报销日期
+				projectID = @projectID,	--项目ID
+				projectName = @projectName,	--项目名称
+				ExpRemSingleNum = @ExpRemSingleNum,	--报销单据及附件
+				note = @note,	--备注
+				expRemSingleType = @expRemSingleType,	--报销单类型，0：费用报销单，1：差旅费报销单
+				amount = @amount,	--合计金额
+				borrowSingleID = @borrowSingleID,	--原借支单ID
+				originalloan = @originalloan,	--原借款
+				replenishment = @replenishment,	--应补款
+				shouldRefund = @shouldRefund,	--应退款
+				ExpRemPersonID = @ExpRemPersonID,	--报销人编号
+				ExpRemPerson = @ExpRemPerson,	--报销人姓名
+				businessPeopleID = @businessPeopleID,	--出差人编号
+				businessPeople = @businessPeople,	--出差人
+				businessReason = @businessReason,	--出差事由
+				approvalStatus = @approvalStatus	--审批进度:0：新建，1：待审批，2：审批中,3:已审结
+				where ExpRemSingleID = @ExpRemSingleID--报销单ID
+
+	if(@expRemSingleType =0)
+		begin
+			insert ExpenseReimbursementDetails
+			select t.r.value('(@ExpRemSingleID)', 'varchar(13)') ExpRemSingleID,t.r.value('(@abstract)', 'varchar(100)') abstract,
+			t.r.value('(@supplementaryExplanation)', 'varchar(100)') supplementaryExplanation,t.r.value('(@financialAccountID)', 'varchar(13)') financialAccountID,
+			t.r.value('(@financialAccount)', 'varchar(200)') financialAccount,t.r.value('(@expSum)', 'numeric(15,2)') expSum
+			from @xVar.nodes('root/row') as t(r)
+		end
+	else
+		begin
+			insert TravelExpensesDetails
+			select t.r.value('(@ExpRemSingleID)', 'varchar(13)') ExpRemSingleID,t.r.value('(@StartDate)', 'smalldatetime') StartDate,
+			t.r.value('(@endDate)', 'smalldatetime') endDate,t.r.value('(@startingPoint)', 'varchar(20)') startingPoint,
+			t.r.value('(@destination)', 'varchar(20)') destination,t.r.value('(@vehicle)', 'varchar(12)') vehicle,
+			t.r.value('(@documentsNum)', 'int') documentsNum,t.r.value('(@vehicleSum)', 'numeric(15,2)') vehicleSum,
+			t.r.value('(@financialAccountID)', 'varchar(13)') vehicleSum,t.r.value('(@financialAccount)', 'varchar(20)') financialAccount,
+			t.r.value('(@peopleNum)', 'int') peopleNum,t.r.value('(@travelDays)', 'float') travelDays,
+			t.r.value('(@TravelAllowanceStandard)', 'numeric(15,2)') TravelAllowanceStandard,
+			t.r.value('(@travelAllowancesum)', 'numeric(15,2)') travelAllowancesum,
+			t.r.value('(@otherExpenses)', 'varchar(20)') otherExpenses,t.r.value('(@otherExpensesSum)', 'numeric(15,2)') otherExpensesSum
+			from @xVar.nodes('root/row') as t(r)
+		end
+		end
 	set @Ret = 0
 	if @@ERROR <> 0 
 	----插入明细表：
