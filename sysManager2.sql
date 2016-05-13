@@ -315,7 +315,7 @@ insert sysEncoder(encoderID, encoderName, encoderPrefix, encoderDateType, encode
 values(7, '设备借用申请单编号','JY',3,4,1,'')
 
 insert sysEncoder(encoderID, encoderName, encoderPrefix, encoderDateType, encoderSerialNumLen, encoderSerialNumInc, encoderSuffix)
-values(401, '借支单号','JZD',1,4,1,'')
+values(401, '借支单号','J',1,4,1,'')
 
 insert sysEncoder(encoderID, encoderName, encoderPrefix, encoderDateType, encoderSerialNumLen, encoderSerialNumInc, encoderSuffix)
 values(402, '审批详情号','SPXQ',1,4,1,'')
@@ -339,7 +339,7 @@ insert sysEncoder(encoderID, encoderName, encoderPrefix, encoderDateType, encode
 values(408, '账户明细号','ZHMX',1,4,1,'')
 
 insert sysEncoder(encoderID, encoderName, encoderPrefix, encoderDateType, encoderSerialNumLen, encoderSerialNumInc, encoderSuffix)
-values(409, '账户号','ZH',1,3,1,'')
+values(409, '账户号','Z',2,3,1,'')
 
 insert sysEncoder(encoderID, encoderName, encoderPrefix, encoderDateType, encoderSerialNumLen, encoderSerialNumInc, encoderSuffix)
 values(410, '账户移交号','ZHYJ',1,3,1,'')

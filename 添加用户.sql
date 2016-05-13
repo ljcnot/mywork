@@ -22,6 +22,20 @@ otherExpensesSum	numeric(15,2)	null	--其他费用金额
 GO
 
 
+--报销详情表
+drop table ExpenseReimbursementDetails 
+create table ExpenseReimbursementDetails(
+ExpRemDetailsID	int identity(1,1) not null,	--报销详情ID
+ExpRemSingleID	varchar(13)	not null Primary Key (ExpRemDetailsID, ExpRemSingleID),	--报销单ID
+abstract	varchar(100)	not null,	--摘要
+supplementaryExplanation	varchar(100)	not null,	--补充说明
+financialAccountID	varchar(13)	not null,	--报销科目ID
+financialAccount	varchar(200)	not null,	--报销科目
+expSum	numeric(15,2)	not null	--金额
+--外键
+foreign key(ExpRemSingleID) references ExpRemSingle(ExpRemSingleID) on update cascade on delete cascade,
+)
+
 
 
 use pm100
