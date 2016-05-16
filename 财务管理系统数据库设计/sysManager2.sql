@@ -336,7 +336,7 @@ insert sysEncoder(encoderID, encoderName, encoderPrefix, encoderDateType, encode
 values(407, '科目号','KM',1,4,1,'')
 
 insert sysEncoder(encoderID, encoderName, encoderPrefix, encoderDateType, encoderSerialNumLen, encoderSerialNumInc, encoderSuffix)
-values(408, '账户明细号','ZHMX',1,4,1,'')
+values(408, '账户明细号','JY',1,4,1,'')
 
 insert sysEncoder(encoderID, encoderName, encoderPrefix, encoderDateType, encoderSerialNumLen, encoderSerialNumInc, encoderSuffix)
 values(409, '账户号','Z',2,3,1,'')

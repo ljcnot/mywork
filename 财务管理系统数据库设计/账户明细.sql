@@ -1,21 +1,21 @@
 --账户明细表
 drop table accountDetailsList 
 create table accountDetailsList(
-AccountDetailsID	varchar(14)	not null,	--交易ID
-accountID 	varchar(10)	not null,	--账户ID
-account		varchar(50)	not	null,	--账户名称
-detailDate	smalldatetime	not null,	--日期
-abstract	varchar(200),	--摘要
-borrow		numeric(15,2),		--借
-loan		numeric(15,2),		--贷
-balance		numeric(15,2),		--余额
+AccountDetailsID varchar(14) not null,	--交易ID
+accountID varchar(10) not null,			--账户ID
+account varchar(50) not null,			--账户名称
+detailDate smalldatetime not null		,--日期
+abstract	varchar(200),		--摘要
+borrow numeric(15,2),		--借
+loan	 numeric(15,2),		--贷
+balance numeric(15,2),		--余额
 departmentID	varchar(13),	--部门ID
-department		varchar(30),	--部门
-projectID		varchar(13),	--项目ID
-project			varchar(50),	--项目
-clerkID		varchar(10),		--经手人ID
-clerk		varchar(30),		--经手人
-remarks		varchar(200),		--备注
+department varchar(30),	--部门
+projectID	 varchar(13),		--项目ID
+project varchar(50),		--项目
+clerkID varchar(10),		--经手人ID
+clerk varchar(30),			--经手人
+remarks varchar(200),		--备注
 --创建人：为了保持操作的范围——个人的一致性增加的字段
 createManID varchar(10) null,		--创建人工号
 createManName varchar(30) null,		--创建人姓名
@@ -63,14 +63,14 @@ drop PROCEDURE addAccountDetails
 
 				@createManID varchar(10),		--创建人工号
 	output: 
-				@AccountDetailsID	varchar(14) output,	--账户明细ID，主键，使用408号号码发生器生成
+				@AccountDetailsID	varchar(14) output,	--交易ID，主键，使用408号号码发生器生成
 				@Ret		int output		--操作成功标示；0:成功，1：该账户已存在，9：未知错误
 	author:		卢嘉诚
 	CreateDate:	2016-3-23
 */
 
 create PROCEDURE addAccountDetails			
-				@AccountDetailsID	varchar(14) output,	--账户明细ID，主键，使用408号号码发生器生成
+				@AccountDetailsID	varchar(14) output,	--交易ID，主键，使用408号号码发生器生成
 				@accountID 	varchar(10),	--账户ID
 				@account		varchar(50),--账户名称
 				@detailDate	smalldatetime,	--日期
@@ -106,7 +106,7 @@ AS
 	set @createTime = getdate()
 
 	insert accountDetailsList(
-				AccountDetailsID,	--账户明细ID，主键，使用408号号码发生器生成
+				AccountDetailsID,	--交易ID，主键，使用408号号码发生器生成
 				accountID,		--账户ID
 				account,			--账户名称
 				detailDate,		--日期
@@ -126,7 +126,7 @@ AS
 				createTime		--创建时间
 							) 
 	values (		
-				@AccountDetailsID,	--账户明细ID，主键，使用408号号码发生器生成
+				@AccountDetailsID,	--交易ID，主键，使用408号号码发生器生成
 				@accountID,		--账户ID
 				@account,			--账户名称
 				@detailDate,		--日期
@@ -153,9 +153,6 @@ AS
 			return
 		end
 	set @Ret = 0
-	--插入明细表：
-	declare @runRet int 
-	--exec dbo.addAlcApplyDetail @alcNum, @alcApplyDetail, @runRet output
 	--登记工作日志：
 	insert workNote(userID, userName, actionTime, actions, actionObject)
 	values(@createManID, @createManName, @createTime, '添加账户明细', '系统根据用户' + @createManName + 
@@ -171,7 +168,7 @@ drop PROCEDURE delAccountDetails
 	function:		1.删除账户明细
 				注意：本存储过程锁定编辑！
 	input: 
-				@AccountDetailsID	varchar(14) output,	--账户明细ID，主键，使用408号号码发生器生成
+				@AccountDetailsID	varchar(14) output,	--交易ID，主键，使用408号号码发生器生成
 				@lockManID varchar(10),		--锁定人ID
 	output: 
 				@Ret		int output		--操作成功标识;--操作成功标示；0:成功，1：该账户明细不存在，2：该账户明细被其他用户锁定，9：未知错误
@@ -181,7 +178,7 @@ drop PROCEDURE delAccountDetails
 */
 
 create PROCEDURE delAccountDetails		
-				@AccountDetailsID	varchar(14),	--账户明细ID，主键
+				@AccountDetailsID	varchar(14),	--交易ID，主键
 				@lockManID   varchar(10) output,		--锁定人ID
 
 				@Ret		int output			--操作成功标识;--操作成功标示；0:成功，1：该账户明细不存在，2：该账户明细被其他用户锁定，9：未知错误
@@ -217,7 +214,7 @@ AS
 
 	--取维护人的姓名：
 	declare @lockMan nvarchar(30)
-	set @createManName = isnull((select userCName from activeUsers where userID = @createManID),'')
+	set @lockMan = isnull((select userCName from activeUsers where userID = @lockManID),'')
 	declare @createTime smalldatetime
 	set @createTime = getdate()
 
@@ -246,7 +243,7 @@ drop PROCEDURE editAccountDetails
 	function:	1.编辑账户明细
 				注意：本存储过程锁定编辑！
 	input: 
-				@AccountDetailsID	varchar(14) output,	--账户明细ID，主键，使用408号号码发生器生成
+				@AccountDetailsID	varchar(14) output,	--交易ID，主键，使用408号号码发生器生成
 				@accountID 	varchar(10),	--账户ID
 				@account		varchar(50),--账户名称
 				@detailDate	smalldatetime,	--日期
@@ -265,16 +262,15 @@ drop PROCEDURE editAccountDetails
 				@lockManID varchar(10)output,		--锁定人ID
 	output: 
 				@Ret		int output		--操作成功标示；0:成功，1：该账户明细不存在，2：该账户明细已被其他用户锁定，9：未知错误
-				@createTime smalldatetime output
 	author:		卢嘉诚
 	CreateDate:	2016-3-23
-	UpdateDate: 2016-3-23 by lw 根据编辑要求增加rowNum返回参数
+
 */
 
 
 select count(*) from accountDetailsList where AccountDetailsID= 'ZHMX201605050002'
 create PROCEDURE editAccountDetails				
-				@AccountDetailsID	varchar(14) ,	--账户明细ID，主键
+				@AccountDetailsID	varchar(14) ,	--交易ID，主键
 				@accountID 	varchar(10),	--账户ID
 				@account		varchar(50),--账户名称
 				@detailDate	smalldatetime,	--日期
@@ -325,12 +321,11 @@ AS
 	
 	--取维护人的姓名：
 	declare @createManName nvarchar(30)
-	set @createManName = isnull((select userCName from activeUsers where userID = @createManID),'')
+	set @createManName = isnull((select userCName from activeUsers where userID = @lockManID),'')
 	declare @createTime smalldatetime
 	set @createTime = getdate()
 
 	update accountDetailsList set
-				AccountDetailsID = @AccountDetailsID,	--账户明细ID，主键，使用408号号码发生器生成
 				accountID = @accountID,		--账户ID
 				account = @account,			--账户名称
 				detailDate = @detailDate,		--日期
@@ -357,13 +352,10 @@ AS
 			return
 		end
 	set @Ret = 0
-	--插入明细表：
-	declare @runRet int 
-	--exec dbo.addAlcApplyDetail @alcNum, @alcApplyDetail, @runRet output
 	--登记工作日志：
 	insert workNote(userID, userName, actionTime, actions, actionObject)
-	values(@lockManID, @createManName, @createTime, '编辑账户', '系统根据用户' + @createManName + 
-		'的要求编辑了账户[' + @accountID + ']。')		
+	values(@lockManID, @createManName, @createTime, '编辑交易明细', '系统根据用户' + @createManName + 
+		'的要求编辑了交易明细[' + @AccountDetailsID + ']。')		
 GO
 
 
@@ -424,8 +416,7 @@ AS
 
 	--取维护人的姓名：
 	declare @lockManName nvarchar(30)
-	set @lockManName = '卢嘉诚'
-	--set @lockManName = isnull((select userCName from activeUsers where userID = @lockManID),'')
+	set @lockManName = isnull((select userCName from activeUsers where userID = @lockManID),'')
 
 	--登记工作日志：
 	insert workNote(userID, userName, actionTime, actions, actionObject)
@@ -439,7 +430,7 @@ drop PROCEDURE unlockAccountDetailsEdit
 	name:		lockAccountDetailsEdit
 	function: 	释放锁定账户明细编辑，避免编辑冲突
 	input: 
-				@AccountDetailsID varchar(14),		--账户ID
+				@AccountDetailsID varchar(14),		--交易ID
 				@lockManID varchar(10) output,	--锁定人，如果当前科目正在被人占用编辑则返回该人的工号
 	output: 
 				@Ret		int output		--操作成功标识0:成功，1：要释放锁定的账户明细不存在，2:要释放锁定的账户明细正在被别人编辑，8：该账户明细未被任何人锁定9：未知错误
@@ -448,7 +439,7 @@ drop PROCEDURE unlockAccountDetailsEdit
 	UpdateDate: 
 */
 create PROCEDURE unlockAccountDetailsEdit
-				@AccountDetailsID varchar(14),			--账户ID
+				@AccountDetailsID varchar(14),			--交易ID
 				@lockManID varchar(10) output,	--锁定人ID，如果当前账户正在被人占用编辑则返回该人的工号
 	@Ret int output					--操作成功标识0:成功，1：要释放锁定的账户明细不存在，2:要释放锁定的账户明细正在被别人编辑，8：该账户明细未被任何人锁定9：未知错误
 	WITH ENCRYPTION 
@@ -485,8 +476,7 @@ AS
 			end
 				----取维护人的姓名：
 				declare @lockManName nvarchar(30)
-				--set @lockManName = isnull((select userCName from activeUsers where userID = @lockManID),'')
-				set @lockManName = '卢嘉诚'
+				set @lockManName = isnull((select userCName from activeUsers where userID = @lockManID),'')
 				--登记工作日志：
 				insert workNote (userID, userName, actionTime, actions, actionObject)
 				values(@lockManID, @lockManName, getdate(), '释放账户明细编辑', '系统根据用户' + @lockManName	+ '的要求释放了账户明细['+ @AccountDetailsID +']的编辑锁。')
