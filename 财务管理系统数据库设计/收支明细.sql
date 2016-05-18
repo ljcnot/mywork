@@ -9,8 +9,8 @@ customerName varchar(30)	not null,	--客户名称
 abstract	varchar(200)	not null,		--摘要
 incomeSum	numeric(15,2) not null,		--收入金额
 remarks	varchar(200),					--备注
-collectionModeID varchar(10) not null,	--收款方式ID
-collectionMode varchar(50)	not null,	--收款账号
+collectionModeID varchar(10),	--收款方式ID
+collectionMode varchar(50),	--收款账号
 startDate	 smalldatetime	not null,	--收款日期
 paymentApplicantID varchar(10)not null,	--收款申请人ID
 payee varchar(30)	not null,			--收款人
@@ -32,7 +32,7 @@ modiTime smalldatetime null,		--最后维护时间
 --编辑锁定人：
 lockManID varchar(10)				--当前正在锁定编辑的人工号
 --外键
-foreign key(collectionModeID) references accountList(accountID) on update cascade on delete cascade,
+--foreign key(collectionModeID) references accountList(accountID) on update cascade on delete cascade,
 --主键
 	 CONSTRAINT [PK_incomeInformationID] PRIMARY KEY CLUSTERED 
 (

@@ -2605,11 +2605,11 @@ public class FinancialSystem : virtualWebService
     /// <returns>成功：账户编号，采用409号号码发生器发生；失败："Error：..."</returns>
     [WebMethod(Description = "增加账户<br />"
                            + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
-    [SoapHeader("PageHeader")]
+    //[SoapHeader("PageHeader")]
     public string addAccountList(string accountName, string bankAccount, string accountCompany, string accountOpening, string bankAccountNum, string accountDate, string administratorID, string administrator, string branchAddress,
         string remarks, int Obsolete, string enabledeate, string createManID)
     {
-        verifyPageHeader(this);
+        //verifyPageHeader(this);
         int ret = 9;
         //从web.config获取连接字符串
         string conStr = WebConfigurationManager.ConnectionStrings["conStr"].ToString();

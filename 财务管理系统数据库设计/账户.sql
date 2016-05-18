@@ -155,7 +155,8 @@ AS
 				createManID,		--创建人工号
 				createManName,	--创建人姓名
 				createTime,		--创建时间
-				Obsolete			--是否作废
+				Obsolete,			--是否作废
+				enabledeate		--启用日期
 							) 
 	values (		
 				@accountID,		--账户ID,主键,使用409号号码发生器生成
@@ -172,6 +173,7 @@ AS
 				@createManID,		--创建人工号
 				@createManName,	--创建人姓名
 				@createTime,		--创建时间
+				@Obsolete,		--是否作废
 				@enabledeate		--启用日期
 				) 
 
