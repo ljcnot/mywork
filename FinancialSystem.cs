@@ -53,7 +53,7 @@ public class FinancialSystem : virtualWebService
          verifyPageHeader(this);
          if (colList.Trim() == "" || colList.Trim() == "*")
          {
-             colList = " borrowSingleID,borrowMan, position, department,";
+             colList = "borrowSingleID,borrowMan, position, department,";
              colList += "borrowDate, projectName,borrowReason,isnull(borrowSum,0)borrowSum";
          }
          if (strOrder.Trim() == "")
@@ -66,6 +66,145 @@ public class FinancialSystem : virtualWebService
 
          return sysTools.pageSelect(tabName, colList, strWhere, strOrder, myPageSet);
      }
+
+     /// <summary>
+     /// 功   能：获取借支单列表           
+     /// 作    者：卢苇
+     /// 编写日期：2015-10-21
+     /// </summary>
+     /// <param name="colList">列名,“*” or “”代表全部字段</param>
+     /// <param name="strWhere">范围约束</param>
+     /// <param name="strOrder">排序要求</param>
+     /// <returns>项目列表结果集</returns>
+     [WebMethod(Description = "一般查询语句，根据前台传入的查询条件、排序方式和要检索的字段，检索项目列表结果集<br />"
+                             + "<a href='../../SDK/PM/Interface.html#projectManager.getProjectList'>SDK说明</a>", EnableSession = false)]
+     [SoapHeader("PageHeader")]
+     public DataSet getProjectList(string colList, string strWhere, string strOrder)
+     {
+         verifyPageHeader(this);
+         if (colList.Trim() == "" || colList.Trim() == "*")
+         {
+             colList = "borrowSingleID,borrowMan, position, department,";
+             colList += "borrowDate, projectName,borrowReason,isnull(borrowSum,0)borrowSum";
+         }
+         if (strWhere != "")
+             strWhere = strWhere.Replace("|", "%");
+         if (strOrder.Trim() == "")
+             strOrder = "order by borrowSingleID desc";
+         string tabName = "borrowSingle ";
+
+         string strCmd = "select " + colList + " from " + tabName + " " + strWhere + " " + strOrder;
+         //从web.config获取连接字符串
+         string constr = WebConfigurationManager.ConnectionStrings["constr"].ToString();
+         using (SqlConnection sqlcon = new SqlConnection(constr))
+         {
+             try
+             {
+                 sqlcon.Open();
+                 DataSet ds = new DataSet();
+                 using (SqlCommand sqlCmd = new SqlCommand(strCmd, sqlcon))
+                 using (SqlDataAdapter da = new SqlDataAdapter(sqlCmd))
+                 {
+                     da.Fill(ds);
+                 }
+                 return ds;
+             }
+             catch (Exception e)
+             {
+                 return null;
+             }
+         }
+     }
+
+
+     /// <summary>
+     /// 功    能：根据编号查找项目（返回结果集）
+     /// 作    者：卢苇
+     /// 编写日期：2015-10-21
+     /// </summary>
+     /// <param name="projectID">项目编号</param>
+     /// <returns>项目（结果集方式）</returns>
+     [WebMethod(Description = "根据编号查找项目（返回结果集）<br />"
+                             + "<a href='../../SDK/PM/Interface.html#projectManager.queryProjectByID'>SDK说明</a>", EnableSession = false)]
+     [SoapHeader("PageHeader")]
+     public DataSet queryBorrowSingleByID(string borrowSingleID)
+     {
+         verifyPageHeader(this);
+         string strCmd = "select borrowSingleID,borrowMan, position, department,";
+         strCmd += "borrowDate, projectName,borrowReason,isnull(borrowSum,0)borrowSum";
+         strCmd += " from borrowSingle";
+         strCmd += " where borrowSingleID='" + borrowSingleID + "'";
+
+         //从web.config获取连接字符串
+         string constr = WebConfigurationManager.ConnectionStrings["constr"].ToString();
+         using (SqlConnection sqlcon = new SqlConnection(constr))
+         {
+             try
+             {
+                 sqlcon.Open();
+                 DataSet ds = new DataSet();
+                 using (SqlCommand sqlCmd = new SqlCommand(strCmd, sqlcon))
+                 using (SqlDataAdapter da = new SqlDataAdapter(sqlCmd))
+                 {
+                     da.Fill(ds);
+                 }
+                 return ds;
+             }
+             catch (Exception e)
+             {
+                 return null;
+             }
+         }
+     }
+
+     /// <summary>
+     /// 功    能：根据编号查找项目（返回对象）
+     /// 作    者：卢苇
+     /// 编写日期：2015-10-21
+     /// </summary>
+     /// <param name="projectID">项目编号</param>
+     /// <returns>项目（对象方式）</returns>
+     [WebMethod(Description = "根据编号查找项目（返回对象）<br />"
+                             + "<a href='../../SDK/PM/Interface.html#projectManager.getProjectByID'>SDK说明</a>", EnableSession = false)]
+     [SoapHeader("PageHeader")]
+     public clsProject getProjectByID(string projectID)
+     {
+         verifyPageHeader(this);
+         return new clsProject(projectID);
+     }
+
+     /// <summary>
+     /// 功    能：收入明细，分页查询语句，根据前台传入的查询条件、排序方式和要检索的字段、分页设置参数，采用分页技术检索项目列表结果集
+     /// 作    者：卢苇
+     /// 编写日期：2016-5-16
+     /// </summary>
+     /// <param name="colList">列名,“*” or “”代表全部字段</param>
+     /// <param name="strWhere">范围约束</param>
+     /// <param name="strOrder">排序要求</param>
+     /// <param name="myPageSet">分页参数</param>
+     /// <returns>项目列表结果集：数据的列为输入的列名前加一个行号</returns>
+     [WebMethod(Description = "分页查询语句，根据前台传入的查询条件、排序方式和要检索的字段、分页设置参数，采用分页技术检索项目列表结果集<br />"
+                             + "<a href='../../SDK/PM/Interface.html#projectManager.PageQueryProjectList'>SDK说明</a>", EnableSession = false)]
+     [SoapHeader("PageHeader")]
+     public pageDataSet PageQueryIncomeList(string colList, string strWhere, string strOrder, pageSet myPageSet)
+     {
+         verifyPageHeader(this);
+         if (colList.Trim() == "" || colList.Trim() == "*")
+         {
+             colList = "incomeInformationID,isnull(convert(varchar(19),startDate,120),'') startDate, abstract, isnull(incomeSum,0) incomeSum,";
+             colList += "remarks";
+         }
+         if (strOrder.Trim() == "")
+         {
+             strOrder = "order by incomeInformationID desc";
+         }
+         string tabName = "incomeList ";
+         if (strWhere != "")
+             strWhere = strWhere.Replace("|", "%");
+
+         return sysTools.pageSelect(tabName, colList, strWhere, strOrder, myPageSet);
+     }
+
 
      #endregion
 
