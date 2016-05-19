@@ -1,0 +1,134 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>营业收入登记</title>
+    <!--对话盒样式表-->
+    <link href="../../css/lhgdialog/idialog.css" rel="stylesheet" />
+    <!--系统专用样式表-->
+    <link href="../css/style.css" rel="stylesheet" />
+
+    <!--日历控件样式表-->
+    <link href="../../jquery/themes/base/jquery.ui.all.css" rel="stylesheet" />
+    <link href="../../jquery/themes/base/jquery.ui.datepicker.css" rel="stylesheet" />
+    <!--jquery主函数库库 -->
+    <script src="../../jquery/jquery-1.10.2.js"></script>
+    <script src="../../jquery/jquery.bgiframe.js"></script>
+    <!--新版日历库要加载的类库-->
+    <script src="../../jquery/ui/jquery.ui.core.js"></script>
+    <script src="../../jquery/ui/jquery.ui.widget.js"></script>
+    <script src="../../jquery/ui/jquery.ui.datepicker.js"></script>
+    <script src="../../jquery/i18n/jquery.ui.datepicker-zh-CN.js"></script>
+    <script src="../../jquery/jquery.maskedinput-1.2.2.js"></script>
+    <!--格式化类库：提供金额、日期等与字符串互换格式化函数-->
+    <script src="../../js/formats.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        var api = frameElement.api, W = api.opener; //弹出窗口调用参数
+
+        function beforeClose(w) {
+        }
+
+        $(function () {
+            //给日期添加验证控件：
+            //wrt by zml 2015-09-24
+            $('#txtSignDate').datepicker({ changeYear: true, showOn: "button", buttonImage: "../../images/calendar.gif", buttonImageOnly: true })
+                                   .mask("9999-99-99");
+                     $.ajax({
+                             type: "POST",
+                             contentType: "application/json",
+                             url: "AjaxPage.aspx/GetAllHints",
+                             data: "{}",
+                             dataType: "json",
+                             success: function (msg) {
+                                 var datas = eval('(' + msg.d + ')');
+                             }
+        });
+        function saveData() {
+            var projectName = $("#txtProjectName").val();
+            var customerID = $("#txtCustomerName").val();
+            var contractAmount = $("#txtContractAmount").val();
+            var amountType = cbAountType.selected[0];
+            var netAmount = $("#txtNetAmount").val();
+            var signDate = $("#txtSignDate").val();
+            var signerID = $("#cbSigner").val();
+            var managerID = $("#txtManager").val();
+            var progress = cbProgress.selected[0];
+            var pStatus = $("#txtStatus").text();
+            var remarks = $("#txtRemarks").text();
+            var projectDesc = $("#txtProjectDesc").text();
+            $.ajax({
+                type: "POST",
+                url: "Handler/addProject.ashx",
+                data: {
+                    "projectName": projectName, "customerID": customerID, "contractAmount": contractAmount, "amountType": amountType,
+                    "netAmount": netAmount, "signDate": signDate, "signerID": signerID, "managerID": managerID, "progress": progress, "pStatus": pStatus,
+                    "remarks": remarks, "projectDesc": projectDesc
+                },
+                dataType: "text",
+                success: function (result) {
+                    //处理返回值：
+                    if (result != "" && result.substring(0, 6) == "Error:")
+                        W.$.dialog.errorTips(result.substring(6), false, api);
+                    else {
+                        document.getElementById("txtProjectID").value = result;
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) { errorReport(XMLHttpRequest, textStatus, errorThrown); }
+            });
+        }
+        //关闭：
+        function closeMe() {
+            api.setResultStatus("");     //设置窗口的返回值：这里应该根据是否修改了数据返回指定的值
+            setTimeout(function () { api.close(false); }, 100);               //不询问直接关闭
+        }
+    </script>
+
+</head>
+<body>
+    <table id="frame" border="0" cellpadding="0" cellspacing="0">
+        <tr>
+            <th>项目：</th>
+            <td colspan="3"><input class="project_text" type="text"></td>
+        </tr>
+        <tr>
+            <th>委托单位：</th>
+            <td colspan="3"><input class="project_text" type="text"></td>
+        </tr>
+        <tr>
+            <th>收款人：</th>
+            <td colspan="3"><input class="input_box" type="text" value="张三" /></td>
+        </tr>
+        <tr>
+            <th>合同金额：</th>
+            <td><input class="rmbRead" type="text" value="100000.00" readonly="readonly" />&nbsp;元</td>
+            <th>已收金额：</th>
+            <td><input class="rmbRead" type="text" value="100000.00" readonly="readonly" /><span>元</span></td>
+        </tr>
+        <tr>
+            <th width="15%">应收金额：</th>
+            <td><input class="rmbRead" type="text" value="100000.00" readonly="readonly" /><span>元</span></td>
+            <th width="20%">未确认收款：</th>
+            <td><input class="rmbRead" type="text" value="100000.00" readonly="readonly" /><span>元</span></td>
+        </tr>
+        <tr>
+            <th>摘要：</th>
+            <td colspan="3"><textarea class="Borrow_text_area" cols="51" rows="3"></textarea></td>
+        </tr>
+        <tr>
+            <th>本次收款：</th>
+            <td><input class="rmb" type="text" /><span>元</span></td>
+            <th>收款日期：</th>
+            <td><input type="text" id="txtSignDate" reg="^\S+$" tip="请输入或选择报销日期" /></td>
+        </tr>
+        <tr>
+            <th>备注：</th>
+            <td colspan="3"><textarea class="Borrow_text_area" cols="51" rows="3"></textarea></td>
+        </tr>
+    </table>
+    <br />
+    <hr />
+    <div class="footer">
+        <input type="button" id="btnClose" class="closeBtn" value="取  消" onclick="closeMe();" />
+        <input type="button" id="btnSave" class="closeBtn" value="提  交" onclick="saveData();" />
+    </div>
+</body>
+</html>

@@ -5073,6 +5073,48 @@ public class FinancialSystem : virtualWebService
     #endregion
 
 
+    ///<summary>
+    ///模块编号：
+    ///作    用：根据项目ID和项目名称获取项目列表。这是渐进增强控件使用的获取列表服务
+    ///作    者：
+    ///入口参数：
+    ///         string projectID,    //项目ID
+    ///         string inputCode    //输入的字符
+    ///         string maxItem      //最大行数
+    ///出口参数：
+    ///         可用的客户员工结果集
+    ///编写日期：
+    ///</summary>
+    [WebMethod(Description = "根据项目ID和项目名称获取项目列表。这是渐进增强控件使用的获取列表服务", EnableSession = false)]
+    [SoapHeader("PageHeader")]
+    public DataSet getProjectListByInputCode(string projectID, string inputCode, string maxItem)
+    {
+        verifyPageHeader(this);
+        string strCmd = "select distinct top " + maxItem + " projectID, projectName" +
+                        " from project" +
+                        " where projectID='" + projectID + "%' and projectName like '" + inputCode + "%' order by projectID";
+        //从web.config获取连接字符串
+        string constr = WebConfigurationManager.ConnectionStrings["constr"].ToString();
+        using (SqlConnection sqlcon = new SqlConnection(constr))
+        {
+            try
+            {
+                sqlcon.Open();
+                DataSet ds = new DataSet();
+                using (SqlCommand sqlCmd = new SqlCommand(strCmd, sqlcon))
+                using (SqlDataAdapter da = new SqlDataAdapter(sqlCmd))
+                {
+                    da.Fill(ds);
+                }
+                return ds;
+            }
+            catch (Exception e)
+            {
+                return null;
+            }
+        }
+    }
+
 
 
 
