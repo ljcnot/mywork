@@ -1,0 +1,389 @@
+﻿/*以下三句话不变，配合窗口自适应js用的*/
+.body_lock_scroll{ *overflow:hidden; }
+.body_lock_scroll body{ overflow:hidden; }
+* {margin:0px; padding:0px;}
+
+/*系统专用样式*/
+.financialLogo
+{
+    float:left; 
+    width:70px; 
+    height:54px; 
+    background:url(../images/financialLogo.png) no-repeat;
+    _background:url(../images/financialLogo.gif) no-repeat;
+    margin:12px 0 0 30px;
+}
+.textLogo{
+    width:150px;
+    height:23px;
+    margin:14px 0 0 68px;
+    font-family:"黑体";
+    font-size:24px;
+    color:#333;
+}
+/*表格整体样式*/
+#frame,table{
+    margin:0 auto;
+    width:620px;
+    color:#565;
+}
+/*发票管理样式*/
+#addInvoiceFrame table{
+    margin: 0 auto;
+    width: 660px;
+    color: #565;
+}
+/*账户详情页*/
+.accountDetailsTab{
+    width:640px;
+    margin:0 auto;
+    color:#565;
+}
+/*已审批环节样式*/
+.haveExamined{
+    margin-top:10px;
+    padding:0 0 10px 30px; 
+    color:#565;
+    float:left;
+    width:600px;
+    height:100%;
+    border:1px dashed #ccc;   
+}
+.input_haveExamined{
+    width:436px;
+    height:26px;
+    border:none;
+    background:#f1f4fb;
+}
+.travel_haveExamined{
+    margin-top:10px;
+    padding:0 0 10px 30px; 
+    color:#565;
+    float:left;
+    width:600px;
+    height:100%;
+    border:1px dashed #ccc;
+}
+/*前期审批样式*/
+.earlyExamine{
+    margin:10px 0 10px 20px;
+    padding:0 0 10px 30px;
+    width:580px;
+    height:100%;
+    border:1px dashed #ccc;
+}
+/*差旅费报销单*/
+.travel{
+    width:960px;
+    color:#565;
+    font:16px;
+}
+#travel_frame{
+    width:980px;
+    margin: 0 auto;
+    color:#565;
+}
+.text_area_reason{
+    width:794px;
+    border:1px solid #ccc;
+}
+.travel_allowance,.project_transportation,.other{
+    margin:10px 0 10px 0;
+    padding:0 0 10px 30px; 
+    width:960px;
+    border:1px dashed #ccc;
+    color:#565;
+}
+.all_borrow{
+    margin:10px 0 10px 0;
+    padding:0 0 10px 30px; 
+    width:620px;
+    border:1px dashed #ccc;
+}
+.project_time{
+    margin:10px 0 10px 0;
+    padding:0 0 10px 30px; 
+    width:860px;
+    border:1px dashed #ccc;
+    color:#565;
+}
+table h5{
+    color:#000;
+}
+.travelGridBtn{
+    margin-left:18px;
+    font-size:14px;
+    width:75px;
+    height:25px; 
+    vertical-align:middle; 
+    text-align:center;
+    cursor:pointer;
+}
+
+h5{
+    margin:0;
+    padding:0;
+    margin-top:10px;
+}
+#divLeft{background:none;}
+.travelTotal{
+    margin-left:780px;
+    width:200px;
+    color: #565;
+    font: 16px;
+}
+.travel_text{
+    width:826px;
+    height:26px;
+    border:1px solid #ccc;
+}
+.travel_text_area{
+    width:822px;
+    border:1px solid #cccccc;
+}
+.travel_details{
+    margin-top:30px;
+    width:960px;
+    height:50px;
+    border:1px solid #000;
+}
+.travel_upload_bill{
+    margin:16px 0 0 26px;
+    float:left;
+    width:110px;
+    background:#fff;
+    padding:5px 10px;
+}
+
+ /*单元格样式*/
+tr td {
+    padding-top:10px;
+}
+th{
+    padding-top:6px;
+    text-align:left;
+    font-weight:normal;
+}
+.text{
+    width:112px;
+}
+#btnClose{
+    margin-right:0;
+}
+.closeBtn{
+    float:right;
+    margin-top:20px;
+    margin-right:40px;
+    font-size:14px;
+    width:75px;
+    height:25px; 
+    vertical-align:middle; 
+    text-align:center;
+    cursor:pointer;
+}
+.input_box{
+    width:151px;
+    height:26px;
+    border:1px solid #cccccc;
+    background:none;
+}
+.full_text{
+    width:457px;
+    height:26px;
+    border:1px solid #cccccc;
+}
+/*借支单*/
+.Borrow_full_text{
+    width:434px;
+    height:26px;
+    border:1px solid #cccccc;
+}
+.Borrow_text_area{
+    width:434px;
+    border:1px solid #cccccc;
+}
+.project_text{
+    width:436px;
+    height:26px;
+    border:1px solid #ccc;
+}
+.text_area{
+    width:457px;
+    border:1px solid #ccc;
+}
+.time{
+    width:130px;
+    height:26px;
+    border:1px solid #ccc;
+}
+.rmb{
+    text-align:right;
+    width:130px;
+    height:26px;
+    border:1px solid #ccc;
+}
+.rmbRead{
+    text-align:right;
+    color:#b8b7b7;
+    width:130px;
+    height:26px;
+    border:1px solid #ccc;
+}
+
+/*详情*/
+.Borrow_full_text_details{
+    width:434px;
+    height:26px;
+    border:1px solid #cccccc;
+    color:#bfbfbf;
+}
+.Borrow_text_area_details{
+    width:434px;
+    border:1px solid #cccccc;
+    color:#bfbfbf;
+}
+.project_text_details{
+    width:436px;
+    height:26px;
+    border:1px solid #ccc;
+    color:#bfbfbf;
+}
+.text_area_details{
+    width:457px;
+    border:1px solid #ccc;
+    color:#bfbfbf;
+}
+.rmb_details {
+    width: 130px;
+    height: 26px;
+    border: 1px solid #ccc;
+    color: #bfbfbf;
+}
+/*添加费用报销单*/
+#frame_expense{
+    margin:0 auto;
+    width:640px;
+}
+.gridBtn{
+    font-size:14px;
+    width:75px;
+    height:25px; 
+    vertical-align:middle; 
+    text-align:center;
+    cursor:pointer;
+}
+.gridBtn_expense{
+    margin-right:18px;
+    font-size:14px;
+    width:75px;
+    height:25px; 
+    vertical-align:middle; 
+    text-align:center;
+    cursor:pointer;
+}
+.grid{
+    margin-bottom:50px;
+}
+.total{
+    margin-left:440px;
+    width:200px;
+    color: #565;
+    font: 16px;
+}
+.total_box{
+    background:#f00;
+    width:80px;
+    height:26px;
+    border:1px solid #cccccc;
+    background:none;
+}
+.tab_left{
+    width:540px;
+}
+.added{
+    margin:0;
+    margin-left:20px;
+    padding:0;
+    float:left;
+    width:70px;
+    background:#fff;
+    padding:10px;
+}
+/*查看审核信息*/
+.borrowPaymentAdded{
+    margin:0;
+    margin-left:20px;
+    padding:0;
+    float:left;
+    width:100px;
+    background:#fff;
+    padding:10px;
+}
+/*借支单审核信息*/
+.borrowListExamineAdded{
+    margin:0;
+    margin-left:20px;
+    padding:0;
+    float:left;
+    width:120px;
+    background:#fff;
+    padding:10px;
+}
+/*还款明细表*/
+.paymentDetailsList{
+    margin:0;
+    margin-left:20px;
+    padding:0;
+    float:left;
+    width:80px;
+    background:#fff;
+    padding:10px;
+}
+.upload_bill{
+    margin:16px 0 0 20px;
+    float:left;
+    width:100px;
+    background:#fff;
+    padding:5px 10px;
+}
+.details{
+    margin-top:30px;
+    width:620px;
+    height:100%;
+    border:1px solid #000;
+}
+
+/*筛选对话盒项目input框样式*/
+.screen_project_text{
+    width:408px;
+    height:26px;
+    border:1px solid #ccc;
+}
+/*日历控件*/
+#txtSignDate,#txtSignDate1,#txtSignDate3,#txtSignDate4,#txtSignDate_start,#txtSignDate_end,#txtApplyDate,#txtReceivableDate {
+    width:130px;
+    height:26px;
+    border:1px solid #ccc;
+    ime-mode: disabled;
+}
+/*分隔线*/
+.separated{
+    margin:20px 0 10px 0;
+    border:1px dashed #565;
+}
+/*上传附件*/
+.attachment{
+    width:648px;
+    height:70px;
+    margin-top:20px;
+    border:1px solid #000;
+}
+.attachment button{
+    margin:5px 0 0 5px;
+}
+
+
+.footer {
+    clear:left;
+    margin-right:5px;
+}

@@ -1,0 +1,791 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>用户列表</title>
+    <link href="../../jquery/css/popmenu.css" rel="stylesheet" type="text/css" />
+    <link href="../../jquery/themes/base/jquery.ui.all.css" rel="stylesheet" type="text/css" />
+    <link href="../../jquery/themes/base/jquery.ui.buttonStyle.css" rel="stylesheet" type="text/css" />
+    <link href="../../css/UIcomm.css" rel="stylesheet" type="text/css" />
+    <link href="../../css/flexigrid/flexigrid.css" rel="stylesheet" type="text/css" />
+    <link href="../../css/commonCss/listTools.css" rel="stylesheet" type="text/css" />
+    <link href="../css/listTools.css" rel="stylesheet" />
+
+    <script src="../../jquery/jquery-1.10.2.js" type="text/javascript"></script>
+    <script src="../../jquery/flexigrid.js" type="text/javascript"></script>
+    <script src="../../jquery/popmenu.js" type="text/javascript"></script>
+    <script src="../../js/cookie.js" type="text/javascript"></script>
+    <script src="../../js/formats.js" type="text/javascript"></script>
+    
+    <!--进度条需要加载的类库-->
+    <script src="../../jquery/ui/jquery.ui.core.js" type="text/javascript"></script>
+    <script src="../../jquery/ui/jquery.ui.widget.js" type="text/javascript"></script>
+    <script src="../../jquery/ui/jquery.ui.progressbar.js" type="text/javascript"></script>
+
+
+    <!--对话合需要载入的类库-->
+    <script src="../../jquery/jquery.bgiframe.js" type="text/javascript"></script>
+    <script src="../../jquery/ui/jquery.ui.mouse.js" type="text/javascript"></script>
+    <script src="../../jquery/ui/jquery.ui.button.js" type="text/javascript"></script>
+    <script src="../../jquery/ui/jquery.ui.draggable.js" type="text/javascript"></script>
+    <script src="../../jquery/ui/jquery.ui.position.js" type="text/javascript"></script>
+    <script src="../../jquery/ui/jquery.ui.resizable.js" type="text/javascript"></script>
+    <script src="../../jquery/ui/jquery.ui.dialog.js" type="text/javascript"></script>
+    <!--HELP ID预定义常量-->
+    <script src="../../js/helpID.js" type="text/javascript"></script>
+
+    <script src="../../js/sysTools.js" type="text/javascript"></script>
+    <!--权限函数库-->
+    <script src="../../jquery/lhgdialog/lhgdialog.js" type="text/javascript"></script>
+    <script src="../../js/right.js" type="text/javascript"></script>
+    <script src="../../js/UIcomm.js" type="text/javascript"></script>
+    <script type="text/javascript">
+
+        getMyTopWindow = function () {
+            return parent.getMyTopWindow();
+        }
+
+        var TopWindow = getMyTopWindow();
+        //自动检测容器尺寸：
+        var _pIframe = window.frameElement; //容器对象
+        var _w = 400; var _h = 500;
+        if (_pIframe) {
+            _w = ($(_pIframe).width());
+            _h = $(_pIframe).height();
+        }
+        //重新定义列表的尺寸：这是一个供主页面调用的函数
+        //rewrt by lw 2012-1-4
+        function resize(w, h) {
+            if (!w || !h || w == 0 || h == 0) {
+                var p = window.frameElement; //容器对象
+                if (p) {
+                    w = $(p).width();
+                    h = $(p).height();
+                }
+            }
+            _w = (w); _h = h;
+            thisGrid2.flexResize(_w, _h - 87);
+        }
+        //修正提示弹窗的停顿问题
+        //wrt by lw 2013-3-26
+        //function getTopWindow() {
+        //    return parent.getTopWindow();
+        //}
+        //var TopWindow = getTopWindow();
+
+        ////重新定义列表的尺寸：这是一个供主页面调用的函数
+        ////wrt by lw 2012-8-26
+        //function resize(w, h) {
+        //    thisGrid.flexResize(w, h - 87);
+        //}
+
+        //wrt by lw 2011-9-28
+        //var keyword = getArg('keyword');    //获取搜索引擎的关键字
+        //重新构造启动页面的筛选条件，加入权限控制。modi by lw2011-6-3
+        //var strWhere = parent.userListFilterPara.makeWhere(); //筛选条件                  
+        //if (strWhere.length > 0) {
+        //    strWhere = "where " + strWhere.substr(4, strWhere.length - 4);
+        //}
+        /*重新规划搜索引擎，删除原搜索方式：del by lw 2012-8-15
+        //搜索引擎增加的查询条件
+        if (keyword != "") {
+        if (strWhere.length = 0)
+        strWhere = "where";
+        else
+        strWhere += " and"
+        //常用的搜索字段：设备名称、型号、规格、经费来源、保管人、经办人
+        strWhere += " (jobNumber like '|" + keyword + "|' or cName like '|" + keyword + "|' or homeAddress like '|" + keyword + "|'";
+        strWhere += " or clgName like '|" + keyword + "|' or uName like '|" + keyword + "|')";
+        }
+        */
+        //------------------------------------应用权限的数据操作集 by lw 2011-9-28---------------------------
+        //var curUser = getCurUserInfo(); //包含服务器时间的当前用户信息
+        var curTools = [];
+        curTools[curTools.length] = { name: 'cmdShowCard', displayname: "详情", bclass: 'cmdShowCard', title: "详情", onpress: toolbarItem_onclick };
+        curTools[curTools.length] = { name: 'cmdPreview', displayname: "刷新", bclass: 'cmdPreview', title: "刷新", onpress: toolbarItem_onclick };
+        curTools[curTools.length] = { name: 'cmdFilter', displayname: "筛选", bclass: 'cmdFilter', title: "筛选", onpress: toolbarItem_onclick };
+        curTools[curTools.length] = { name: 'cmdOutput', displayname: "导出", bclass: 'cmdOutput', title: "导出", onpress: toolbarItem_onclick };
+        curTools[curTools.length] = { name: 'cmdOutput', displayname: "导出卡片", bclass: 'cmdOutput', title: "导出卡片", onpress: toolbarItem_onclick };
+        curTools[curTools.length] = { name: 'cmdPrint', displayname: "打印", bclass: 'cmdPrint', title: "打印", onpress: toolbarItem_onclick };
+        curTools[curTools.length] = { name: 'cmdPrint', displayname: "打印卡片", bclass: 'cmdPrint', title: "打印卡片", onpress: toolbarItem_onclick };
+        var curTools2 = [];
+        curTools2[curTools2.length] = { name: 'cmdNew', displayname: "付款申请", bclass: 'cmdNew', title: "付款登记", onpress: toolbarItem_onclick };
+        curTools2[curTools2.length] = { name: 'cmdUpdate', displayname: "订正", bclass: 'cmdUpdate', title: "订正", onpress: toolbarItem_onclick };
+        curTools2[curTools2.length] = { name: 'cmdVerify', displayname: "发送审批", bclass: 'cmdVerify', title: "发送确认", onpress: toolbarItem_onclick };
+        curTools2[curTools2.length] = { name: 'cmdShowCard', displayname: "详情", bclass: 'cmdShowCard', title: "详情", onpress: toolbarItem_onclick };
+        curTools2[curTools2.length] = { name: 'cmdPreview', displayname: "刷新", bclass: 'cmdPreview', title: "刷新", onpress: toolbarItem_onclick };
+        curTools2[curTools2.length] = { name: 'cmdOutput', displayname: "导出", bclass: 'cmdOutput', title: "导出", onpress: toolbarItem_onclick };
+        curTools2[curTools2.length] = { name: 'cmdOutput', displayname: "导出卡片", bclass: 'cmdOutput', title: "导出卡片", onpress: toolbarItem_onclick };
+        curTools2[curTools2.length] = { name: 'cmdPrint', displayname: "打印", bclass: 'cmdPrint', title: "打印", onpress: toolbarItem_onclick };
+        curTools2[curTools2.length] = { name: 'cmdPrint', displayname: "打印卡片", bclass: 'cmdPrint', title: "打印卡片", onpress: toolbarItem_onclick };
+        //允许的编辑操作集：
+        //var allowEditOprs = getDataOprs(curUser.curUserInfo.userDataOprs, 7, 4, 0, 2);
+        //if (haveAllowOpr(allowEditOprs, "cmdNew"))
+        //    curTools[curTools.length] = { name: 'cmdNew', displayname: "登记", bclass: 'cmdNew', title: "创建新用户", onpress: toolbarItem_onclick };
+        //if (haveAllowOpr(allowEditOprs, "cmdUpdate"))
+        //    curTools[curTools.length] = { name: 'cmdUpdate', displayname: "修改", bclass: 'cmdUpdate', title: "修改用户资料", onpress: toolbarItem_onclick };
+        //if (haveAllowOpr(allowEditOprs, "cmdDel"))
+        //    curTools[curTools.length] = { name: 'cmdDel', displayname: "删除", bclass: 'cmdDel', title: "删除用户", onpress: toolbarItem_onclick };
+        //if (curTools.length > 0)
+        //    curTools[curTools.length] = { separator: true };
+        //if (haveAllowOpr(allowEditOprs, "cmdUpdatePW"))
+        //    curTools[curTools.length] = { name: 'cmdUpdatePW', displayname: "重置密码", bclass: 'cmdUpdate', title: "重置用户密码", onpress: toolbarItem_onclick };
+        //if (haveAllowOpr(allowEditOprs, "cmdAut"))
+        //    curTools[curTools.length] = { name: 'cmdAut', displayname: "授权", bclass: 'cmdAut', title: "给用户分配角色", onpress: toolbarItem_onclick };
+        //if (haveAllowOpr(allowEditOprs, "cmdSetOff"))
+        //    curTools[curTools.length] = { name: 'cmdSetOff', displayname: "注销", bclass: 'cmdSetOff', title: "注销激活状态的用户", onpress: toolbarItem_onclick };
+        //if (haveAllowOpr(allowEditOprs, "cmdActive"))
+        //    curTools[curTools.length] = { name: 'cmdActive', displayname: "激活", bclass: 'cmdActive', title: "激活注销状态的用户", onpress: toolbarItem_onclick };
+
+        //允许的查询操作集：
+        //var allowQueryOprs = getDataOprs(curUser.curUserInfo.userDataOprs, 7, 4, 0, 1);
+        //if (allowQueryOprs.length > 0) {
+        //    if (curTools.length > 0)
+        //        curTools[curTools.length] = { separator: true };
+        //}
+        //if (haveAllowOpr(allowQueryOprs, "cmdShowCard"))
+        //    curTools[curTools.length] = { name: 'cmdShowCard', displayname: "查阅卡片", bclass: 'cmdShowCard', title: "查阅用户详情", onpress: toolbarItem_onclick };
+        //if (haveAllowOpr(allowQueryOprs, "cmdFilter"))
+        //    curTools[curTools.length] = { name: 'cmdFilter', displayname: "筛选", bclass: 'cmdFilter', title: "设定条件，筛选用户列表", onpress: toolbarItem_onclick };
+
+        ////允许的导出操作集：
+        //var allowOutputOprs = getDataOprs(curUser.curUserInfo.userDataOprs, 7, 4, 0, 3);
+        //if (allowOutputOprs.length > 0) {
+        //    if (curTools.length > 0)
+        //        curTools[curTools.length] = { separator: true };
+        //}
+        //if (haveAllowOpr(allowOutputOprs, "cmdPrintCard") && haveAllowOpr(allowOutputOprs, "cmdPrint")) {
+        //    curTools[curTools.length] = {
+        //        name: 'cmdSwitchPrint', type: "switchButton",
+        //        buttons: [
+        //                { name: 'cmdPrintCard', displayname: "打印卡片", bclass: 'cmdPrintCard', title: "打印用户资料" },
+        //                { name: 'cmdPrint', displayname: "打印列表", bclass: 'cmdPrint', title: "打印用户列表" }
+        //        ], onpress: toolbarItem_onclick
+        //    };
+        //}
+        //else {
+        //    if (haveAllowOpr(allowOutputOprs, "cmdPrintCard"))
+        //        curTools[curTools.length] = { name: 'cmdPrintCard', displayname: "打印卡片", bclass: 'cmdPrintCard', title: "打印用户资料", onpress: toolbarItem_onclick };
+        //    if (haveAllowOpr(allowOutputOprs, "cmdPrint"))
+        //        curTools[curTools.length] = { name: 'cmdPrint', displayname: "打印列表", bclass: 'cmdPrint', title: "打印用户列表", onpress: toolbarItem_onclick };
+        //}
+        //if (haveAllowOpr(allowOutputOprs, "cmdOutput"))
+        //    curTools[curTools.length] = { name: 'cmdOutput', displayname: "导出", bclass: 'cmdOutput', title: "导出用户列表", onpress: toolbarItem_onclick };
+
+        //根据数据的范围设置按钮的状态：
+        //wrt by lw 2011-9-28
+        //function setButton(row) {
+        //    setAButton(row, 9, 11, 2, allowEditOprs, "cmdUpdate");
+        //    setAButton(row, 9, 11, 2, allowEditOprs, "cmdDel");
+        //    setAButton(row, 9, 11, 2, allowEditOprs, "cmdUpdatePW");
+        //    setAButton(row, 9, 11, 2, allowEditOprs, "cmdAut");
+        //    //按钮注销和激活的判断
+        //    //add by hyx 2012-10-26
+        //    if ($(row.cells[15]).text() == "√") {
+        //        setAButton(row, 9, 11, 2, allowEditOprs, "cmdSetOff");
+        //        $(".fbutton[name=cmdActive]").divDisable(true);
+        //        $(".fbutton[name=cmdUpdate]").divDisable(true);
+        //        $(".fbutton[name=cmdDel]").divDisable(true);
+        //        $(".fbutton[name=cmdSetOff]").divDisable(false);
+        //    }
+        //    else {
+        //        setAButton(row, 9, 11, 2, allowEditOprs, "cmdActive");
+        //        $(".fbutton[name=cmdActive]").divDisable(false);
+        //        $(".fbutton[name=cmdUpdate]").divDisable(false);
+        //        $(".fbutton[name=cmdDel]").divDisable(false);
+        //        $(".fbutton[name=cmdSetOff]").divDisable(true);
+        //    }
+
+        //    setAButton(row, 9, 11, 2, allowQueryOprs, "cmdShowCard");
+        //    setAButton(row, 9, 11, 2, allowOutputOprs, "cmdPrintCard");
+        //}
+
+
+        var strWhere;
+        ////右键菜单的处理：
+        ////允许的全部操作集：
+        //var allowOprs = getDataOprs(curUser.curUserInfo.userDataOprs, 7, 4, 0);
+        //var contextMenuItems = [];  //热键菜单
+        //contextMenuItems = [{ text: "修改", icon: "../images/cmdUpdate.png", alias: "cmdUpdate", action: contextMenuItem_click },
+        //                    { text: "删除", icon: "../images/cmdDel.png", alias: "cmdDel", action: contextMenuItem_click },
+        //                    { type: "splitLine" },
+        //                    { text: "注销", icon: "../images/cmdStop.png", alias: "cmdSetOff", action: contextMenuItem_click },
+        //                    { text: "激活", icon: "../images/cmdOpen.png", alias: "cmdActive", action: contextMenuItem_click },
+        //                    { type: "splitLine" },
+        //                    { text: "查看", icon: "../images/showCard.png", alias: "cmdShowCard", action: contextMenuItem_click },
+        //                    { text: "导出", icon: "../images/cmdOutput.png", alias: "cmdOutput", action: contextMenuItem_click },
+        //                    { type: "splitLine" },
+        //                    { text: "刷新", icon: "../images/cmdRefresh.png", alias: "cmdReflash", action: contextMenuItem_click }];
+
+        //--------------------------------------------------------------------------------------------------
+
+        var thisGrid;
+        var thisGrid2;
+        $(function () {
+            thisGrid = $("#flex1").flexigrid(
+           {
+               url: "",
+               params: [{ name: "where", value: strWhere }],
+               dataType: "xml",
+               data: null,
+               colModel: [
+                { display: '序号', name: 'userID', width: 50, sortable: true, align: 'center' },
+                { display: '项目', name: 'RowID', width: 50, sortable: false, align: 'center' },
+                { display: '开工日期', name: 'userID', width: 50, sortable: true, align: 'left' },
+                { display: '完工日期', name: 'userID', width: 50, sortable: true, align: 'left' },
+                { display: '摘要', name: 'userID', width: 50, sortable: true, align: 'left' },
+                { display: '金额', name: 'userID', width: 50, sortable: true, align: 'left' },
+                { display: '备注', name: 'userID', width: 50, sortable: true, align: 'left' },
+
+
+                ],
+               //buttons: curTools,
+               searchitems: [
+                   { display: '工号', name: 'userID', isdefault: true, operater: "Like" }
+               ],
+               buttons: curTools,
+               sortname: "userID",
+               sortorder: "desc",
+               title: "",
+               usepager: true,
+               useRp: true,
+               rp: 20,
+               showTableToggleBtn: false,
+               width: 480,
+               height: _h-87,   //这是表格体的高度，要减去标题、工具条、表头和状态栏的高度
+               singleSelect: true,  //只能单选
+
+               showcheckbox: true, //显示checkbox
+               onrowchecked: function (row) {  //checkbox事件处理函数
+                   projectID=row[0].cells[2].innerText;
+               },
+               rowhandler: false,  //双击行
+               //rowClickHandler: setButton, //根据数据设置按钮的状态   
+               //onError: errorReport,  //获取数据出错处理！！
+
+               //rowMouseRightHandler: contextmenu, //行上鼠标右键
+               resizable: false //是否允许重定义尺寸
+           });
+            thisGrid2 = $("#flex2").flexigrid(
+          {
+              url: "",
+              params: [{ name: "where", value: strWhere }],
+              dataType: "xml",
+              data: null,
+              colModel: [
+               { display: '序号', name: 'userID', width: 50, sortable: true, align: 'center' },
+               { display: '部门', name: 'RowID', width: 50, sortable: false, align: 'center' },
+               { display: '付款日期', name: 'userID', width: 50, sortable: true, align: 'left' },
+               { display: '摘要', name: 'userID', width: 50, sortable: true, align: 'left' },
+               { display: '金额', name: 'userID', width: 50, sortable: true, align: 'left' },
+               { display: '备注', name: 'userID', width: 50, sortable: true, align: 'left' },
+
+
+              ],
+              //buttons: curTools,
+              searchitems: [
+                  { display: '工号', name: 'userID', isdefault: true, operater: "Like" }
+              ],
+              buttons: curTools2,
+              sortname: "userID",
+              sortorder: "desc",
+              title: "",
+              usepager: true,
+              useRp: true,
+              rp: 20,
+              showTableToggleBtn: false,
+              width: _w,
+              height: _h-87,   //这是表格体的高度，要减去标题、工具条、表头和状态栏的高度
+              singleSelect: true,  //只能单选
+
+              showcheckbox: true, //显示checkbox
+              onrowchecked: function (row) {  //checkbox事件处理函数
+                  projectID = row[0].cells[2].innerText;
+              },
+              rowhandler: false,  //双击行
+              //rowClickHandler: setButton, //根据数据设置按钮的状态   
+              //onError: errorReport,  //获取数据出错处理！！
+
+              //rowMouseRightHandler: contextmenu, //行上鼠标右键
+              resizable: false //是否允许重定义尺寸
+          });
+        });
+          
+       
+
+
+
+
+        //右键菜单：
+        function contextmenu(row) {
+            $(row).unbind("contextmenu");   //add by lw 2011-12-25
+            var menu = { width: 150, items: clone(contextMenuItems) };
+            //设置菜单的禁用和激活：add by lw 2011-9-28
+            //modi by hyx 2011-10-20
+            menu.items[6].disable = !getCmdEnable(row, 9, 11, 2, allowOprs, "cmdShowCard");
+
+            menu.items[0].disable = !getCmdEnable(row, 9, 11, 2, allowOprs, "cmdUpdate");
+            menu.items[1].disable = !getCmdEnable(row, 9, 11, 2, allowOprs, "cmdDel");
+
+            //按钮注销和激活的判断
+            //add by hyx 2012-10-26
+            if ($(row.cells[15]).text() == "√") {
+                menu.items[0].disable = getCmdEnable(row, 9, 11, 2, allowOprs, "cmdUpdate");
+                menu.items[1].disable = getCmdEnable(row, 9, 11, 2, allowOprs, "cmdDel");
+                menu.items[3].disable = !getCmdEnable(row, 9, 11, 2, allowOprs, "cmdSetOff");
+                menu.items[4].disable = true;
+            }
+            else {
+                menu.items[0].disable = !getCmdEnable(row, 9, 11, 2, allowOprs, "cmdUpdate");
+                menu.items[1].disable = !getCmdEnable(row, 9, 11, 2, allowOprs, "cmdDel");
+                menu.items[4].disable = !getCmdEnable(row, 9, 11, 2, allowOprs, "cmdActive");
+                menu.items[3].disable = true;
+            }
+
+            menu.items[7].disable = !getCmdEnable(row, 9, 11, 2, allowOprs, "cmdOutput");
+
+            $(row).contextmenu(menu);
+        }
+
+
+        //右键菜单事件函数：
+        function contextMenuItem_click(target) {    //菜单条处理函数
+            var id = $(target.cells[2]).text();
+            var cmd = this.data.alias;
+
+            switch (cmd) {
+                case "cmdShowCard":  //查看
+                    showInfo(id);
+                    break;
+                case "cmdUpdate": //修改
+                    updateInfo(id);
+                    break;
+                case "cmdDel": //删除
+                    funDel(id);
+                    break;
+                case "cmdSetOff": //注销
+                    funSetOff(id);
+                    break;
+                case "cmdActive": //激活
+                    funActive(id);
+                    break;
+                case "cmdOutput": //导出
+                    export2File();
+                    break;
+                case "cmdReflash": //刷新
+                    thisGrid.flexReload();
+                    break;
+            }
+        }
+
+        //工具条函数：
+        //wrt by lw 2011-11-12
+        function toolbarItem_onclick(cmd, grid) {
+            var selID = "";
+            if ($(".trSelected").length > 0)
+                selID = $($(".trSelected")[0].cells[2]).text();
+
+            switch (cmd) {
+                case "cmdNew":      //登记
+                    addInfo();
+                    break;
+                case "cmdUpdate":   //修改
+                    updateInfo(selID);
+                    break;
+                case "cmdDel":      //删除
+                    if (selID == "")
+                        delSelected();
+                    else
+                        funDel(selID);
+                    break;
+                case "cmdUpdatePW": //重置密码
+                    if (selID == "") {
+                        $.dialog.warning("请选择用户！")
+                        return false;
+                    }
+                    var opener = $.dialog({
+                        id: "resetPswPage", title: "重置密码", width: "500px", height: "290px", lock: true,
+                        content: "url:userInfo/resetPSW.html?userID=" + selID,
+                        min: false,
+                        max: false,
+                        resize: false,
+                        help: true,
+                        helpID: sysToolsHelpID.addUser
+                    });
+                    break;
+                case "cmdAut":      //授权
+                    if (selID == "") {
+                        $.dialog.warning("请选择您要授权的用户！")
+                        return false;
+                    }
+                    var opener = $.dialog({
+                        id: "warrantPage", title: "授权", width: "680px", height: "550px", lock: true,
+                        content: "url:userInfo/userRight.html?jobNumber=" + selID,
+                        close: function (cw, w) { return cw.beforeClose(w); },
+                        min: false,
+                        max: false,
+                        resize: false,
+                        help: true,
+                        helpID: sysToolsHelpID.addUser
+                    });
+                    break;
+                case "cmdSetOff":    //注销
+                    funSetOff(selID);
+                    break;
+                case "cmdActive":    //激活
+                    funActive(selID);
+                    break;
+                case "cmdShowCard":    //查阅卡片
+                    showInfo(selID);
+                    break;
+                case "cmdFilter":    //筛选
+                    var opener = $.dialog({
+                        id: "filter", title: "设定筛选条件", width: "580px", height: "530px", lock: true,
+                        content: "url:userInfo/userFilter.html",
+                        afterClose: function (status) {
+                            if (status == "success") {
+                                var strWhere = parent.userListFilterPara.makeWhere();
+                                if (strWhere.length > 0) {
+                                    strWhere = "where " + strWhere.substr(4, strWhere.length - 4);
+                                }
+                                filter(strWhere);
+                            }
+                        },
+                        min: false,
+                        max: false,
+                        resize: false,
+                        help: true,
+                        helpID: sysToolsHelpID.userFilter
+                    });
+
+                    break;
+                case "cmdPrintCard": //打印卡片
+                    printCard(selID);
+                    break;
+                case "cmdPrint":    //打印列表
+                    printListInfo();
+                    break;
+                case "cmdOutput":    //导出
+                    export2File();
+                    break;
+            }
+        }
+
+        //新增：
+        //wrt by hw 2011-12-2
+        function addInfo() {
+            var opener = $.dialog({
+                id: "userEditor", title: "添加用户信息", width: "620px", height: "550px", lock: true,
+                content: "url:userInfo/addUserInfo.html",
+                close: function (cw, w) { return cw.beforeClose(w); },
+                afterClose: function (status) {
+                    if (status == "success") {
+                        thisGrid.flexReload();
+                    }
+                },
+                help: true,
+                helpID: sysToolsHelpID.addUser
+            });
+        }
+        //修改：
+        //wrt by hw 2011-12-2
+        function updateInfo(jobNumber) {
+            if (jobNumber == "") {
+                $.dialog.warning("请选择您要修改的用户！")
+                return false;
+            }
+            var opener = $.dialog({
+                id: "userEditor", title: "修改用户信息", width: "620px", height: "550px", lock: true,
+                content: "url:userInfo/addUserInfo.html?jobNumber=" + jobNumber,
+                close: function (cw, w) { return cw.beforeClose(w); },
+                afterClose: function (status) {
+                    if (status == "success") {
+                        thisGrid.flexReload();
+                    }
+                },
+                help: true,
+                helpID: sysToolsHelpID.modiUser
+            });
+        }
+
+        //删除指定项
+        //wrt by hw 2011-12-20
+        function funDel(jobNumber) {
+            if (jobNumber == "") {
+                $.dialog.warning("请选择您要删除的用户！")
+                return false;
+            }
+            $.dialog.confirm('您真的要删除该用户吗？',
+                function () {
+                    //用户选择“是”，开始执行删除操作：
+                    $.ajax({
+                        type: "POST",
+                        url: "handler/userOprHandler.ashx",
+                        data: { "jobNumber": jobNumber, "cmdType": "cmdDel" },
+                        dataType: "text",
+                        success: function (result) {
+                            //处理返回值：
+                            if (result == "") {
+                                TopWindow.$.dialog.autoCloseTips2("删除成功!");
+                                thisGrid.flexReload();
+                            }
+                            else if (result.substring(0, 6) == "Error:") {
+                                $.dialog.errorTips(result.substring(6));
+                            }
+                            else {
+                                $.dialog.errorTips("系统返回了一个未知的出错信息：" + result);
+                            }
+                        },
+                        error: function (XMLHttpRequest, textStatus, errorThrown) { errorReport(XMLHttpRequest, textStatus, errorThrown); }
+                    });
+                });
+        }
+
+
+        //批量删除   邓光军 2012-12-18
+        function delSelected() {
+            var rows = thisGrid[0].grid.getCheckedRows();
+            if (rows.length <= 0) {
+                $.dialog.warning("请选择您要删除的用户！")
+            }
+            else {
+                var strCodes = "";
+                for (i = 0; i < rows.length; i++) {
+                    var id = $(rows[i].cells[2]).text();
+                    if (i < rows.length - 1) {
+                        strCodes = strCodes + id + ",";
+                    } else {
+                        strCodes = strCodes + id;
+                    }
+                }
+                $.dialog.confirm('您真的要删除这些用户吗？',
+            function () {
+                $.ajax({
+                    type: "POST",
+                    url: "handler/userOprHandler.ashx",
+                    data: { "jobNumber": strCodes, "cmdType": "cmdBatDel" },
+                    dataType: "text",
+                    success: function (result) {
+                        if (result == "") {
+                            TopWindow.$.dialog.autoCloseTips2("删除成功！");
+                            thisGrid.flexReload();
+                        }
+                        else if (result.substring(0, 6) == "Error:") {
+                            $.dialog.errorTips(result.substring(6));
+                        }
+                        else {
+                            $.dialog.errorTips("系统返回了一个未知的出错信息：" + result);
+                        }
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) { errorReport(XMLHttpRequest, textStatus, errorThrown); }
+                });
+            });
+            }
+        }
+
+        //注销指定的用户
+        //wrt by hw 2010-12-20
+        function funSetOff(jobNumber) {
+            if (jobNumber == "") {
+                $.dialog.warning("请选择您要注销的用户！")
+                return false;
+            }
+            $.ajax({
+                type: "POST",
+                url: "handler/userOprHandler.ashx",
+                data: { "jobNumber": jobNumber, "cmdType": "cmdSetOff" },
+                dataType: "text",
+                success: function (result) {
+                    //处理返回值：
+                    if (result == "") {
+                        TopWindow.$.dialog.autoCloseTips2("注销成功！");
+                        thisGrid.flexReload();
+                    }
+                    else if (result.substring(0, 6) == "Error:") {
+                        $.dialog.errorTips(result.substring(6));
+                    }
+                    else {
+                        $.dialog.errorTips("系统返回了一个未知的出错信息：" + result);
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) { errorReport(XMLHttpRequest, textStatus, errorThrown); }
+            });
+        }
+
+        //激活指定的用户
+        //wrt by lw 2011-6-7
+        function funActive(jobNumber) {
+            if (jobNumber == "") {
+                $.dialog.warning("请选择您要激活的用户！")
+                return false;
+            }
+            $.ajax({
+                type: "POST",
+                url: "handler/userOprHandler.ashx",
+                data: { "jobNumber": jobNumber, "cmdType": "cmdSetActive" },
+                dataType: "text",
+                success: function (result) {
+                    //处理返回值：
+                    if (result == "") {
+                        TopWindow.$.dialog.autoCloseTips2("激活成功！");
+                        thisGrid.flexReload();
+                    }
+                    else if (result.substring(0, 6) == "Error:") {
+                        $.dialog.errorTips(result.substring(6));
+                    }
+                    else {
+                        $.dialog.errorTips("系统返回了一个未知的出错信息：" + result);
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) { errorReport(XMLHttpRequest, textStatus, errorThrown); }
+            });
+        }
+
+        //显示详细详细信息
+        //wrt by hw 2010-12-20
+        function showInfo(jobNumber) {
+            if (jobNumber == "") {
+                $.dialog.warning("请选择您要显示的用户信息！")
+                return false;
+            }
+            var opener = $.dialog({
+                id: "userDetailPage", title: "用户信息详细信息", width: "580px", height: "540px", lock: true,
+                content: "url:userInfo/userDetails.html?jobNumber=" + jobNumber,
+                min: false,
+                max: false,
+                resize: false,
+                help: true,
+                helpID: sysToolsHelpID.lookUserCard
+            });
+        }
+        //根据筛选条件，重新刷新列表
+        //wrt by lw 2011-9-22
+        function filter(strWhere) {
+            thisGrid.flexOptions({ params: [{ name: "where", value: strWhere }] });
+            thisGrid[0].p.newp = 1;
+            thisGrid.flexReload();
+        }
+
+        //打印列表
+        //rewrt by lw 2010-11-22
+        function printListInfo() {
+            var printing = function () {
+                var strWhere = parent.userListFilterPara.makeWhere();
+                if (strWhere.length > 0) {
+                    strWhere = "where " + strWhere.substr(4, strWhere.length - 4);
+                }
+                var o = "order by jobNumber";
+                //打印人：add by lw 2012-6-2新增报表参数：
+                var printer;
+                printer = parent.printOption.printPrinter ? curUser.curUser.userCName : "";
+                //add by lw 2014-3-4处理火狐浏览器不识别相对URL的问题！
+                var strUrl = getSiteRoot();
+                if (parent.printOption.pageFormat == "Horizontal") //横式表格
+                    strUrl += "userInfo/userListReport.aspx?pageStyle=Horizontal&Where=" + strWhere + "&OrderBy=" + o
+                                        + "&printPageNumber=" + parent.printOption.printPageNumber      //是否打印页码
+                                        + "&printPrinter=" + printer            //是否打印打印人
+                                        + "&printPrintDate=" + parent.printOption.printPrintDate;        //是否打印打印日期
+                else //这里应该放纵式打印的表格页面
+                    strUrl += "userInfo/userListReport.aspx?pageStyle=&Where=" + strWhere + "&OrderBy=" + o
+                                        + "&printPageNumber=" + parent.printOption.printPageNumber      //是否打印页码
+                                        + "&printPrinter=" + printer            //是否打印打印人
+                                        + "&printPrintDate=" + parent.printOption.printPrintDate;        //是否打印打印日期
+                strUrl = strUrl.replace(/'/g, "_‘_");   //处理XSS检查引起的跨域问题 add by lw 2014-3-4
+                window.open(encodeURI(strUrl), '_blank');
+            };
+            var opener = $.dialog({
+                id: 'printDoc', title: "打印设定", width: "330px", height: "290px", lock: true,
+                content: 'url:reportCenter/printOption.html',
+                afterClose: function (flag) {
+                    if (flag == "success")
+                        printing();
+                },
+                min: false,
+                max: false,
+                resize: false,
+                help: true,
+                helpID: 163
+            });
+        }
+
+        //打印卡片
+        function printCard(jobNumber) {
+            if (jobNumber == "") {
+                //where 筛选子句。使用筛选类重写条件2011-6-3 by lw
+                var strWhere = parent.userListFilterPara.makeWhere();
+                if (strWhere.length > 0) {
+                    strWhere = "where " + strWhere.substr(4, strWhere.length - 4);
+                }
+                //获取排序方式：
+                var strOrder = "order by " + thisGrid[0].p.sortname + " " + thisGrid[0].p.sortorder;
+                var strUrl = "userCardReportBat.aspx?strWhere=" + strWhere + '&strOrder=' + strOrder;
+                strUrl = strUrl.replace(/'/g, "_‘_");
+                window.open(encodeURI(strUrl), '_blank');
+            }
+            else {
+                window.open("userCardReport.aspx?jobNumber=" + jobNumber, '_blank');
+            }
+        }
+
+        //excel导出
+        //wrt by lw 2011-7-2 采用类方式重新构造导出
+        //modi by lw 2011-10-5采用进一步封装后的导出类改写！
+        function export2File() {
+            var colList = ['RowID', "jobNumber", "cName", "pID", "mobileNum", "telNum", "e_mail", "homeAddress", "clgCode", "clgName", "uCode", "uName",
+                       "sysUserName", "sysUserDesc",
+                       "case isOff when '0' then '√' else '' end isOff",
+                       "case isOff when '0' then '' else convert(char(10), setOffDate, 120) end offDate",
+                       "modiManID", "modiManName", "modiTime", "lockManID"];
+
+            //where 筛选子句
+            var strWhere = parent.userListFilterPara.makeWhere();
+            if (strWhere.length > 0) {
+                strWhere = "where " + strWhere.substr(4, strWhere.length - 4);
+            }
+            //根据显示的列，计算表头和查询列：add by lw 2011-12-15
+            var rows = $(".nDiv>table")[0].rows;
+            var title = ""; //标题
+            var cols = "";  //列名
+            for (var i = 1; i < rows.length - 1; i++) {
+                if (rows[i + 1].cells[0].firstChild.checked) {
+                    cols += colList[i] + "|";
+                    title += $(rows[i + 1].cells[1]).text() + "|";
+                }
+            }
+            if (cols == "")
+                return false;
+            cols = cols.substring(0, cols.length - 1);
+            title = title.substring(0, title.length - 1);
+
+            //获取排序方式：
+            var strOrder = "order by " + thisGrid[0].p.sortname + " " + thisGrid[0].p.sortorder;
+            var opener = $.dialog({
+                id: "exportUserList", title: "导出用户列表", width: "480px", height: "240px", lock: true,
+                content: "url:userInfo/exportUserList.aspx",
+                data: { "where": strWhere, "title": title, "cols": cols, "order": strOrder, "file": "用户清单.xls" },
+                min: false,
+                max: false,
+                resize: false,
+                help: true,
+                helpID: 153
+            });
+        }
+        </script>
+        </head>
+        <body>
+            <table cellpadding="0" cellspacing="0">
+                <tr>
+                    <td>
+                        <div>
+                            <table id="flex1" style="display:none"></table>
+                        </div>
+                    </td>
+                    <td>
+                        <div>
+                            <table id="flex2" style="display:none"></table>
+                        </div>
+                    </td>
+                </tr>                    
+            </table>
+        </body>
+        </html>

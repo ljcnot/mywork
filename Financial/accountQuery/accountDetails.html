@@ -1,0 +1,60 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>账户详情</title>
+    <!--对话盒样式表-->
+    <link href="../../css/lhgdialog/idialog.css" type="text/css" rel="stylesheet" />
+    <link href="../../jquery/css/tip.css" rel="stylesheet" />
+    <!--系统专用样式-->
+    <link href="../css/style.css" rel="stylesheet" />
+</head>
+<body>
+    <div id="frame">
+      <h4>账户详情</h4>
+        <table class="accountDetailsTab" cellpadding="0" cellspacing="0">
+            <tr>
+                <th>账户名称：</th>
+                <td><input class="input_box" type="text" style="color:#b8b7b7" /></td>
+                <th>日期：</th>
+                <td><input class="input_box" type="text" style="color:#b8b7b7" /></td>
+            </tr>
+            <tr>
+                <th>摘要：</th>
+                <td colspan="3"><textarea class="Borrow_text_area" cols="51" rows="3" style="color:#b8b7b7"></textarea></td>
+            </tr>
+            <tr>
+                <th>借：</th>
+                <td><input class="input_box" type="text" style="color:#b8b7b7" /></td>
+                <th>贷：</th>
+                <td><input class="input_box" type="text" style="color:#b8b7b7" /></td>
+            </tr>
+            <tr>
+                <td>余额：</td>
+                <td><input class="input_box" style="color:#b8b7b7" /></td>
+                <td>部门：</td>
+                <td><input class="input_box" type="text" style="color:#b8b7b7" /></td>
+            </tr>
+            <tr>
+                <th>项目：</th>
+                <td colspan="3"><input class="project_text" type="text" style="color:#b8b7b7"></td>
+            </tr>
+            <tr>
+                <th>经手人(报销法人/收款人)：</th>
+                <td colspan="3"><input class="input_box" type="text" style="color:#b8b7b7" /></td>
+            </tr>
+            <tr>
+                <th>备注：</th>
+                <td colspan="3"><textarea class="Borrow_text_area" cols="51" rows="3" style="color:#b8b7b7"></textarea></td>
+            </tr>
+        </table>
+
+        <p class="borrowPaymentAdded">查看原始票据</p>
+        <div class="details"></div>
+
+        <div class="footer">
+            <input type="button" id="btnClose" class="closeBtn" value="关  闭" onclick="closeMe();" />           
+        </div>
+    </div>
+</body>
+</html>

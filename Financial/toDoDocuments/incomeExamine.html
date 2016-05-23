@@ -1,0 +1,69 @@
+﻿<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>营业收入审核</title>
+    <!--对话盒样式表-->
+    <link href="../../css/lhgdialog/idialog.css" type="text/css" rel="stylesheet" />
+    <link href="../jquery/css/tip.css" rel="stylesheet" />
+    <!--系统专用样式表-->
+    <link href="../css/style.css" rel="stylesheet" />
+
+</head>
+<body>
+    <div id="frame">
+      <h4>营业收入审核</h4>
+        <table>
+            <tr>
+                <td>部门：</td>
+                <td><input class="input_box" type="text" /></td>
+            </tr>
+            <tr>
+                <td>项目：</td>
+                <td colspan="3"><input class="project_text" type="text" style="color:#b8b7b7"></td>
+            </tr>
+            <tr>
+                <td>收款单位：</td>
+                <td colspan="3"><input class="project_text" type="text" style="color:#b8b7b7"></td>
+            </tr>
+            <tr>
+                <td>摘要：</td>
+                <td colspan="3"><textarea class="Borrow_text_area" cols="51" rows="3" style="color:#b8b7b7"></textarea></td>
+            </tr>
+            <tr>
+                <td>金额：</td>
+                <td><input class="rmbRead" type="text" style="color:#b8b7b7" /><span>元</span></td>
+                <td>收款日期：</td>
+                <td><input class="input_box" type="text" /></td>
+            </tr>
+            <tr>
+                <td>备注：</td>
+                <td colspan="3"><textarea class="Borrow_text_area" cols="51" rows="3" style="color:#b8b7b7"></textarea></td>
+            </tr>
+            <tr>
+                <td>合同金额：</td>
+                <td><input class="rmbRead" type="text" style="color:#b8b7b7" /><span>元</span></td>
+                <td>已收金额：</td>
+                <td><input class="rmbRead" type="text" style="color:#b8b7b7" /><span>元</span></td>
+            </tr>
+            <tr>
+                <td>应收金额：</td>
+                <td colspan="3"><input class="rmbRead" type="text" style="color:#b8b7b7" /><span>元</span></td>
+            </tr>
+        </table>
+
+            <div class="separated"></div>
+
+            <table>
+                <tr>
+                    <td>审批意见：</td>
+                    <td colspan="3"><textarea class="Borrow_text_area" cols="51" rows="3"></textarea></td>
+                </tr>
+            </table>
+        
+        <div class="footer">
+            <input type="button" id="btnClose" class="closeBtn" value="关  闭" onclick="closeMe();" />
+            <input type="button" id="btnSave" class="closeBtn" value="确  认" onclick="saveData();" />
+        </div>
+    </div>
+</body>
+</html>

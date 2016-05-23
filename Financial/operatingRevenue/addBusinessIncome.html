@@ -1,0 +1,204 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>营业收入登记</title>
+    <!--对话盒样式表-->
+    <link href="../../css/lhgdialog/idialog.css" rel="stylesheet" />
+    <!--系统专用样式表-->
+    <link href="../css/style.css" rel="stylesheet" />
+
+    <!--日历控件样式表-->
+    <link href="../../jquery/themes/base/jquery.ui.all.css" rel="stylesheet" />
+    <link href="../../jquery/themes/base/jquery.ui.datepicker.css" rel="stylesheet" />
+    <!--jquery主函数库库 -->
+    <script src="../../jquery/jquery-1.10.2.js"></script>
+    <script src="../../jquery/jquery.bgiframe.js"></script>
+    <!--新版日历库要加载的类库-->
+    <script src="../../jquery/ui/jquery.ui.core.js"></script>
+    <script src="../../jquery/ui/jquery.ui.widget.js"></script>
+    <script src="../../jquery/ui/jquery.ui.datepicker.js"></script>
+    <script src="../../jquery/i18n/jquery.ui.datepicker-zh-CN.js"></script>
+    <script src="../../jquery/jquery.maskedinput-1.2.2.js"></script>
+    <!--UI库-->
+    <script src="../../jquery/ui/jquery-ui.js"></script>
+    <!--自动补全UI-->
+    <script src="../../jquery/ui/jquery.ui.autocomplete.js"></script>
+    <!--格式化类库：提供金额、日期等与字符串互换格式化函数-->
+    <script src="../../js/formats.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        var api = frameElement.api, W = api.opener; //弹出窗口调用参数
+
+        function beforeClose(w) {
+            closeMe();
+        }
+
+
+
+        var InputCode = "";
+
+      //自动补全控件配置
+        var countryOption =
+{
+    dataType: "json",   //数据类型
+    max: 300,            //列表里的条目数 
+    cacheLength: 300,    //缓存的长度.即对从数据库中取到的结果集要缓存多少条记录.设成1为不缓存.Default: 10
+    minChars: 0,        //自动完成激活之前填入的最小字符 
+    width: 280,         //提示的宽度，溢出隐藏
+    scroll: true,       //当结果集大于默认高度时是否使用卷轴显示 Default: true
+    scrollHeight: 220,  //自动完成提示的卷轴高度用像素大小表示 Default: 180  
+    matchContains: false,   //包含匹配，就是data参数里的数据，是否只要包含文本框里的数据就显示
+    autoFill: true,        //自动填充
+    title: "<span style='display:block;float:left;width:60px;'>输入码</span>"
+                        + "<span style='display:block;float:left;width:150px;'>国家名称</span>"
+                        + "<span style='display:block;float:left;width:50px;'>国别代码</span>",
+    formatItem: function (row, i, max, value, term) { //格式化显示行函数：
+        return "<span style='display:block;float:left;width:60px;'>" + row.inputCode + "</span>" + "<span style='display:block;float:left;width:150px;'>" + row.cName + "</span>[" + row.cCode + "]";
+    },
+    parse: function (data) {//解释返回的数据，把其保存在数组中。重新定义的数据解释过程
+        var parsed = [];
+        for (var i = 0; i < data.length; i++) {
+            parsed[parsed.length] = {
+                data: data[i],              //下拉框显示数据格式 
+                value: data[i].inputCode,   //自动补齐格式
+                result: data[i].cName    //选定后输入框显示数据格式 
+            }
+        }
+        return parsed;
+    },
+    reg: "^\\S+$"
+};
+        $(function () {
+            //给日期添加验证控件：
+            //wrt by zml 2015-09-24
+            $('#txtStartDate').datepicker({ changeYear: true, showOn: "button", buttonImage: "../../images/calendar.gif", buttonImageOnly: true })
+                                   .mask("9999-99-99");
+
+
+            $("#projectName").autocomplete("../Handler/getCodeProject.ashx", countryOption).result(function (event, row, formatted) {
+                cCode = row.cCode;
+                cName = row.cName;
+                setButton4Modi();
+            });
+
+
+
+        });
+        //获取项目详情
+        function getproject(projectID) {
+
+            $.ajax({
+                async: false,   //调用方式：同步
+                type: "POST",
+                url: "Handler/getProjectByID.ashx",
+                data: { "projectID": projectID },
+                dataType: "text",
+                success: function (strJson) {
+                    if (strJson != "") {
+                        strJson = strJson.replace(/\r/g, "");
+                        strJson = strJson.replace(/\n/g, "<br />");
+                        var result;
+                        eval("result=" + strJson + ";");
+                        document.getElementById("txtCustomerName").value = result.customerName;         //委托单位名称
+                        document.getElementById("txtContractAmount").value = result.contractAmount;     //合同金额
+                        document.getElementById("txtCollectedAmount").value = result.collectedAmount;   //已收金额
+                        document.getElementById("txtreceivableAmount").value = result.contractAmount - result.collectedAmount;   //应收金额
+
+                    }
+                    else if (result.substring(0, 6) == "Error:") {
+                        $.dialog.errorTips(result.substring(6));
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) { alert(textStatus); }
+            });
+        }
+
+        function saveData() {
+            var projectName = $("#projectName").val();
+            var customerName = $("#txtCustomerName").val();
+            var payee = $("#txtpayee").val();
+            var abstract = $("#txtAbstract").val();
+            var incomeSum = $("#txtIncomeSum").val();
+            var startDate = $("#txtStartDate").val();
+            var remarks = $("#txtRemarks").val();
+            $.ajax({
+                type: "POST",
+                url: "../Handler/addIncome.ashx",
+                data: {
+                    "projectName": projectName, "customerName": customerName, "payee": payee, "abstract": abstract,
+                    "incomeSum": incomeSum, "startDate": startDate, "remarks": remarks
+                },
+                dataType: "text",
+                success: function (result) {
+                    //处理返回值：
+                    if (result != "" && result.substring(0, 6) == "Error:")
+                        W.$.dialog.errorTips(result.substring(6), false, api);
+                    else {
+                        closeMe();
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) { errorReport(XMLHttpRequest, textStatus, errorThrown); }
+            });
+        }
+
+        function AutoSummary(){
+
+            document.getElementById("txtAbstract").value = "收回‘" + $("#txtCustomerName").val() +"’‘"+$("#projectName").val()+"’项目款'"+$("#txtIncomeSum").val()+"'。"
+        }
+
+        //关闭：
+        function closeMe() {
+            api.setResultStatus("");     //设置窗口的返回值：这里应该根据是否修改了数据返回指定的值
+            setTimeout(function () { api.close(false); }, 100);               //不询问直接关闭
+        }
+    </script>
+
+</head>
+<body>
+    <table id="frame" border="0" cellpadding="0" cellspacing="0">
+        <tr>
+            <th>项目：</th>
+            <td colspan="3"><input class="project_text" id ="projectName" type="text"></td>
+        </tr>
+        <tr>
+            <th>委托单位：</th>
+            <td colspan="3"><input id="txtCustomerName" class="project_text" type="text"></td>
+        </tr>
+        <tr>
+            <th>收款人：</th>
+            <td colspan="3"><input id="txtpayee" class="input_box" type="text" value="张三" /></td>
+        </tr>
+        <tr>
+            <th>合同金额：</th>
+            <td><input class="rmbRead" type="text" id="txtContractAmount"  readonly="readonly" />&nbsp;元</td>
+            <th>已收金额：</th>
+            <td><input class="rmbRead" type="text" id="txtCollectedAmount" readonly="readonly" /><span>元</span></td>
+        </tr>
+        <tr>
+            <th width="15%">应收金额：</th>
+            <td><input class="rmbRead" type="text" id="txtreceivableAmount" readonly="readonly" /><span>元</span></td>
+            <th width="20%">未确认收款：</th>
+            <td><input class="rmbRead" type="text" value="100000.00" readonly="readonly" /><span>元</span></td>
+        </tr>
+        <tr>
+            <th>摘要：</th>
+            <td colspan="3"><textarea class="Borrow_text_area" id="txtAbstract" cols="51" rows="3"></textarea></td>
+        </tr>
+        <tr>
+            <th>本次收款：</th>
+            <td><input class="rmb" id="txtIncomeSum" type="text" onblur="AutoSummary"/><span>元</span></td>
+            <th>收款日期：</th>
+            <td><input type="text" id="txtStartDate" style="width:80px; ime-mode:disabled;" reg="^\S+$" tip="请输入或选择合同签订日期" /></td>
+        </tr>
+        <tr>
+            <th>备注：</th>
+            <td colspan="3"><textarea class="Borrow_text_area" id="txtRemarks" cols="51" rows="3"></textarea></td>
+        </tr>
+    </table>
+    <br />
+    <hr />
+    <div class="footer">
+        <input type="button" id="btnClose" class="closeBtn" value="取  消" onclick="closeMe();" />
+        <input type="button" id="btnSave" class="closeBtn" value="提  交" onclick="saveData();" />
+    </div>
+</body>
+</html>

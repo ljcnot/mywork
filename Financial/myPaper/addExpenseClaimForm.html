@@ -1,0 +1,260 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>添加费用报销单</title>
+    <!--combox控件样式表-->
+    <link href="../../css/comboboxDefault.css" rel="stylesheet" type="text/css" />
+    <!--对话盒样式表-->
+    <link href="../../css/lhgdialog/idialog.css" type="text/css" rel="stylesheet" />
+    <link href="../../jquery/css/tip.css" rel="stylesheet" />
+    <!--系统专用样式表-->
+    <link href="../css/style.css" rel="stylesheet" />
+    <link href="../../css/flexigrid/flexigrid.css" rel="stylesheet" type="text/css" />
+    <!--日历控件样式表-->
+    <link href="../../jquery/themes/base/jquery.ui.all.css" rel="stylesheet" />
+    <link href="../../jquery/themes/base/jquery.ui.datepicker.css" rel="stylesheet" />
+    <!--jquery主函数库库 -->
+    <script src="../../jquery/jquery-1.10.2.js"></script>
+    <script src="../../jquery/jquery.bgiframe.js"></script>
+
+    <script src="../../jquery/flexigrid.js" type="text/javascript"></script>
+    <!--新版日历库要加载的类库-->
+    <script src="../../jquery/ui/jquery.ui.core.js"></script>
+    <script src="../../jquery/ui/jquery.ui.widget.js"></script>
+    <script src="../../jquery/ui/jquery.ui.datepicker.js"></script>
+    <script src="../../jquery/i18n/jquery.ui.datepicker-zh-CN.js"></script>
+    <script src="../../jquery/jquery.maskedinput-1.2.2.js"></script>
+    <!--格式化类库：提供金额、日期等与字符串互换格式化函数-->
+    <script src="../../js/formats.js" type="text/javascript"></script>
+    <!--combox控件库-->
+    <script src="../../js/combo_2.0/css/combo.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        function beforeClose(w) {
+        }
+        $(function () {
+            //给日期添加验证控件：
+            //wrt by zml 2015-09-24
+            $('#txtSignDate').datepicker({ changeYear: true, showOn: "button", buttonImage: "../../images/calendar.gif", buttonImageOnly: true })
+                                   .mask("9999-99-99");
+            initCombobox();
+            initCombobox1();
+        });
+
+        function initCombobox() {
+            var dd1 = [];
+            dd1.push({ code: 0, name: '软工部' });
+            dd1.push({ code: 1, name: '正式合同金额' });
+
+            var option1 = {
+                keyField: 'code',       //返回值列名
+                displayField: 'name',   //显示的列名
+                multiSelect: false,     //是否允许多重选择
+                width: 200,             //输入框宽度
+                boxWidth: 200,          //下拉弹出窗口的宽度
+                //数据列名：
+                cols: [{ field: 'code', width: '24%' },
+                       { field: 'name', width: '74%' }
+                ],
+                data: dd1,               //数据
+                loader: false,
+                readOnly: true,          //不允许输入
+                reg: "^\\S+$"             //输入栏的正则表达式
+            }
+            cbAountType = $('#abAountType').combobox(option1);
+            var option2 = {
+                keyField: 'objCode',       //返回值列名
+                displayField: 'objDesc',   //显示的列名
+                multiSelect: false,     //是否允许多重选择
+                width: 200,             //输入框宽度
+                boxWidth: 200,          //下拉弹出窗口的宽度
+                //数据列名：
+                cols: [{ field: 'objCode', width: '24%' },
+                       { field: 'objDesc', width: '74%' }
+                ],
+                data: null,               //数据
+                loader: {
+                    url: "Handler/getCodeDictionary.ashx?classCode=2000", //远程数据访问
+                    params: { textFieldName: "objDesc", valueFieldName: "objCode" }
+                },
+                readOnly: true,          //不允许输入
+                reg: "^\\S+$"             //输入栏的正则表达式
+            }
+            cbProgress = $('#cbProgress').combobox(option2);
+        }
+        function initCombobox1() {
+            var dd1 = [];
+            dd1.push({ code: 0, name: '汽车油费' });
+            dd1.push({ code: 1, name: '正式合同金额' });
+
+            var option1 = {
+                keyField: 'code',       //返回值列名
+                displayField: 'name',   //显示的列名
+                multiSelect: false,     //是否允许多重选择
+                width: 200,             //输入框宽度
+                boxWidth: 200,          //下拉弹出窗口的宽度
+                //数据列名：
+                cols: [{ field: 'code', width: '24%' },
+                       { field: 'name', width: '74%' }
+                ],
+                data: dd1,               //数据
+                loader: false,
+                readOnly: true,          //不允许输入
+                reg: "^\\S+$"             //输入栏的正则表达式
+            }
+            cbAountType = $('#abAountType1').combobox(option1);
+            var option2 = {
+                keyField: 'objCode',       //返回值列名
+                displayField: 'objDesc',   //显示的列名
+                multiSelect: false,     //是否允许多重选择
+                width: 200,             //输入框宽度
+                boxWidth: 200,          //下拉弹出窗口的宽度
+                //数据列名：
+                cols: [{ field: 'objCode', width: '24%' },
+                       { field: 'objDesc', width: '74%' }
+                ],
+                data: null,               //数据
+                loader: {
+                    url: "Handler/getCodeDictionary.ashx?classCode=2000", //远程数据访问
+                    params: { textFieldName: "objDesc", valueFieldName: "objCode" }
+                },
+                readOnly: true,          //不允许输入
+                reg: "^\\S+$"             //输入栏的正则表达式
+            }
+            cbProgress = $('#cbProgress').combobox(option2);
+        }
+
+        var curTools;
+        var thisGrid;
+        $(function () {
+            thisGrid = $("#flex1").flexigrid(
+           {
+               url: "",
+               params: [{  }],
+               dataType: "xml",
+               data: null,
+               colModel: [
+                { display: '摘要', name: 'userID', width: 360, sortable: true, align: 'center' },
+                { display: '科目', name: 'RowID', width: 140, sortable: false, align: 'center' },
+                { display: '金额', name: 'userID', width: 100, sortable: true, align: 'left' }
+               ],
+               //buttons: curTools,
+               searchitems: [
+                   { display: '工号', name: 'userID', isdefault: true, operater: "Like" }
+               ],
+               buttons: curTools,
+               sortname: "userID",
+               sortorder: "desc",
+               title: "",
+               usepager: true,
+               useRp: true,
+               rp: 20,
+               showTableToggleBtn: false,
+               width: 620,
+               height: 300,   //这是表格体的高度，要减去标题、工具条、表头和状态栏的高度
+               singleSelect: true,  //只能单选
+
+               showcheckbox: true, //显示checkbox
+               onrowchecked: function (row) {  //checkbox事件处理函数
+                   projectID = row[0].cells[2].innerText;
+               },
+               rowhandler: false,  //双击行
+               //rowClickHandler: setButton, //根据数据设置按钮的状态   
+               //onError: errorReport,  //获取数据出错处理！！
+
+               //rowMouseRightHandler: contextmenu, //行上鼠标右键
+               resizable: false //是否允许重定义尺寸
+           });
+        });
+    </script>
+
+
+</head>
+<body>
+    <div id="frame_expense">
+      <h4>添加费用报销单</h4>
+        <table>
+            <tr>
+                <td>部门：</td>
+                <td><div id="abAountType" class="combo" tip="请选择部门"></div></td>
+                <td>报销时间：</td>
+                <td><input type="text" id="txtSignDate" reg="^\S+$" tip="请输入或选择报销日期" /></td>
+            </tr>
+            <tr>
+                <td>项目：</td>
+                <td colspan="3"><input class="project_text" type="text"></td>
+            </tr>
+        </table>
+
+        <div class="separated"></div>
+
+        <table id="flex1" style="display:none"></table>
+
+        <table cellpadding="0" cellspacing="0" class="total">
+            <tr>
+                <td>合计：</td>
+                <td><input class="total_box" type="text" disabled="disabled" value="200" style="color: #b8b7b7" /><span>元</span></td>                
+            </tr>
+        </table>
+
+        <table width="100%">
+            <tr>
+                <td>
+                    <table class="tab_left" cellpadding="0" cellspacing="0">
+                        <tr>
+                            <td>科目：</td>
+                            <td><div id="abAountType1" class="combo" tip="请选择科目"></div></td>
+                            <td>金额：</td>
+                            <td><input class="rmb" type="text" /><span>元</span></td>
+                        </tr>
+                        <!--<tr>
+                            <td>补充说明：</td>
+                            <td colspan="3"><input class="project_text" type="text"></td>
+                        </tr>-->
+                        <tr>
+                            <td>摘要：</td>
+                            <td colspan="3"><textarea class="Borrow_text_area" cols="51" rows="3"></textarea></td>
+                        </tr>
+                    </table>
+                </td>
+                
+                <td>
+                    <table cellpadding="0" cellspacing="0">
+                        <tr><td><input type="button" id="btnSave" class="gridBtn_expense" value="添  加" onclick="saveData();" /></td></tr>
+                        <tr><td><input type="button" id="btnSave" class="gridBtn_expense" value="修  改" onclick="saveData();" /></td></tr>
+                        <tr><td><input type="button" id="btnSave" class="gridBtn_expense" value="删  除" onclick="saveData();" /></td></tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+
+        <div class="separated"></div>
+
+        <p class="added">借支情况</p>
+        <div class="details"></div>
+
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <td>应退(补)款：</td>
+                <td colspan="3"><input class="rmb" type="text" /><span>元</span></td>
+            </tr>
+            <tr>
+                <td>备注：</td>
+                <td colspan="3"><textarea class="Borrow_text_area" cols="51" rows="3"></textarea></td>
+            </tr>
+            <tr>
+                <td>报销人：</td>
+                <td colspan="3"><input class="input_box" type="text" /></td>
+            </tr>
+        </table>
+
+        <p class="upload_bill">上传原始票据</p>
+        <div class="details"></div>
+
+        <div class="footer">
+            <input type="button" id="btnClose" class="closeBtn" value="取  消" onclick="closeMe();" />
+            <input type="button" id="btnSave" class="closeBtn" value="提  交" onclick="saveData();" />
+        </div>
+    </div>
+</body>
+</html>

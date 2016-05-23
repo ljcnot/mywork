@@ -1,0 +1,98 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>全部借款</title>
+    <!--对话盒样式表-->
+    <link href="../../css/lhgdialog/idialog.css" type="text/css" rel="stylesheet" />
+    <link href="../../jquery/css/tip.css" rel="stylesheet" />
+    <!--系统专用样式-->
+    <link href="../css/style.css" rel="stylesheet" type="text/css" />
+    <link href="../../css/flexigrid/flexigrid.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+    <div id="frame">
+        <h4>全部借款</h4>
+
+        <h5>借支单信息</h5>
+        <table class="all_borrow" cellpadding="0" cellspacing="0">
+            <tr>
+                <td>借支人姓名：</td>
+                <td><input class="input_box" type="text" style="color:#b8b7b7;" /></td>
+                <td>职务：</td>
+                <td><input class="input_box" type="text" style="color:#b8b7b7;" /></td>
+            </tr>
+            <tr>
+                <td>借支人部门：</td>
+                <td><input class="input_box" type="text" style="color:#b8b7b7;" /></td>
+                <td>借支时间：</td>
+                <td><input class="input_box" type="text" style="color:#b8b7b7;" /></td>
+            </tr>
+            <tr>
+                <td>项目：</td>
+                <td colspan="3"><input class="project_text" type="tel" style="color:#b8b7b7;" /></td>
+            </tr>
+            <tr>
+                <td>借支事由：</td>
+                <td colspan="3"><textarea class="Borrow_text_area" cols="51" rows="3" style="color: #b7b8b8;"></textarea></td>
+            </tr>
+            <tr>
+                <td class="text">金额：</td>
+                <td colspan="3"><input class="rmb" type="text" style="color:#b8b7b7;" /><span>元</span></td>
+            </tr>
+        </table>
+
+        <!--这里可以使用隔行变色-->
+        <p class="borrowListExamineAdded">
+            借支单审核信息
+            <div class="details">
+                <table class="earlyExamine">
+                    <tr>
+                        <th>环节名称</th>
+                        <th>审批人</th>
+                        <th>审批意见</th>
+                        <th>确认状态</th>
+                    </tr>
+                    <tr>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                    </tr>
+                </table>
+            </div>
+        </p>
+
+        <h5>付款信息</h5>
+        <table class="all_borrow" cellpadding="0" cellspacing="0">
+            <tr>
+                <td>付款金额：</td>
+                <td><input class="rmb" type="text" style="color:#b8b7b7;" /><span>元</span></td>
+                <td>付款人：</td>
+                <td><input class="input_box" type="text" style="color:#b8b7b7;" /></td>
+            </tr>
+        </table>
+
+        <!--这里可以使用隔行变色-->
+        <p class="paymentDetailsList">
+            还款明细表
+            <div class="details">
+                <table class="earlyExamine">
+                    <tr>
+                        <th>票据号</th>
+                        <th>日期</th>
+                        <th>还款金额</th>
+                        <th>备注</th>
+                    </tr>
+                    <tr>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                    </tr>
+                </table>
+            </div>
+        </p>
+
+        <div class="footer">
+            <input type="button" id="btnClose" class="closeBtn" value="关  闭" onclick="closeMe();" />
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,97 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>项目费用</title>
+    <!--对话盒样式表-->
+    <link href="../../css/lhgdialog/idialog.css" type="text/css" rel="stylesheet" />
+    <link href="../../jquery/css/tip.css" rel="stylesheet" />
+    <!--系统专用样式表-->
+    <link href="../css/style.css" rel="stylesheet" />
+</head>
+<body>
+    <div id="frame">
+        <h4>项目费用</h4>
+
+        <h5>费用（差旅费）报销单信息</h5>
+        <table class="all_borrow" cellpadding="0" cellspacing="0">
+            <tr>
+                <td>部门：</td>
+                <td><input class="input_box" type="text" style="color:#b8b7b7;" /></td>
+                <td>报销时间：</td>
+                <td><input class="input_box" type="text" style="color:#b8b7b7;" /></td>
+            </tr>
+            <tr>
+                <td>项目：</td>
+                <td colspan="3"><input class="project_text" type="tel" style="color:#b8b7b7;" /></td>
+            </tr>
+            <tr>
+                <td>摘要：</td>
+                <td colspan="3"><textarea class="Borrow_text_area" cols="51" rows="3" style="color: #b7b8b8;"></textarea></td>
+            </tr>
+            <tr>
+                <td>科目：</td>
+                <td><input class="input_box" type="text" style="color:#b8b7b7;" /></td>
+                <td class="text">金额：</td>
+                <td><input class="rmbRead" type="text" /><span>元</span></td>
+            </tr>
+            <tr>
+                <td>报销人：</td>
+                <td><input class="input_box" type="text" style="color:#b8b7b7;" /></td>
+                <td>单据类型：</td>
+                <td><input class="input_box" type="text" style="color:#b8b7b7;" /></td>
+            </tr>
+            <tr>
+                <td class="text">应退(补)款：</td>
+                <td><input class="rmbRead" type="text" /><span>元</span></td>
+            </tr>
+            <tr>
+                <td>备注：</td>
+                <td colspan="3"><textarea class="Borrow_text_area" cols="51" rows="3" style="color: #b7b8b8;"></textarea></td>
+            </tr>
+        </table>
+
+        <p class="added">原始票据</p>
+        <div class="details"></div><br />
+
+        <h5>借支情况</h5>
+        <table class="all_borrow" cellpadding="0" cellspacing="0">
+            <tr>
+                <td>借支日期：</td>
+                <td colspan="3"><input class="input_box" type="text" style="color:#b8b7b7;" /></td>
+            </tr>
+            <tr>
+                <td>借支事由：</td>
+                <td colspan="3"><textarea class="Borrow_text_area" cols="51" rows="3" style="color: #b7b8b8;"></textarea></td>
+            </tr>
+            <tr>
+                <td class="text">借支金额：</td>
+                <td colspan="3"><input class="rmbRead" type="text" /><span>元</span></td>
+            </tr>
+        </table>
+
+        <!--这里可以使用隔行变色-->
+        <p class="added">
+            审批信息
+            <div class="details">
+                <table class="earlyExamine">
+                    <tr>
+                        <th>环节名称</th>
+                        <th>审批人</th>
+                        <th>审批意见</th>
+                    </tr>
+                    <tr>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                    </tr>
+                </table>
+            </div>
+        </p>
+
+        <div class="footer">
+            <input type="button" id="btnClose" class="closeBtn" value="关  闭" onclick="closeMe();" />
+        </div>
+    </div>
+</body>
+</html>

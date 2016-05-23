@@ -1,0 +1,323 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>财务系统</title>
+    <!--系统主页面样式-->
+    <link href="css/style.css" rel="stylesheet" type="text/css" />
+    <!--左侧导航菜单样式-->
+    <link href="../css/Navigate.css" rel="stylesheet" type="text/css" />
+    <!--tab样式-->
+    <link href="../jquery/themes/base/jquery.ui.all.tabsnopadding.css" rel="Stylesheet" type="text/css" />
+    <!--对话盒样式-->
+    <link href="../jquery/lhgdialog/iMacStyle/idialog.css" rel="stylesheet" type="text/css" />
+    <!--头部右侧工具条样式-->
+    <link href="../css/tools.css" rel="stylesheet" type="text/css" />
+
+    <script src="../jquery/jquery-1.10.2.js" type="text/javascript"></script>
+    <script src="../js/cookie.js" type="text/javascript"></script>
+    <!--新对话合类库-->
+    <script src="../jquery/lhgdialog/lhgdialog.js" type="text/javascript"></script>
+    <script src="../jquery/ui/jquery.ui.core.js" type="text/javascript"></script>
+    <script src="../jquery/ui/jquery.ui.widget.js" type="text/javascript"></script>
+    <script src="../jquery/ui/jquery.ui.mouse.js" type="text/javascript"></script>
+    <script src="../jquery/ui/jquery.ui.resizable.js" type="text/javascript"></script>
+    <script src="../jquery/ui/jquery.ui.draggable.js" type="text/javascript"></script>
+    <script src="../jquery/ui/jquery.ui.sortable.js" type="text/javascript"></script>
+    <script src="../jquery/ui/jquery.ui.tabs.js" type="text/javascript"></script>
+
+    <script src="../js/sysTools.js" type="text/javascript"></script>
+    <script src="../js/UIcomm.js" type="text/javascript"></script>
+    <script src="../js/array.js" type="text/javascript"></script>
+    <script src="js/right.js" type="text/javascript"></script>
+
+    <script src="../js/tools.js" type="text/javascript"></script>
+    <script src="../js/navigate.js" type="text/javascript"></script>
+    <script src="../js/tabsControlerl.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        $.dialog.setting.path = "../css/lhgdialog/icons/";   //要设置icon的路径请,可以不使用，默认为根目录中的icon目录
+        //本页面名称：主要是为了复用注入到工作台中的list页面而增加的函数
+        function pageName() {
+            return "topwindow";
+        }
+        //获取顶层架构：
+        function getMyTopWindow() {
+            return window;
+        }
+        //动态改变窗口函数
+        function winResize() {
+            //获取IE的body对象：
+            function iebody() {
+                //检测严格的区别和模糊模式：
+                return (document.compatMode != "BackCompat" ? document.documentElement : document.body);
+            }
+            var bodywidth;
+            var bodyheight;
+            //获取浏览器高度，宽度
+            if (jQuery.browser.msie) {
+                bodywidth = iebody().clientWidth;
+                bodyheight = iebody().clientHeight;
+            }
+            else if (jQuery.browser.mozilla || jQuery.browser.chrome) { //保持浏览器兼容！
+                bodywidth = window.innerWidth;
+                bodyheight = window.innerHeight;
+            }
+            else //safari、opera //这一类浏览器还需要进一步测试
+            {
+                //sysMessage("您现在使用的浏览器不是本系统宣布支持的！\r\n可能会有窗口尺寸计算问题。");
+                bodywidth = document.body.clientWidth;
+                bodyheight = document.body.clientHeight;
+            }
+
+            var isScroll = false;
+            if (bodyheight < 720) {
+                bodyheight = 720;
+                isScroll = true;
+            }
+            if (bodywidth < 1000) {
+                bodywidth = 1000;
+                isScroll = true;
+            }
+            if (isScroll) { //允许滚动
+                $(document.getElementsByTagName('html')[0]).removeClass('body_lock_scroll');
+            }
+            else {
+                $(document.getElementsByTagName('html')[0]).addClass('body_lock_scroll');
+            }
+            var contentHight = bodyheight - 74 - 24; //工作区高度
+            var contentWidth = bodywidth - 170 - 6; //工作区宽度
+            if (document.getElementById("divLeft").style.display == "none") //如果导航栏是关闭的状态
+                contentWidth += 176;
+
+            jQuery("#content,#divLeft,#fLine").height(contentHight);    //工作区/导航栏/导航栏与工作面板分隔区
+            jQuery("#result").height(contentHight).width(contentWidth); //工作面板:这个框子好像有些多余！
+            jQuery("#realResult").height(contentHight).width(contentWidth); //工作面板iframe
+            if ($tabs) {
+                $tabs.height(contentHight).width(contentWidth);
+                tabResize(); //tab重新计算尺寸
+            }
+            jQuery("#main").width(bodywidth).height(bodyheight).show();
+            return false;
+        }
+
+        //获取当前用户和当前服务器时间：
+        var _curUserInfo;           //当前用户的信息
+        var _curDateTime;           //登录的时间
+        var _curUser;               //当前用户登录信息，启动客户端用
+
+        //根据用户权限，装配导航菜单：
+        function makeNavigateMenu() {
+            var rightKindTemplate = '<tr>' + //主菜单模板
+                                        '<td style="width:120px; vertical-align:middle;text-indent:12px;">' +
+                                            '<span class="{#rightEName}" style="" onclick="turnImg(this.parentNode.nextSibling.firstChild);SwitchControls(\'{#rightEName}Box\');">{#rightName}</span>' +
+                                        '</td>' +
+                                        '<td align="right" style="height:auto; vertical-align:middle;">' +
+                                        '<img alt=">>" title="展开" style="cursor: pointer;" src="../images/docExpand.png" onclick="turnImg(this);SwitchControls(\'{#rightEName}Box\');" />' +
+                                        '</td>' +
+                                    '</tr>';
+            var rightItemBoxTemplate = '<tr>' +  //子菜单容器模板
+                                        '<td colspan="2" style="height: auto">' +
+                                            '<div id="{#rightEName}Box" style="display:none;">' +
+                                            '</div>' +
+                                        '</td>' +
+                                       '</tr>';
+            //子菜单模板：
+            var rightItemTemplate = "<div class='smNewForm'><a href='#' onclick=\"addTab(\'{#rightName}\',\'{#url}\',\'{#rightID}\');\">{#rightName}</a></div>";   //导航栏行子菜单项模板
+
+            //这里暂时不使用权限定义，采用固定定义：
+            var ur = [{ rightID: "1", rightDesc: "营业收支", rightEName: "operatingRevenue", rightKind: 12, rightClass: 0, rightItem: 1, rightName: "营业收支", rightType: "F", Url: "" },
+                        { rightID: "2", rightDesc: "项目收入一览表", rightEName: "incomeProjectList", rightKind: 12, rightClass: 1, rightItem: 1, rightName: "项目收入一览表", rightType: "D", Url: "operatingRevenue/incomeProjectList.html" },
+                        { rightID: "3", rightDesc: "客户收入一览表", rightEName: "incomeCustomerList", rightKind: 12, rightClass: 2, rightItem: 1, rightName: "客户收入一览表", rightType: "D", Url: "operatingRevenue/incomeCustomerList.html" },
+                        { rightID: "4", rightDesc: "项目支出一览表", rightEName: "spendingProjectList", rightKind: 12, rightClass: 3, rightItem: 1, rightName: "项目支出一览表", rightType: "D", Url: "operatingRevenue/spendingProjectList.html" },
+                        { rightID: "5", rightDesc: "客户支出一览表", rightEName: "spendingCustomerList", rightKind: 12, rightClass: 4, rightItem: 1, rightName: "客户支出一览表", rightType: "D", Url: "operatingRevenue/spendingCustomerList.html" },
+                        { rightID: "6", rightDesc: "我的票据", rightEName: "myPaper", rightKind: 13, rightClass: 0, rightItem: 1, rightName: "我的票据", rightType: "F", Url: "" },
+                        { rightID: "7", rightDesc: "新建单据", rightEName: "addDocumentsList", rightKind: 13, rightClass: 1, rightItem: 1, rightName: "新建单据", rightType: "D", Url: "myPaper/addDocumentsList.html" },
+                        { rightID: "8", rightDesc: "等待审批单据", rightEName: "waitingApprovalDocumentsList", rightKind: 13, rightClass: 2, rightItem: 1, rightName: "等待审批单据", rightType: "D", Url: "myPaper/waitingApprovalDocumentsList.html" },
+                        { rightID: "9", rightDesc: "已审结单据", rightEName: "haveAccepteDocumentsList", rightKind: 13, rightClass: 3, rightItem: 1, rightName: "已审结单据", rightType: "D", Url: "myPaper/haveAccepteDocumentsList.html" },
+                        { rightID: "10", rightDesc: "待办单据", rightEName: "toDoDocuments", rightKind: 14, rightClass: 0, rightItem: 1, rightName: "待办单据", rightType: "F", Url: "" },
+                        { rightID: "11", rightDesc: "待办单据", rightEName: "toDoDocumentsList", rightKind: 14, rightClass: 1, rightItem: 1, rightName: "待办单据", rightType: "D", Url: "toDoDocuments/toDoDocumentsList.html" },
+                        { rightID: "12", rightDesc: "借款管理", rightEName: "borrowingManagement", rightKind: 15, rightClass: 0, rightItem: 1, rightName: "借款管理", rightType: "F", Url: "" },
+                        { rightID: "13", rightDesc: "全部借款", rightEName: "allBorrowing", rightKind: 15, rightClass: 1, rightItem: 1, rightName: "全部借款", rightType: "D", Url: "borrowingManagement/allBorrowingList.html" },
+                        { rightID: "14", rightDesc: "部门借款", rightEName: "departmentBorrowing", rightKind: 15, rightClass: 2, rightItem: 1, rightName: "部门借款", rightType: "D", Url: "borrowingManagement/departmentBorrowingList.aspx" },
+                        { rightID: "15", rightDesc: "费用查询", rightEName: "costQuery", rightKind: 16, rightClass: 0, rightItem: 1, rightName: "费用查询", rightType: "F", Url: "" },
+                        { rightID: "16", rightDesc: "部门费用", rightEName: "departmentCostList", rightKind: 16, rightClass: 1, rightItem: 1, rightName: "部门费用", rightType: "D", Url: "costQuery/departmentCostList.html" },
+                        { rightID: "17", rightDesc: "项目费用", rightEName: "projectCostList", rightKind: 16, rightClass: 2, rightItem: 1, rightName: "项目费用", rightType: "D", Url: "costQuery/projectCostList.html" },
+                        { rightID: "18", rightDesc: "科目费用", rightEName: "courseCostList", rightKind: 16, rightClass: 3, rightItem: 1, rightName: "科目费用", rightType: "D", Url: "costQuery/courseCostList.html" },
+                        { rightID: "19", rightDesc: "工资管理", rightEName: "salaryManagement", rightKind: 17, rightClass: 0, rightItem: 1, rightName: "工资管理", rightType: "F", Url: "" },
+                        { rightID: "20", rightDesc: "工资一览表", rightEName: "salaryList", rightKind: 17, rightClass: 1, rightItem: 1, rightName: "工资一览表", rightType: "D", Url: "salaryManager/salaryList.html" },
+                        { rightID: "21", rightDesc: "工资表查询", rightEName: "salaryQueryList", rightKind: 17, rightClass: 2, rightItem: 1, rightName: "工资表查询", rightType: "D", Url: "salaryManager/salaryQueryList.html" },
+                        { rightID: "22", rightDesc: "发票管理", rightEName: "invoiceManagement", rightKind: 18, rightClass: 0, rightItem: 1, rightName: "发票管理", rightType: "F", Url: "" },
+                        { rightID: "23", rightDesc: "发票管理", rightEName: "invoiceManagementList", rightKind: 18, rightClass: 1, rightItem: 1, rightName: "发票管理", rightType: "D", Url: "invoiceManagement/invoiceManagementList.html" },
+                        { rightID: "24", rightDesc: "账户查询", rightEName: "accountQuery", rightKind: 19, rightClass: 0, rightItem: 1, rightName: "账户查询", rightType: "D", Url: "" },
+                        { rightID: "25", rightDesc: "现金", rightEName: "cash", rightKind: 19, rightClass: 1, rightItem: 1, rightName: "现金", rightType: "D", Url: "accountQuery/cashList.html" },
+                        { rightID: "26", rightDesc: "工商银行", rightEName: "ICBC", rightKind: 19, rightClass: 2, rightItem: 1, rightName: "工商银行", rightType: "D", Url: "accountQuery/ICBCList.html" },
+                        { rightID: "27", rightDesc: "中信银行", rightEName: "ChinaCiticBank", rightKind: 19, rightClass: 3, rightItem: 1, rightName: "中信银行", rightType: "D", Url: "accountQuery/ChinaCiticBankList.html" },
+                        { rightID: "28", rightDesc: "财务设定", rightEName: "financialSetting", rightKind: 20, rightClass: 0, rightItem: 1, rightName: "财务设定", rightType: "F", Url: "" },
+                        { rightID: "29", rightDesc: "账户管理", rightEName: "accountManagement", rightKind: 20, rightClass: 1, rightItem: 1, rightName: "账户管理", rightType: "D", Url: "financialSetting/accountManagementList.html" },
+                        { rightID: "30", rightDesc: "科目管理", rightEName: "courseManagement", rightKind: 20, rightClass: 2, rightItem: 1, rightName: "科目管理", rightType: "D", Url: "financialSetting/courseManagementList.html" },
+            ];
+
+            var $menu = $("#NavigateMenu"); //主菜单容器
+            var $curSubMenuBox; //当前子菜单容器
+            var rightKind = 0;  //当前权限门类
+            var rightClass = 0; //当前权限大类
+            for (var i = 0; i < ur.length; i++) {
+                if (ur[i].rightKind > 99) //处理附加权限
+                    break;
+                if (rightKind != ur[i].rightKind) {
+                    var $mainMenu = $(rightKindTemplate.replace(/{#rightEName}/g, ur[i].rightEName).replace(/{#rightName}/g, ur[i].rightName));
+                    $menu.append($mainMenu);
+                    $box = $(rightItemBoxTemplate.replace(/{#rightEName}/g, ur[i].rightEName));
+                    $curSubMenuBox = $("div", $box);
+                    $menu.append($box);
+                    rightKind = ur[i].rightKind;
+                    rightClass = ur[i].rightClass;
+                }
+                else {
+                    if (rightClass != ur[i].rightClass) {
+                        $item = $(rightItemTemplate.replace(/{#rightEName}/g, ur[i].rightEName).replace(/{#rightName}/g, ur[i].rightName)
+                                                    .replace(/{#url}/g, ur[i].Url).replace(/{#rightID}/g, ur[i].rightID));
+                        $curSubMenuBox.append($item);
+                    }
+                    rightClass = ur[i].rightClass;
+                }
+            }
+        }
+
+        //选项卡：
+        var $tabs;
+        //当前Tab中的iframe对象,用来给iframe传值 add
+        var curTabFrame = null;
+        $(function () {
+            //按键处理：包括alt+F1在线帮助，退格键屏蔽
+            //改写了UIcomm.js中的disableBackSapce函数，区分浏览器判断
+            if ($.browser.mozilla || $.browser.opera) document.onkeypress = disableBackSapce;
+            else document.onkeydown = disableBackSapce; //禁止后退键  作用于IE、Chrome
+
+            //生成导航菜单：
+            makeNavigateMenu();
+            //初始化Tab：
+            $tabs = $("#tabs").tabs({
+                tabTemplate: "<li><a href='#{href}'>#{label}</a> " +
+                                    "<span class='ui-icon ui-icon-close' style='display:block; float:left;'>关闭</span>" +
+                             "</li>",
+                add: function (event, ui) { //添加选项卡行为
+                    var f = document.createElement("iframe");
+                    $(f).attr("scrolling", "no").attr("frameborder", "0").attr("allowTransparency", "true");
+                    $(ui.panel).append(f);
+                    $tabs.tabs('select', '#' + ui.panel.id); //默认选中当前选项卡
+                },
+                select: function (event, ui) { //选择行为
+                    if (ui.tab.hash == "#tabs-1") {
+                        curTabFrame = null;
+                        return true;
+                    }
+                    var uh = $("ul", $tabs).height();
+                    var h = $tabs.height() - uh - 3;
+                    var w = $tabs.width();
+                    var f = $("iframe", ui.panel)[0];
+                    curTabFrame = f;    //设置当前Tab中的iframe对象
+                    $(f).width(w).height(h);
+                    //如果有重定义尺寸，调用其重定义尺寸函数：
+                    var r = f.contentWindow.resize;
+                    if (r != undefined)
+                        r(w, h);
+                    //如果有重刷新函数，调用其重刷新函数：
+                    var rf = f.contentWindow.refresh;
+                    if (rf != undefined)
+                        rf();
+                }
+            });
+            //绑定Tab事件:
+            $("#tabs").delegate("span.ui-icon-close", "click", function () {
+                var index = $("li", $tabs).index($(this).parent());
+                $tabs.tabs("remove", index);
+                // 删除对应数组值
+                tabList.remove(index - 1);
+            });
+            $("#tabSelector").show();
+
+            //让搜索框可以移动：
+            $("#searchStay").draggable({
+                containment: "#main"
+            });
+            winResize();
+        });
+
+    </script>
+</head>
+<body scroll="auto" onresize="winResize();">
+    <form id="form1" runat="server">
+        <div id="main" style="display:none;">
+            <div id="header">
+                <div class="financialLogo"><div class="textLogo">友道财务系统</div></div>
+                <div class="headRight">
+                    <!--常用功能区-->
+                    <div class="comFunctional">
+                        <ul>
+                            <li class="gohome" onclick="goHomePage();"><a href="#">&nbsp;首页</a></li>
+                            <li class="bbs" onclick="forum();"><a href="#">&nbsp;论坛</a></li>
+                            <li class="bulletin"><a href="#">&nbsp;公告板</a></li>
+                            <li class="im"><a href="#">&nbsp;即时通讯</a></li>
+                            <li class="sms"><a href="#">&nbsp;短信</a></li>
+                        </ul>
+                    </div>
+                    <div style="clear:both;padding-right:50px;">
+                        <!--搜索样式-->
+                        <div id="searchStay" class="serch">
+                            <!--<label class="icon floatLeft"></label>-->
+                            <div>
+                                <input id="txtSearch" type="text" class="txtBox" name="name" />
+                                <span id="go" class="go" onclick="fullTextSearch();"></span>
+                                <span id="set" class="set" onclick="setBtn();" title="设置"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="content">
+                <div id="divLeft" runat="server">
+                    <div class="userInfoBox">
+                        <div id="curDateTime" class="dateTime"></div>
+                        <!--头像-->
+                        <div>
+                            <table style=" width:100%;">
+                                <tr align="center">
+                                    <td><div id="PIDCopy"><img id="userPotrait" src="notexist_picture.png" style="width:80px; height:80px;" onerror="javascript: this.src = 'images/financialUser.png'" /></div></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="hiWordsBox">
+                            <div class="hiCss">您 好！</div>
+                            <div id="curUserName" class="hiName">用户</div>
+                            <div><input type="button" class="editorInfo" onclick="editMyInfo();" title="完善个人资料" /></div>
+                        </div>
+                    </div>
+                    <!--后台程序注入导航菜单：-->
+                    <table id="NavigateMenu" style="font-size:14px; width:155px;"></table>
+                </div>
+                <div id="fLine">
+                    <div class="showNav" onclick="switchNav(this);"></div>
+                </div>
+                <div id="result">
+                    <div id="tabs" style="width:100%; height:100%;">
+                        <ul id="tabSelector" style="display:none;">
+                            <li><a href="#tabs-1">简介</a></li>
+                        </ul>
+                        <div id="tabs-1">
+                            <iframe id="realResult" style="height:100%;width:100%;" src="introduce.html" scrolling="no" frameborder="0" allowtransparency="true"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="footer">
+                <script>
+                    copyright = new Date(); //当前时间
+                    update = copyright.getFullYear();   //获取最新年份
+                    document.write('Copyright &copy;<a class="oridway" href="http://www.oridWay.com">&nbsp;武汉东之友道信息技术有限公司</a> 2002 - ' + update + ' All rights reserved. &nbsp;证书号：软著登字第0369827号');    //自动更新年份
+                </script>
+            </div>
+        </div>
+    </form>
+</body>
+</html>

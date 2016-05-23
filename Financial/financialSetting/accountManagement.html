@@ -1,0 +1,56 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>账户管理</title>
+    <!--combox控件样式表-->
+    <link href="../../css/comboboxDefault.css" rel="stylesheet" type="text/css" />
+    <!--对话盒样式表-->
+    <link href="../../css/lhgdialog/idialog.css" type="text/css" rel="stylesheet" />
+    <link href="../../jquery/css/tip.css" rel="stylesheet" />
+    <!--系统专用样式-->
+    <link href="../css/style.css" rel="stylesheet" />
+</head>
+<body>
+    <div id="frame">
+      <h4>账户管理</h4>
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <th>账户名称：</th>
+                <td><input class="input_box" type="text"></td>
+                <th>开户行：</th>
+                <td><input class="input_box" type="text" /></td>
+            </tr>
+            <tr>
+                <th>开户行地址：</th>
+                <td><input class="input_box" type="text"></td>
+                <th>开户名：</th>
+                <td><input class="input_box" type="text"></td>
+            </tr>
+            <tr>
+                <th>开户账号：</th>
+                <td><input class="input_box" type="text"></td>
+                <th>开户行号：</th>
+                <td><input class="input_box" type="text"></td>
+            </tr>
+            <tr>
+                <th>管理人：</th>
+                <td><input class="input_box" type="text"></td>
+                <th>开户日期：</th>
+                <td><input class="input_box" type="text" /></td>
+            </tr>
+            <tr>
+                <th>备注：</th>
+                <td colspan="3"><input class="project_text" type="text"></td>
+            </tr>
+        </table>
+
+        <p class="borrowPaymentAdded">账户移交情况</p>
+        <div class="details"></div><br />
+
+        <div class="footer">
+            <input type="button" id="btnClose" class="closeBtn" value="关  闭" onclick="closeMe();" />
+        </div>
+    </div>
+</body>
+</html>

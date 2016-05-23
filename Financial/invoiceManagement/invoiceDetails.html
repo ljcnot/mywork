@@ -1,0 +1,81 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>发票登记详情</title>
+    <!--对话盒样式表-->
+    <link href="../../css/lhgdialog/idialog.css" type="text/css" rel="stylesheet" />
+    <link href="../../jquery/css/tip.css" rel="stylesheet" />
+    <!--系统专用样式表-->
+    <link href="../css/style.css" rel="stylesheet" />
+</head>
+<body>
+    <div id="addInvoiceFrame">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <td>发票类型：</td>
+                <td><input class="input_box" type="text" /></td>
+                <td>客户单位：</td>
+                <td><input class="input_box" type="text" /></td>
+            </tr>
+            <tr>
+                <td>项目名称：</td>
+                <td colspan="3"><input class="project_text" type="text" /></td>
+            </tr>
+            <tr>
+                <td>申请部门：</td>
+                <td><input class="input_box" type="text" /></td>
+                <td>申请日期：</td>
+                <td><input class="input_box" type="text" /></td>
+            </tr>
+            <tr>
+                <td>申请开票人：</td>
+                <td><input class="input_box" type="text" /></td>
+                <td>回款方式：</td>
+                <td><input class="input_box" type="text" /></td>
+            </tr>
+            <tr>
+                <td>回款金额：</td>
+                <td><input class="rmb" type="text" /><span>元</span></td>
+                <td>回款日期：</td>
+                <td><input class="input_box" type="text" /></td>
+            </tr>
+            <tr>
+                <td>应收账款：</td>
+                <td><input class="rmbRead" type="text" readonly="readonly" value="10000" /><span>元</span></td>
+                <td>应交税费金：</td>
+                <td><input class="rmb" type="text" /><span>元</span></td>
+            </tr>
+            <tr>
+                <td>应缴税金：</td>
+                <td><input class="rmb" type="text" /><span>元</span></td>
+                <td>应交增值税附加：</td>
+                <td><input class="rmb" type="text" /><span>元</span></td>
+            </tr>
+            <tr>
+                <td>应缴附加税：</td>
+                <td><input class="rmb" type="text" /><span>元</span></td>
+                <td>开票金额：</td>
+                <td><input class="rmb" type="text" /><span>元</span></td>
+            </tr>
+            <tr>
+                <td>开票时间：</td>
+                <td><input class="input_box" type="text" /></td>
+                <td>开票人：</td>
+                <td><input class="input_box" type="text" /></td>
+            </tr>
+            <tr>
+                <td>作废与否</td>
+                <td><input class="input_box" type="text" /></td>
+                <td>作废日期：</td>
+                <td><input class="input_box" type="text" /></td>
+            </tr>
+        </table>
+        <br />
+        <hr />
+        <div class="footer">
+            <input type="button" id="btnClose" class="closeBtn" value="关  闭" onclick="closeMe();" />
+        </div>
+    </div>
+</body>
+</html>

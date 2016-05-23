@@ -1,0 +1,295 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title></title>
+    <link href="../../css/flexigrid/flexigrid.css" rel="stylesheet" type="text/css" />
+    <link href="../../css/listTools.css" rel="stylesheet" />
+    <link href="../../css/comboboxDefault.css" rel="stylesheet" />
+    <script src="../../jquery/jquery-1.10.2.js"></script>
+    <script src="../jquery/jquery.bgiframe.js"></script>
+    <script src="../../js/combo_2.0/css/combo.js"></script>
+    <script type="text/javascript">
+        //选择新建类型
+        var eqpStatuses = [{ statusCode: "1", statusName: "费用报销单" },
+                           { statusCode: "2", statusName: "借支单" }];
+
+        cbDutyStatus = $('#cbDutyStatusBox').combobox({
+            keyField: 'statusCode',      //返回值列名
+            displayField: 'statusName',  //显示的列名
+            multiSelect: false,      //是否允许多重选择
+            height: 20,              //高度         
+            width: 80,             //输入框宽度
+            boxWidth: 80,          //下拉弹出窗口的宽度
+            scroll: false,            //允许窗口有滚动条
+            scrollHeight: 100,       //弹出窗口最大高度
+            //数据列名：
+            cols: [{ field: 'statusCode', width: '15%' },
+                    { field: 'statusName', width: '80%' }
+            ],
+            data: eqpStatuses,             //本地数据
+            loader: null,
+            readOnly: true,          //不允许输入
+            onLoad: function () {   //加载完成，设置初值
+                cbDutyStatus.select(1);
+            }
+        });
+    </script>
+</head>
+<body>
+    <div id="cbDutyStatusBox" class="combo" tip="请选择单据类型"></div>
+    <div class="flexigrid ie" style="width:100%;">
+        <div title="隐藏/显示 列" class="nBtn srtd" style=" top:29px; display:none;">
+            <div></div>
+        </div>
+        <div class="nDiv" style="top:57px; width:auto; height:auto; margin-bottom:-604px; display:none;">
+            <table cellpadding="0"cellspacing="0">
+                <tbody>
+                    <tr>
+                        <td class="ndcol1">
+                            <input type="checkbox" checked="checked" class="togcol" value="-1" />
+                        </td>
+                        <td class="ndcol2">
+                            <input type="checkbox" class="itemchk noborder" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="ndcol1">
+                            <input type="checkbox" checked="checked" class="togcol" value="0" />
+                        </td>
+                        <td class="ndcol2">序号</td>
+                    </tr>
+                    <tr>
+                        <td class="ndcol1">
+                            <input type="checkbox" checked="checked" class="togcol" value="1" />
+                        </td>
+                        <td class="ndcol2">单据类型</td>
+                    </tr>
+                    <tr>
+                        <td class="ndcol1">
+                            <input type="checkbox" checked="checked" class="togcol" value="2" />
+                        </td>
+                        <td class="ndcol2">摘要</td>
+                    </tr>
+                    <tr>
+                        <td class="ndcol1">
+                            <input type="checkbox" checked="checked" class="togcol" value="3" />
+                        </td>
+                        <td class="ndcol2">创建时间</td>
+                    </tr>
+                    <tr>
+                        <td class="ndcol1">
+                            <input type="checkbox" checked="checked" class="togcol" value="4" />
+                        </td>
+                        <td class="ndcol2">金额</td>
+                    </tr>
+                    <tr>
+                        <td class="ndcol1">
+                            <input type="checkbox" checked="checked" class="togcol" value="5" />
+                        </td>
+                        <td class="ndcol2">项目</td>
+                    </tr>
+                    <tr>
+                        <td class="ndcol1">
+                            <input type="checkbox" checked="checked" class="togcol" value="6" />
+                        </td>
+                        <td class="ndcol2">创建人</td>
+                    </tr>
+                    <tr>
+                        <td class="ndcol1">
+                            <input type="checkbox" checked="checked" class="togcol" value="7" />
+                        </td>
+                        <td class="ndcol2">备注</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="tDiv">
+            <div class="tDiv2">
+                <div id="cbDutyStatusBox" class="combo" tip="请选择单据类型" ></div>
+                <div><select><option>1</option></select></div>
+                <div title="新建单据" class="fbutton" name="cmdNew">
+                    <div>
+                        <span class="cmdNew" style="padding-left:20px;">新建单据</span>
+                    </div>
+                </div>
+                <div title="订正" class="fbutton" name="cmdUpdate">
+                    <div>
+                        <span class="cmdUpdate" style="padding-left:20px;">订正</span>
+                    </div>
+                </div>
+                <div title="删除" class="fbutton" name="cmdVerify">
+                    <div>
+                        <span class="cmdVerify" style="padding-left:20px;">删除</span>
+                    </div>
+                </div>
+                <div title="提交审核" class="fbutton" name="cmdVerify">
+                    <div>
+                        <span class="cmdVerify" style="padding-left:20px;">提交审核</span>
+                    </div>
+                </div>
+                <div title="详情" class="fbutton" name="cmdShowCard">
+                    <div>
+                        <span class="cmdShowCard" style="padding-left:20px;">详情</span>
+                    </div>
+                </div>
+                <div title="刷新" class="fbutton" name="cmdPreview">
+                    <div>
+                        <span class="cmdPreview" style="padding-left:20px;">刷新</span>
+                    </div>
+                </div>
+                <div title="筛选" class="fbutton" name="cmdFilter">
+                    <div>
+                        <span class="cmdFilter" style="padding-left:20px;">筛选</span>
+                    </div>
+                </div>
+                <div title="导出" class="fbutton" name="cmdOutput">
+                    <div>
+                        <span class="cmdOutput" style="padding-left:20px;">导出</span>
+                    </div>
+                </div>
+                <div title="导出卡片" class="fbutton" name="cmdOutput">
+                    <div>
+                        <span class="cmdOutput" style="padding-left:20px;">导出卡片</span>
+                    </div>
+                </div>
+                <div title="打印" class="fbutton" name="cmdPrint">
+                    <div>
+                        <span class="cmdPrint" style="padding-left:20px;">打印</span>
+                    </div>
+                </div>
+                <div title="打印卡片" class="fbutton" name="cmdPrint">
+                    <div>
+                        <span class="cmdPrint" style="padding-left:20px;">打印卡片</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="hDiv">
+            <div class="hDivBox">
+                <table cellpadding="0" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th class="cth" axis="col-1" isch="true">
+                                <div style="width:15px;">
+                                    <input type="checkbox" class="itemchk noborder" />
+                                </div>
+                            </th>
+                            <th align="center" class="sorted" abbr="userID" axis="col0">
+                                <div class="sdesc" style="width:50px; text-align:center">序号</div>
+                            </th>
+                            <th align="center" class="" axis="col1">
+                                <div style="width:50px; text-align:center;">单据类型</div>
+                            </th>
+                            <th align="left" class="sorted" abbr="userID" axis="col2">
+                                <div class="sdesc" style="width:50px; text-align:left">摘要</div>
+                            </th>
+                            <th align="left" class="sorted" abbr="userID" axis="col3">
+                                <div class="sdesc" style="width:50px; text-align:left">创建时间</div>
+                            </th>
+                            <th align="left" class="sorted" abbr="userID" axis="col4">
+                                <div class="sdesc" style="width:50px; text-align:left">金额</div>
+                            </th>
+                            <th align="left" class="sorted" abbr="userID" axis="col5">
+                                <div class="sdesc" style="width:50px; text-align:left">项目</div>
+                            </th>
+                            <th align="left" class="sorted" abbr="userID" axis="col6">
+                                <div class="sdesc" style="width:50px; text-align:left">创建人</div>
+                            </th>
+                            <th align="left" class="sorted" abbr="userID" axis="col7">
+                                <div class="sdesc" style="width:50px; text-align:left">备注</div>
+                            </th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+        <div class="cDrag" style="top:30px;">
+            <div style="left:24px; height:790px; display:block;"></div>
+            <div style="left:85px; height:790px; display:block;"></div>
+            <div style="left:146px; height:790px; display:block;"></div>
+            <div style="left:207px; height:790px; display:block;"></div>
+            <div style="left:268px; height:790px; display:block;"></div>
+            <div style="left:329px; height:790px; display:block;"></div>
+            <div style="left:390px; height:790px; display:block;"></div>
+            <div style="left:451px; height:790px; display:block;"></div>
+            <div style="left:512px; height:790px; display:block;"></div>
+        </div>
+        <div class="bDiv" style="height:763px;">
+            <table id="flex1" style="" border="0" cellpadding="0" cellspacing="0"></table>
+            <div class="iDiv" style="display:none;"></div>
+        </div>
+        <div class="sDiv">
+            <div class="sDiv2">
+                搜索
+                <input type="text" class="qsbox" name="q" size="30" />
+                <select name="qtype">
+                    <option selected="selected" value="userID">工号</option>
+                </select>
+            </div>
+        </div>
+        <div class="pDiv">
+            <div class="pDiv2">
+                <div class="pGroup">
+                    <div class="pSearch pButton">
+                        <span></span>
+                    </div>
+                </div>
+                <div class="btnseparator"></div>
+                <div class="pGroup">
+                    <select name="rp">
+                        <option value="10">10</option>
+                        <option value="15">15</option>
+                        <option selected="selected" value="20">20</option>
+                        <option value="25">25</option>
+                        <option value="40">40</option>
+                        <option value="100">100</option>
+                        <option value="200">200</option>
+                        <option value="1000">1000</option>
+                    </select>
+                </div>
+                <div class="btnseparator"></div>
+                <div class="pGroup">
+                    <div class="pFirst pButton">
+                        <span></span>
+                    </div>
+                    <div class="pPrev pButton">
+                        <span></span>
+                    </div>
+                </div>
+                <div class="btnseparator"></div>
+                <div class="pGroup">
+                    <span class="pcontrol">
+                        页
+                        <input type="text" size="4" value="1" />
+                        共
+                        <span>1</span>
+                        页
+                    </span>
+                </div>
+                <div class="btnseparator"></div>
+                <div class="pGroup">
+                    <div class="pNext pButton">
+                        <span></span>
+                    </div>
+                    <div class="pLast pButton">
+                        <span></span>
+                    </div>
+                </div>
+                <div class="btnseparator"></div>
+                <div class="pGroup">
+                    <div class="pReload pButton">
+                        <span></span>
+                    </div>
+                </div>
+                <div class="btnseparator"></div>
+                <div class="pGroup">
+                    <div class="pPageStat">
+                        <span></span>
+                    </div>
+                </div>
+                <div style="clear:both;"></div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
