@@ -984,7 +984,7 @@ AS
 	
 			--取维护人的姓名：
 			declare @createManName nvarchar(30)
-			set @createManName = isnull((select userCName from activeUsers where userID = @createManID),'')
+			set @createManName = isnull((select userCName from activeUsers where userID = @lockManID),'')
 			declare @createTime smalldatetime
 			set @createTime = getdate()
 
