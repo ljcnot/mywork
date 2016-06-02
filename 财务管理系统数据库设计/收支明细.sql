@@ -317,8 +317,6 @@ drop PROCEDURE editIncome
 				@abstract		varchar(200),			--摘要
 				@incomeSum	numeric(15,2),			--收入金额
 				@remarks		varchar(200),			--备注
-				@collectionModeID	varchar(10),	--收款方式ID
-				@collectionMode	varchar(50),	--收款账号
 				@startDate		smalldatetime,			--收款日期
 				@paymentApplicantID	varchar(10),	--收款申请人ID
 				@payee			varchar(30),				--收款人
@@ -345,8 +343,6 @@ create PROCEDURE editIncome
 				@abstract		varchar(200),			--摘要
 				@incomeSum	numeric(15,2),			--收入金额
 				@remarks		varchar(200),			--备注
-				@collectionModeID	varchar(10),	--收款方式ID
-				@collectionMode	varchar(50),	--收款账号
 				@startDate		smalldatetime,			--收款日期
 				@paymentApplicantID	varchar(10),	--收款申请人ID
 				@payee			varchar(30),				--收款人
@@ -404,8 +400,6 @@ AS
 						abstract	= @abstract,	--摘要
 						incomeSum = @incomeSum,	--收入金额
 						remarks = @remarks,	--备注
-						collectionModeID = @collectionModeID,	--收款方式ID
-						collectionMode = @collectionMode,	--收款方式
 						startDate = @startDate,	--收款日期
 						paymentApplicantID = @paymentApplicantID,	--收款申请人ID
 						payee = @payee,	--收款人
@@ -472,9 +466,12 @@ AS
 					and	  ISNULL(lockManID,'')<>'')
 	if (@thisLockMan<>'')
 	begin
-		set @lockManID = @thisLockMan
-		set @Ret = 2
-		return
+		if (@thisLockMan <> @lockManID)
+		begin		
+			set @lockManID = @thisLockMan
+			set @Ret = 2
+			return
+		end
 	end
 
 	update incomeList

@@ -269,17 +269,6 @@ GO
 
 
 
-drop table workNote      --工作日志表
-create table workNote(
-	workNoteID int primary key identity(1,1),	--工作日志ID
-	userID	varchar(17)	not null,	--用户ID
-	userName	varchar(17)	not	null,	--用户名字
-	actionTime	varchar(200),	--修改时间
-	actions varchar(50),	--操作说明
-	actionObject	varchar(100),	--详细说明
-	)
-GO
-
 
 
 drop PROCEDURE editborrowSingle

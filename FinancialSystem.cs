@@ -29,238 +29,11 @@ public class FinancialSystem : virtualWebService
     public string HelloWorld()
     {
         return "Hello World";
-    }
+    }  
 
+    #region 借支单的增删改及锁定
 
-
-
-     #region 查询
-     /// <summary>
-     /// 功    能：借支单，分页查询语句，根据前台传入的查询条件、排序方式和要检索的字段、分页设置参数，采用分页技术检索项目列表结果集
-     /// 作    者：卢苇
-     /// 编写日期：2016-5-16
-     /// </summary>
-     /// <param name="colList">列名,“*” or “”代表全部字段</param>
-     /// <param name="strWhere">范围约束</param>
-     /// <param name="strOrder">排序要求</param>
-     /// <param name="myPageSet">分页参数</param>
-     /// <returns>项目列表结果集：数据的列为输入的列名前加一个行号</returns>
-     [WebMethod(Description = "分页查询语句，根据前台传入的查询条件、排序方式和要检索的字段、分页设置参数，采用分页技术检索项目列表结果集<br />"
-                             + "<a href='../../SDK/PM/Interface.html#projectManager.PageQueryProjectList'>SDK说明</a>", EnableSession = false)]
-     [SoapHeader("PageHeader")]
-     public pageDataSet PageQueryBorrowSingleList(string colList, string strWhere, string strOrder, pageSet myPageSet)
-     {
-         verifyPageHeader(this);
-         if (colList.Trim() == "" || colList.Trim() == "*")
-         {
-             colList = "borrowSingleID,borrowMan, position, department,";
-             colList += "borrowDate, projectName,borrowReason,isnull(borrowSum,0)borrowSum";
-         }
-         if (strOrder.Trim() == "")
-         {
-             strOrder = "order by borrowSingleID desc";
-         }
-         string tabName = "borrowSingle ";
-         if (strWhere != "")
-             strWhere = strWhere.Replace("|", "%");
-
-         return sysTools.pageSelect(tabName, colList, strWhere, strOrder, myPageSet);
-     }
-
-     /// <summary>
-     /// 功   能：获取借支单列表           
-     /// 作    者：卢苇
-     /// 编写日期：2015-10-21
-     /// </summary>
-     /// <param name="colList">列名,“*” or “”代表全部字段</param>
-     /// <param name="strWhere">范围约束</param>
-     /// <param name="strOrder">排序要求</param>
-     /// <returns>项目列表结果集</returns>
-     [WebMethod(Description = "一般查询语句，根据前台传入的查询条件、排序方式和要检索的字段，检索项目列表结果集<br />"
-                             + "<a href='../../SDK/PM/Interface.html#projectManager.getProjectList'>SDK说明</a>", EnableSession = false)]
-     [SoapHeader("PageHeader")]
-     public DataSet getProjectList(string colList, string strWhere, string strOrder)
-     {
-         verifyPageHeader(this);
-         if (colList.Trim() == "" || colList.Trim() == "*")
-         {
-             colList = "borrowSingleID,borrowMan, position, department,";
-             colList += "borrowDate, projectName,borrowReason,isnull(borrowSum,0)borrowSum";
-         }
-         if (strWhere != "")
-             strWhere = strWhere.Replace("|", "%");
-         if (strOrder.Trim() == "")
-             strOrder = "order by borrowSingleID desc";
-         string tabName = "borrowSingle ";
-
-         string strCmd = "select " + colList + " from " + tabName + " " + strWhere + " " + strOrder;
-         //从web.config获取连接字符串
-         string constr = WebConfigurationManager.ConnectionStrings["constr"].ToString();
-         using (SqlConnection sqlcon = new SqlConnection(constr))
-         {
-             try
-             {
-                 sqlcon.Open();
-                 DataSet ds = new DataSet();
-                 using (SqlCommand sqlCmd = new SqlCommand(strCmd, sqlcon))
-                 using (SqlDataAdapter da = new SqlDataAdapter(sqlCmd))
-                 {
-                     da.Fill(ds);
-                 }
-                 return ds;
-             }
-             catch (Exception e)
-             {
-                 return null;
-             }
-         }
-     }
-
-
-     /// <summary>
-     /// 功    能：根据编号查找项目（返回结果集）
-     /// 作    者：卢苇
-     /// 编写日期：2015-10-21
-     /// </summary>
-     /// <param name="projectID">项目编号</param>
-     /// <returns>项目（结果集方式）</returns>
-     [WebMethod(Description = "根据编号查找项目（返回结果集）<br />"
-                             + "<a href='../../SDK/PM/Interface.html#projectManager.queryProjectByID'>SDK说明</a>", EnableSession = false)]
-     [SoapHeader("PageHeader")]
-     public DataSet queryBorrowSingleByID(string borrowSingleID)
-     {
-         verifyPageHeader(this);
-         string strCmd = "select borrowSingleID,borrowMan, position, department,";
-         strCmd += "borrowDate, projectName,borrowReason,isnull(borrowSum,0)borrowSum";
-         strCmd += " from borrowSingle";
-         strCmd += " where borrowSingleID='" + borrowSingleID + "'";
-
-         //从web.config获取连接字符串
-         string constr = WebConfigurationManager.ConnectionStrings["constr"].ToString();
-         using (SqlConnection sqlcon = new SqlConnection(constr))
-         {
-             try
-             {
-                 sqlcon.Open();
-                 DataSet ds = new DataSet();
-                 using (SqlCommand sqlCmd = new SqlCommand(strCmd, sqlcon))
-                 using (SqlDataAdapter da = new SqlDataAdapter(sqlCmd))
-                 {
-                     da.Fill(ds);
-                 }
-                 return ds;
-             }
-             catch (Exception e)
-             {
-                 return null;
-             }
-         }
-     }
-
-     /// <summary>
-     /// 功    能：根据编号查找项目（返回对象）
-     /// 作    者：卢苇
-     /// 编写日期：2015-10-21
-     /// </summary>
-     /// <param name="projectID">项目编号</param>
-     /// <returns>项目（对象方式）</returns>
-     [WebMethod(Description = "根据编号查找项目（返回对象）<br />"
-                             + "<a href='../../SDK/PM/Interface.html#projectManager.getProjectByID'>SDK说明</a>", EnableSession = false)]
-     [SoapHeader("PageHeader")]
-     public clsProject getProjectByID(string projectID)
-     {
-         verifyPageHeader(this);
-         return new clsProject(projectID);
-     }
-
-     /// <summary>
-     /// 功    能：收入明细，分页查询语句，根据前台传入的查询条件、排序方式和要检索的字段、分页设置参数，采用分页技术检索项目列表结果集
-     /// 作    者：卢苇
-     /// 编写日期：2016-5-16
-     /// </summary>
-     /// <param name="colList">列名,“*” or “”代表全部字段</param>
-     /// <param name="strWhere">范围约束</param>
-     /// <param name="strOrder">排序要求</param>
-     /// <param name="myPageSet">分页参数</param>
-     /// <returns>项目列表结果集：数据的列为输入的列名前加一个行号</returns>
-     [WebMethod(Description = "分页查询语句，根据前台传入的查询条件、排序方式和要检索的字段、分页设置参数，采用分页技术检索项目列表结果集<br />"
-                             + "<a href='../../SDK/PM/Interface.html#projectManager.PageQueryProjectList'>SDK说明</a>", EnableSession = false)]
-     [SoapHeader("PageHeader")]
-     public pageDataSet PageQueryIncomeList(string colList, string strWhere, string strOrder, pageSet myPageSet)
-     {
-         verifyPageHeader(this);
-         if (colList.Trim() == "" || colList.Trim() == "*")
-         {
-             colList = "incomeInformationID,isnull(convert(varchar(19),startDate,120),'') startDate, abstract, isnull(incomeSum,0) incomeSum,";
-             colList += "remarks";
-         }
-         if (strOrder.Trim() == "")
-         {
-             strOrder = "order by incomeInformationID desc";
-         }
-         string tabName = "incomeList ";
-         if (strWhere != "")
-             strWhere = strWhere.Replace("|", "%");
-
-         return sysTools.pageSelect(tabName, colList, strWhere, strOrder, myPageSet);
-     }
-
-
-     /// <summary>
-     /// 功   能：获取收入明细列表           
-     /// 作    者：卢苇
-     /// 编写日期：2015-10-21
-     /// </summary>
-     /// <param name="colList">列名,“*” or “”代表全部字段</param>
-     /// <param name="strWhere">范围约束</param>
-     /// <param name="strOrder">排序要求</param>
-     /// <returns>项目列表结果集</returns>
-     [WebMethod(Description = "一般查询语句，根据前台传入的查询条件、排序方式和要检索的字段，检索项目列表结果集<br />"
-                             + "<a href='../../SDK/PM/Interface.html#projectManager.getProjectList'>SDK说明</a>", EnableSession = false)]
-     [SoapHeader("PageHeader")]
-     public DataSet getIncomeList(string colList, string strWhere, string strOrder)
-     {
-         verifyPageHeader(this);
-         if (colList.Trim() == "" || colList.Trim() == "*")
-         {
-             colList = "incomeInformationID,isnull(convert(varchar(19),startDate,120),'') startDate, abstract, isnull(incomeSum,0) incomeSum,";
-             colList += "remarks";
-         }
-         if (strWhere != "")
-             strWhere = strWhere.Replace("|", "%");
-         if (strOrder.Trim() == "")
-             strOrder = "order by incomeInformationID desc";
-         string tabName = "incomeList ";
-
-         string strCmd = "select " + colList + " from " + tabName + " " + strWhere + " " + strOrder;
-         //从web.config获取连接字符串
-         string constr = WebConfigurationManager.ConnectionStrings["constr"].ToString();
-         using (SqlConnection sqlcon = new SqlConnection(constr))
-         {
-             try
-             {
-                 sqlcon.Open();
-                 DataSet ds = new DataSet();
-                 using (SqlCommand sqlCmd = new SqlCommand(strCmd, sqlcon))
-                 using (SqlDataAdapter da = new SqlDataAdapter(sqlCmd))
-                 {
-                     da.Fill(ds);
-                 }
-                 return ds;
-             }
-             catch (Exception e)
-             {
-                 return null;
-             }
-         }
-     }
-
-     #endregion
-
-
-     #region 借支单的增删改及锁定
-
-     /// <summary>
+    /// <summary>
     /// 功    能：添加借支单
     /// 作    者：卢嘉诚
     /// 编写日期：2016-4-21
@@ -275,13 +48,13 @@ public class FinancialSystem : virtualWebService
     /// <param name="projectName">所在项目（名称）</param>
     /// <param name="borrowReason">借支事由</param>
     /// <param name="borrowSum">借支金额</param>
-     /// <param name="createManID">创建人ID</param>
+    /// <param name="flowProgress">流转进度</param>
     /// <returns>成功：借支单编号，采用401号号码发生器发生；失败："Error：..."</returns>
     [WebMethod(Description = "添加借支单<br />"
                            + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
     //[SoapHeader("PageHeader")]
      public string addBorrowSingle(string borrowManID, string borrowMan, string position, string departmentID, string department, string borrowDate, string projectID,
-        string projectName, string borrowReason, decimal borrowSum, string createManID)
+        string projectName, string borrowReason, decimal borrowSum, int flowProgress)
     {
         //verifyPageHeader(this);
         int ret = 9;
@@ -290,44 +63,45 @@ public class FinancialSystem : virtualWebService
         SqlConnection sqlCon = new SqlConnection(conStr);
         sqlCon.Open();
         /*
-	            name:		addborrowSingle
+           	     name:		addborrowSingle
 	            function:	1.添加借支单
 				            注意：本存储过程不锁定编辑！
 	            input: 
-			            @borrowManID varchar(10),		--借支人ID
-			            @borrowMan varchar(30),		    --借支人（姓名）
-			            @position	varchar(20),		--职务
-			            @departmentID	varchar(13),	--部门ID
-			            @department	varchar(30),		--部门
-			            @borrowDate	smalldatetime,  	--借支时间
-			            @projectID	 varchar(13),		--所在项目ID
-			            @projectName	varchar(30),	--所在项目（名称）
+			            @borrowSingleID varchar(15) ,  --借支单号,主键 由401号号码发生器生成
+			            @borrowManID varchar(13)	,	--借支人ID
+			            @borrowMan varchar(20)	,		--借支人（姓名）
+			            @position	varchar(10)	,	--职务
+			            @departmentID	varchar(13)	,	--部门ID
+			            @department	varchar(16)	,	--部门
+			            @borrowDate	varchar(19)	,	--借支时间
+			            @projectID	varchar(14),	--所在项目ID
+			            @projectName	varchar(200),	--所在项目（名称）
 			            @borrowReason	varchar(200),	--借支事由
-			            @borrowSum		numeric(15,2),  --借支金额
+			            @borrowSum	money,	--借支金额
+			            @flowProgress varchar(10),		--流转进度：0：待审核，1：审批中，2：已审结
 
 			            @createManID varchar(10),		--创建人工号
 	            output: 
-				            @borrowSingleID varchar(13),	--借支单号,主键 由401号号码发生器生成
 				            @Ret		int output		--操作成功标识
-							            0:成功，9：未知错误
+							            0:成功，1：该国别名称或代码已存在，9：未知错误
+				            @rowNum		int output,		--序号
+				            @createTime smalldatetime output
 	            author:		卢嘉诚
 	            CreateDate:	2016-3-23
+	            UpdateDate: 2016-3-23 by lw 根据编辑要求增加rowNum返回参数
         */
         SqlCommand cmd = new SqlCommand("addborrowSingle", sqlCon);
         cmd.CommandType = CommandType.StoredProcedure;
 
-        cmd.Parameters.Add("@borrowSingleID", SqlDbType.VarChar, 13);
-        cmd.Parameters["@borrowSingleID"].Direction = ParameterDirection.Output;
-
-        cmd.Parameters.Add("@borrowManID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@borrowManID", SqlDbType.VarChar, 13);
         cmd.Parameters["@borrowManID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@borrowManID"].Value = borrowManID;
 
-        cmd.Parameters.Add("@borrowMan", SqlDbType.VarChar, 30);
+        cmd.Parameters.Add("@borrowMan", SqlDbType.VarChar, 20);
         cmd.Parameters["@borrowMan"].Direction = ParameterDirection.Input;
         cmd.Parameters["@borrowMan"].Value = borrowMan;
 
-        cmd.Parameters.Add("@position", SqlDbType.VarChar, 20);
+        cmd.Parameters.Add("@position", SqlDbType.VarChar, 10);
         cmd.Parameters["@position"].Direction = ParameterDirection.Input;
         cmd.Parameters["@position"].Value = position;
 
@@ -335,7 +109,7 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@departmentID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@departmentID"].Value = departmentID;
 
-        cmd.Parameters.Add("@department", SqlDbType.VarChar, 30);
+        cmd.Parameters.Add("@department", SqlDbType.VarChar, 16);
         cmd.Parameters["@department"].Direction = ParameterDirection.Input;
         cmd.Parameters["@department"].Value = department;
 
@@ -343,11 +117,11 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@borrowDate"].Direction = ParameterDirection.Input;
         cmd.Parameters["@borrowDate"].Value = borrowDate;
 
-        cmd.Parameters.Add("@projectID", SqlDbType.VarChar, 13);
+        cmd.Parameters.Add("@projectID", SqlDbType.VarChar, 14);
         cmd.Parameters["@projectID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@projectID"].Value = projectID;
 
-        cmd.Parameters.Add("@projectName", SqlDbType.VarChar, 30);
+        cmd.Parameters.Add("@projectName", SqlDbType.VarChar, 200);
         cmd.Parameters["@projectName"].Direction = ParameterDirection.Input;
         cmd.Parameters["@projectName"].Value = projectName;
 
@@ -355,18 +129,23 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@borrowReason"].Direction = ParameterDirection.Input;
         cmd.Parameters["@borrowReason"].Value = borrowReason;
 
-        cmd.Parameters.Add("@borrowSum", SqlDbType.Money);
+        cmd.Parameters.Add("@borrowSum", SqlDbType.Decimal, 12);
         cmd.Parameters["@borrowSum"].Direction = ParameterDirection.Input;
         cmd.Parameters["@borrowSum"].Value = borrowSum;
 
+        cmd.Parameters.Add("@flowProgress", SqlDbType.Int);
+        cmd.Parameters["@flowProgress"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@flowProgress"].Value = flowProgress;
+
         cmd.Parameters.Add("@createManID", SqlDbType.VarChar, 10);
         cmd.Parameters["@createManID"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@createManID"].Value = createManID;
+        cmd.Parameters["@createManID"].Value = "user100";
 
         cmd.Parameters.Add("@Ret", SqlDbType.Int);
         cmd.Parameters["@Ret"].Direction = ParameterDirection.Output;
 
-
+        cmd.Parameters.Add("@borrowSingleID", SqlDbType.VarChar, 15);
+        cmd.Parameters["@borrowSingleID"].Direction = ParameterDirection.Output;
         try
         {
             cmd.ExecuteNonQuery();
@@ -406,13 +185,13 @@ public class FinancialSystem : virtualWebService
     /// <param name="projectName">所在项目（名称）</param>
     /// <param name="borrowReason">借支事由</param>
     /// <param name="borrowSum">借支金额</param>
-    /// <param name="lockManID">锁定人ID</param>
-    /// <returns>成功：编辑成功！；失败："Error：..."</returns>
+    /// <param name="flowProgress">流转进度</param>
+    /// <returns>成功：返回@Ret表示；失败："Error：..."</returns>
     [WebMethod(Description = "编辑借支单<br />"
                            + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
     //[SoapHeader("PageHeader")]
     public string editBorrowSingle(string borrowSingleID,string borrowManID, string borrowMan, string position, string departmentID, string department, string borrowDate, string projectID,
-        string projectName, string borrowReason, decimal borrowSum, string lockManID)
+        string projectName, string borrowReason, decimal borrowSum, int flowProgress)
     {
         //verifyPageHeader(this);
         int ret = 9;
@@ -421,45 +200,47 @@ public class FinancialSystem : virtualWebService
         SqlConnection sqlCon = new SqlConnection(conStr);
         sqlCon.Open();
         /*
-	        name:		editborrowSingle
-	        function:	1.编辑借支单
-				        注意：本存储过程锁定编辑！
-	        input: 
-			        @borrowSingleID varchar(13),	--借支单号,主键
-			        @borrowManID varchar(10),		--借支人ID
-			        @borrowMan varchar(30),		--借支人（姓名）
-			        @position	varchar(20),			--职务
-			        @departmentID	varchar(13),		--部门ID
-			        @department	varchar(30),		--部门
-			        @borrowDate	smalldatetime,	--借支时间
-			        @projectID	 varchar(13),		--所在项目ID
-			        @projectName	varchar(30),		--所在项目（名称）
-			        @borrowReason	varchar(200),		--借支事由
-			        @borrowSum		numeric(15,2),--借支金额
+           	     name:		addborrowSingle
+	            function:	1.添加借支单
+				            注意：本存储过程不锁定编辑！
+	            input: 
+                        @borrowSingleID varchar(15), 	--主键：借支单号，使用第 3 号号码发生器产生
+			            @borrowManID varchar(13)	,	--借支人ID
+			            @borrowMan varchar(20)	,		--借支人（姓名）
+			            @position	varchar(10)	,	--职务
+			            @departmentID	varchar(13)	,	--部门ID
+			            @department	varchar(16)	,	--部门
+			            @borrowDate	smalldatetime	,	--借支时间
+			            @projectID	varchar(14),	--所在项目ID
+			            @projectName	varchar(200),	--所在项目（名称）
+			            @borrowReason	varchar(200),	--借支事由
+			            @borrowSum	Decimal(12),	--借支金额
+			            @flowProgress smallint,		--流转进度
 
-	        output: 
-				        @lockManID varchar(10) output,		--锁定人工号
-				        @Ret		int output		--操作表示，0：成功，1：该借支单不存在，2：该单据为审核状态不允许编辑，3：该单据被其他人编辑占用,4:请先锁定该单据再编辑,避免冲突
-
-	        author:		卢嘉诚
-	        CreateDate:	2016-3-23
+			            @modiManID varchar(10),		--维护人工号
+	            output: 
+				            @Ret		int output		--操作成功标识
+							            --操作表示，0：成功，1：该单据被其他人编辑占用，2：该单据为审核状态不允许编辑
+	            author:		卢嘉诚
+	            CreateDate:	2016-3-23
+	            UpdateDate: 2016-3-23 by lw 根据编辑要求增加rowNum返回参数
         */
         SqlCommand cmd = new SqlCommand("editBorrowSingle", sqlCon);
         cmd.CommandType = CommandType.StoredProcedure;
 
-        cmd.Parameters.Add("@borrowSingleID", SqlDbType.VarChar, 13);
+        cmd.Parameters.Add("@borrowSingleID", SqlDbType.VarChar, 15);
         cmd.Parameters["@borrowSingleID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@borrowSingleID"].Value = borrowSingleID;
 
-        cmd.Parameters.Add("@borrowManID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@borrowManID", SqlDbType.VarChar, 13);
         cmd.Parameters["@borrowManID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@borrowManID"].Value = borrowManID;
 
-        cmd.Parameters.Add("@borrowMan", SqlDbType.VarChar, 30);
+        cmd.Parameters.Add("@borrowMan", SqlDbType.VarChar, 20);
         cmd.Parameters["@borrowMan"].Direction = ParameterDirection.Input;
         cmd.Parameters["@borrowMan"].Value = borrowMan;
 
-        cmd.Parameters.Add("@position", SqlDbType.VarChar, 20);
+        cmd.Parameters.Add("@position", SqlDbType.VarChar, 10);
         cmd.Parameters["@position"].Direction = ParameterDirection.Input;
         cmd.Parameters["@position"].Value = position;
 
@@ -467,7 +248,7 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@departmentID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@departmentID"].Value = departmentID;
 
-        cmd.Parameters.Add("@department", SqlDbType.VarChar, 30);
+        cmd.Parameters.Add("@department", SqlDbType.VarChar, 16);
         cmd.Parameters["@department"].Direction = ParameterDirection.Input;
         cmd.Parameters["@department"].Value = department;
 
@@ -475,11 +256,11 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@borrowDate"].Direction = ParameterDirection.Input;
         cmd.Parameters["@borrowDate"].Value = borrowDate;
 
-        cmd.Parameters.Add("@projectID", SqlDbType.VarChar, 13);
+        cmd.Parameters.Add("@projectID", SqlDbType.VarChar, 14);
         cmd.Parameters["@projectID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@projectID"].Value = projectID;
 
-        cmd.Parameters.Add("@projectName", SqlDbType.VarChar, 30);
+        cmd.Parameters.Add("@projectName", SqlDbType.VarChar, 200);
         cmd.Parameters["@projectName"].Direction = ParameterDirection.Input;
         cmd.Parameters["@projectName"].Value = projectName;
 
@@ -487,14 +268,17 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@borrowReason"].Direction = ParameterDirection.Input;
         cmd.Parameters["@borrowReason"].Value = borrowReason;
 
-        cmd.Parameters.Add("@borrowSum", SqlDbType.Money);
+        cmd.Parameters.Add("@borrowSum", SqlDbType.Decimal, 12);
         cmd.Parameters["@borrowSum"].Direction = ParameterDirection.Input;
         cmd.Parameters["@borrowSum"].Value = borrowSum;
 
-        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar,10);
-        cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
-        cmd.Parameters["@lockManID"].Value = lockManID;
+        cmd.Parameters.Add("@flowProgress", SqlDbType.Int);
+        cmd.Parameters["@flowProgress"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@flowProgress"].Value = flowProgress;
 
+        cmd.Parameters.Add("@modiManID", SqlDbType.VarChar, 10);
+        cmd.Parameters["@modiManID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@modiManID"].Value = "user100";
          
         cmd.Parameters.Add("@Ret", SqlDbType.Int);
         cmd.Parameters["@Ret"].Direction = ParameterDirection.Output;
@@ -503,17 +287,8 @@ public class FinancialSystem : virtualWebService
         {
             cmd.ExecuteNonQuery();
             ret = (int)cmd.Parameters["@Ret"].Value;
-            lockManID = (string)cmd.Parameters["@lockManID"].Value;
             if (ret == 0)
                 return "编辑成功！";
-            if (ret == 1)
-                return "Error:借支单" + borrowSingleID + "不存在！";
-            if (ret == 2)
-                return "Error:借支单" + borrowSingleID + "为审核状态不允许编辑！";
-            if (ret == 3)
-                return "Error:该单据已被用户" + lockManID + "锁定，无法编辑";
-            if (ret == 4)
-                return "Error:请先锁定该借支单再编辑，避免冲突";
             else
                 return "Error:未知错误！";
         }
@@ -538,7 +313,7 @@ public class FinancialSystem : virtualWebService
     /// </summary>
     /// <param name="borrowSingleID">借支单号ID</param>
     /// <param name="lockManID">锁定人ID</param>
-    /// <returns>成功：锁定成功！；失败："Error：..."</returns>
+    /// <returns>成功：返回@Ret表示；失败："Error：..."</returns>
     [WebMethod(Description = "锁定指定借支单<br />"
                            + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
     //[SoapHeader("PageHeader")]
@@ -555,8 +330,8 @@ public class FinancialSystem : virtualWebService
 	            function:	1.锁定借支单
 				            锁定借支单编辑，避免编辑冲突
 	input: 
-				@borrwSingleID varchar(13),			--借支单ID
-				@lockManID varchar(10) output,	--锁定人，如果当前设备借用申请单正在被人占用编辑则返回该人的工号
+				@borrwSingleID varchar(15),			--借支单ID
+				@lockManID varchar(13) output,	--锁定人，如果当前设备借用申请单正在被人占用编辑则返回该人的工号
 	output: 
 				@Ret		int output		--操作成功标识
 							0:成功，1：要锁定的借支单不存在，2:要锁定的借支单正在被别人编辑，
@@ -569,12 +344,12 @@ public class FinancialSystem : virtualWebService
         SqlCommand cmd = new SqlCommand("lockBorrowSingleEdit", sqlCon);
         cmd.CommandType = CommandType.StoredProcedure;
 
-        cmd.Parameters.Add("@borrowSingleID", SqlDbType.VarChar, 13);
+        cmd.Parameters.Add("@borrowSingleID", SqlDbType.VarChar, 15);
         cmd.Parameters["@borrowSingleID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@borrowSingleID"].Value = borrowSingleID;
 
 
-        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
         cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
         cmd.Parameters["@lockManID"].Value = lockManID;
 
@@ -589,11 +364,11 @@ public class FinancialSystem : virtualWebService
             if (ret == 0)
                 return "锁定成功！";
             else if (ret == 1)
-                return "Error:借支单" + borrowSingleID + "不存在！";
+                return "借支单" + borrowSingleID + "不存在！";
             else if (ret == 2)
-                return "Error:该单据已被用户" + lockManID + "锁定！";
+                return "该单据已被用户" + lockManID + "锁定！";
             else
-                return "Error:未知错误！";
+                return "未知错误！";
         }
         catch (Exception e)
         {
@@ -616,7 +391,7 @@ public class FinancialSystem : virtualWebService
     /// </summary>
     /// <param name="borrowSingleID">借支单号ID</param>
     /// <param name="lockManID">锁定人ID</param>
-    /// <returns>成功：释放编辑锁成功！；失败："Error：..."</returns>
+    /// <returns>成功：返回@Ret表示；失败："Error：..."</returns>
     [WebMethod(Description = "释放指定借支单编辑锁<br />"
                            + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
     //[SoapHeader("PageHeader")]
@@ -633,23 +408,24 @@ public class FinancialSystem : virtualWebService
 	            function:	1.释放锁定借支单编辑，避免编辑冲突
 				           
 	input: 
-				@borrwSingleID varchar(13),			--借支单ID
-				@lockManID varchar(10) output,	--锁定人，如果当前设备借用申请单正在被人占用编辑则返回该人的工号
+				@borrwSingleID varchar(15),			--借支单ID
+				@lockManID varchar(13) output,	--锁定人，如果当前设备借用申请单正在被人占用编辑则返回该人的工号
 	output: 
 				@Ret		int output		--操作成功标识
 							0:成功，1：该借支单不存在，2：锁定该单据的人不是自己，8:该单据未被锁定,9：未知错误
 	            author:		卢嘉诚
 	            CreateDate:	2016-3-23
+	            UpdateDate: 2016-3-23 by lw 根据编辑要求增加rowNum返回参数
         */
         SqlCommand cmd = new SqlCommand("unlockborrowSingleEdit", sqlCon);
         cmd.CommandType = CommandType.StoredProcedure;
 
-        cmd.Parameters.Add("@borrowSingleID", SqlDbType.VarChar, 13);
+        cmd.Parameters.Add("@borrowSingleID", SqlDbType.VarChar, 15);
         cmd.Parameters["@borrowSingleID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@borrowSingleID"].Value = borrowSingleID;
 
 
-        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
         cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
         cmd.Parameters["@lockManID"].Value = lockManID;
 
@@ -664,13 +440,13 @@ public class FinancialSystem : virtualWebService
             if (ret == 0)
                 return "释放编辑锁成功！";
             else if (ret == 1)
-                return "Error:借支单" + borrowSingleID + "不存在！";
+                return "借支单" + borrowSingleID + "不存在！";
             else if (ret == 2)
-                return "Error:该单据已被用户" + lockManID + "锁定！";
+                return "该单据已被用户" + lockManID + "锁定！";
             else if (ret == 8)
-                return "Error:该单据未被任何人锁定";
+                return "该单据未被任何人锁定";
             else
-                return "Error:未知错误！";
+                return "未知错误！";
         }
         catch (Exception e)
         {
@@ -693,35 +469,34 @@ public class FinancialSystem : virtualWebService
     /// </summary>
     /// <param name="borrowSingleID">借支单号ID</param>
     /// <param name="lockManID">锁定人ID</param>
-    /// <returns>成功：删除借支单成功！；失败："Error：..."</returns>
+    /// <returns>成功：返回@Ret表示；失败："Error：..."</returns>
     [WebMethod(Description = "删除指定借支单<br />"
                            + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
-    [SoapHeader("PageHeader")]
+    //[SoapHeader("PageHeader")]
     public string delborrowSingle(string borrowSingleID, string lockManID)
     {
-        verifyPageHeader(this);
+        //verifyPageHeader(this);
         int ret = 9;
         //从web.config获取连接字符串
         string conStr = WebConfigurationManager.ConnectionStrings["conStr"].ToString();
         SqlConnection sqlCon = new SqlConnection(conStr);
         sqlCon.Open();
         /*
-	        name:		delborrowSingle
-	        function:	删除指定借支单
-	        input: 
-				        @borrowSingleID varchar(13),			--借支单ID
-				        @lockManID varchar(10) output,	--锁定人，如果当前设备借用申请单正在被人占用编辑则返回该人的工号
-	        output: 
-				        @Ret		int output		--操作成功标识
-							        0:成功，
-							        1：指定的借支单不存在，
-							        2:要删除的借支单正被别人锁定，
-							        3:该单据已经批复，不能删除，
-							        4:请先锁定该借支单，再删除，避免冲突
-							        9：未知错误
-	        author:		卢嘉诚
-	        CreateDate:	2016-4-16
-
+	            name:		delborrowSingle
+	            function:	删除指定借支单
+	            input: 
+				            @borrowSingleID varchar(15),			--借支单ID
+				            @lockManID varchar(13) output,	--锁定人，如果当前设备借用申请单正在被人占用编辑则返回该人的工号
+	            output: 
+				            @Ret		int output		--操作成功标识
+							            0:成功，
+							            1：指定的借支单不存在，
+							            2:要删除的借支单正被别人锁定，
+							            3:该单据已经批复，不能删除，
+							            9：未知错误
+	            author:		卢嘉诚
+	            CreateDate:	2016-4-16
+	            UpdateDate: 
         */
         SqlCommand cmd = new SqlCommand("delborrowSingle", sqlCon);
         cmd.CommandType = CommandType.StoredProcedure;
@@ -746,15 +521,13 @@ public class FinancialSystem : virtualWebService
             if (ret == 0)
                 return "删除借支单成功！";
             else if (ret == 1)
-                return "Error:借支单" + borrowSingleID + "不存在！";
+                return "借支单" + borrowSingleID + "不存在！";
             else if (ret == 2)
-                return "Error:该单据已被用户" + lockManID + "锁定！";
+                return "该单据已被用户" + lockManID + "锁定！";
             else if (ret == 3)
-                return "Error:该单据处于审核状态无法删除";
-            else if (ret == 4)
-                return "Error:请先锁定该借支单，再删除，避免冲突";
+                return "该单据处于审核状态无法删除";
             else
-                return "Error:未知错误！";
+                return "未知错误！";
         }
         catch (Exception e)
         {
@@ -797,28 +570,34 @@ public class FinancialSystem : virtualWebService
         sqlCon.Open();
         /*
 	        name:		AuditBorrowSingle
-	        function:	1.审核借支单
+	        function:	1.审核指定借支单
 				        注意：本存储过程不锁定编辑！
 	        input: 
-			        @billID	varchar(13),				--借支单ID
-			        @approvalStatus smallint,			--审批情况（0：同意/1“不同意）
-			        @approvalOpinions	varchar(200),		--审批意见
-			        @examinationPeoplePost varchar(20),	--审批人职务
-			        @examinationPeopleID	varchar(10),	--审批人ID
-			        @examinationPeopleName	varchar(30),	--审批人名称
 
-			        @createManID varchar(10) output,			--创建人ID
+			        @billID	varchar(15),	--借支单ID
+			        @approvalStatus int,	--审批情况（同意/不同意）
+			        @approvalOpinions	varchar(200),	--审批意见
+			        @examinationPeoplePost varchar(50),	--审批人职务
+			        @examinationPeopleID	varchar(20),	--审批人ID
+			        @examinationPeopleName	varchar(20),	--审批人名称
+
+
+
 	        output: 
-			        @Ret		int output           --操作成功标识,0:成功，1：要审核的借支单不存在，2：该借支单正在被其他用户锁定，3：该借支单为处于审核状态，4:请先锁定该借支单再审核避免冲突，9：未知错误
+			        @ApprovalDetailsID varchar(16) output,	--审批详情ID，主键，使用402号号码发生器生成
+			        @Ret		int output           --操作成功标识,0:成功，1：要审核的借支单不存在，2：该借支单正在被其他用户锁定，3：该借支单为处于审核状态，9：未知错误
+			        @createManID varchar(13) output,			--创建人ID
+				        @createTime smalldatetime output
 	        author:		卢嘉诚
 	        CreateDate:	2016-5-7
-
         */
         SqlCommand cmd = new SqlCommand("AuditBorrowSingle", sqlCon);
         cmd.CommandType = CommandType.StoredProcedure;
 
+        cmd.Parameters.Add("@ApprovalDetailsID", SqlDbType.VarChar,16);
+        cmd.Parameters["@ApprovalDetailsID"].Direction = ParameterDirection.Output;
 
-        cmd.Parameters.Add("@billID", SqlDbType.VarChar,13);
+        cmd.Parameters.Add("@billID", SqlDbType.VarChar,15);
         cmd.Parameters["@billID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@billID"].Value = billID;
 
@@ -830,19 +609,19 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@approvalOpinions"].Direction = ParameterDirection.Input;
         cmd.Parameters["@approvalOpinions"].Value = approvalOpinions;
 
-        cmd.Parameters.Add("@examinationPeoplePost", SqlDbType.VarChar,20);
+        cmd.Parameters.Add("@examinationPeoplePost", SqlDbType.VarChar,50);
         cmd.Parameters["@examinationPeoplePost"].Direction = ParameterDirection.Input;
         cmd.Parameters["@examinationPeoplePost"].Value = examinationPeoplePost;
 
-        cmd.Parameters.Add("@examinationPeopleID", SqlDbType.VarChar,10);
+        cmd.Parameters.Add("@examinationPeopleID", SqlDbType.VarChar,20);
         cmd.Parameters["@examinationPeopleID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@examinationPeopleID"].Value = examinationPeopleID;
 
-        cmd.Parameters.Add("@examinationPeopleName", SqlDbType.VarChar,30);
+        cmd.Parameters.Add("@examinationPeopleName", SqlDbType.VarChar,20);
         cmd.Parameters["@examinationPeopleName"].Direction = ParameterDirection.Input;
         cmd.Parameters["@examinationPeopleName"].Value = examinationPeopleName;
 
-        cmd.Parameters.Add("@createManID", SqlDbType.VarChar,10);
+        cmd.Parameters.Add("@createManID", SqlDbType.VarChar,13);
         cmd.Parameters["@createManID"].Direction = ParameterDirection.InputOutput;
         cmd.Parameters["@createManID"].Value = createManID;
 
@@ -909,7 +688,7 @@ public class FinancialSystem : virtualWebService
     /// <param name="businessPeopleID">出差人ID</param>
     /// <param name="businessPeople">出差人姓名</param>
     /// <param name="businessReason">出差事由</param>
-    /// <param name="approvalStatus">审批进度</param>
+    /// <param name="approvalProgress">审批进度</param>
     /// <returns>成功：借支单编号，采用401号号码发生器发生；失败："Error：..."</returns>
     [WebMethod(Description = "添加费用报销单<br />"
                            + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
@@ -917,7 +696,7 @@ public class FinancialSystem : virtualWebService
     public string addExpRemSingle(string departmentID, string ExpRemDepartment, string ExpRemDate, string projectID,
         string projectName, int ExpRemSingleNum, string note, int expRemSingleType, decimal amount, string borrowSingleID,
         decimal originalloan, decimal replenishment, decimal shouldRefund, string ExpRemPersonID, string ExpRemPerson,
-        string businessPeopleID, string businessPeople, string businessReason, int approvalStatus, string createManID)
+        string businessPeopleID, string businessPeople, string businessReason, int approvalProgress)
     {
         //verifyPageHeader(this);
         int ret = 9;
@@ -926,38 +705,38 @@ public class FinancialSystem : virtualWebService
         SqlConnection sqlCon = new SqlConnection(conStr);
         sqlCon.Open();
         /*
-	        name:		addExpRemSingle
+            name:		addExpRemSingle
 	        function:	1.添加费用报销单
 				        注意：本存储过程不锁定编辑！
 	        input: 
-				        @departmentID varchar(13) ,	--部门ID
-				        @ExpRemDepartment varchar(30)	,	--报销部门
-				        @ExpRemDate smalldatetime ,	--报销日期
-				        @projectID varchar(13) ,	--项目ID
-				        @projectName varchar(50) ,	--项目名称
+				        @ExpRemSingleID varchar(15) not null,  --报销单编号
+				        @departmentID varchar(13) not null,	--部门ID
+				        @ExpRemDepartment varchar(20)	not null,	--报销部门
+				        @ExpRemDate smalldatetime not null,	--报销日期
+				        @projectID varchar(13) not null,	--项目ID
+				        @projectName varchar(50) not null,	--项目名称
 				        @ExpRemSingleNum smallint ,	--报销单据及附件
 				        @note varchar(200),	--备注
-				        @expRemSingleType smallint ,	--报销单类型，0：费用报销单，1：差旅费报销单
-				        @amount numeric(15,2) ,	--合计金额
-				        @borrowSingleID varchar(13) ,	--原借支单ID
-				        @originalloan numeric(15,2) ,	--原借款
-				        @replenishment numeric(15,2) ,	--应补款
-				        @shouldRefund numeric(15,2) ,	--应退款
-				        @ExpRemPersonID varchar(10) ,	--报销人编号
-				        @ExpRemPerson varchar(30),	--报销人姓名
-				        @businessPeopleID	varchar(10),	--出差人编号
-				        @businessPeople	varchar(30) ,	--出差人
-				        @businessReason varchar(200)	,	--出差事由
-				        @approvalStatus smallint ,		--审批状态，0：未发起，1：审核中，2：审批完成
+				        @expRemSingleType smallint default,	--报销单类型，0：费用报销单，1：差旅费报销单
+				        @amount money not null,	--合计金额
+				        @borrowSingleID varchar(15) ,	--原借支单ID
+				        @originalloan money not null,	--原借款
+				        @replenishment money not null,	--应补款
+				        @shouldRefund money not null,	--应退款
+				        @ExpRemPersonID varchar(14) not null,	--报销人编号
+				        @ExpRemPerson varchar(10)	not	null,	--报销人姓名
+				        @businessPeopleID	varchar(14) not null,	--出差人编号
+				        @businessPeople	varchar(10) not null,	--出差人
+				        @businessReason varchar(200)	not null,	--出差事由
+				        @approvalProgress smallint default(0) not null,	--审批进度
 
-				        @createManID varchar(10),		--创建人工号
+			        @createManID varchar(10),		--创建人工号
 	        output: 
 				        @Ret		int output		--操作成功标识
 							        0:成功，1：该国别名称或代码已存在，9：未知错误
-				        @ExpRemSingleID varchar(13) output	--主键：报销单编号，使用第403号号码发生器产生
+				        @rowNum		int output,		--序号
 				        @createTime smalldatetime output
 	        author:		卢嘉诚
-	        CreateDate:	2016-3-23
         */
         SqlCommand cmd = new SqlCommand("addExpRemSingle", sqlCon);
         cmd.CommandType = CommandType.StoredProcedure;
@@ -966,7 +745,7 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@departmentID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@departmentID"].Value = departmentID;
 
-        cmd.Parameters.Add("@ExpRemDepartment", SqlDbType.VarChar, 30);
+        cmd.Parameters.Add("@ExpRemDepartment", SqlDbType.VarChar, 20);
         cmd.Parameters["@ExpRemDepartment"].Direction = ParameterDirection.Input;
         cmd.Parameters["@ExpRemDepartment"].Value = ExpRemDepartment;
 
@@ -998,7 +777,7 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@amount"].Direction = ParameterDirection.Input;
         cmd.Parameters["@amount"].Value = amount;
 
-        cmd.Parameters.Add("@borrowSingleID", SqlDbType.VarChar,13);
+        cmd.Parameters.Add("@borrowSingleID", SqlDbType.VarChar,15);
         cmd.Parameters["@borrowSingleID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@borrowSingleID"].Value = borrowSingleID;
 
@@ -1014,19 +793,19 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@shouldRefund"].Direction = ParameterDirection.Input;
         cmd.Parameters["@shouldRefund"].Value = shouldRefund;
 
-        cmd.Parameters.Add("@ExpRemPersonID", SqlDbType.VarChar,10);
+        cmd.Parameters.Add("@ExpRemPersonID", SqlDbType.VarChar,13);
         cmd.Parameters["@ExpRemPersonID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@ExpRemPersonID"].Value = ExpRemPersonID;
 
-        cmd.Parameters.Add("@ExpRemPerson", SqlDbType.VarChar,30);
+        cmd.Parameters.Add("@ExpRemPerson", SqlDbType.VarChar,10);
         cmd.Parameters["@ExpRemPerson"].Direction = ParameterDirection.Input;
         cmd.Parameters["@ExpRemPerson"].Value = ExpRemPerson;
 
-        cmd.Parameters.Add("@businessPeopleID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@businessPeopleID", SqlDbType.VarChar, 13);
         cmd.Parameters["@businessPeopleID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@businessPeopleID"].Value = businessPeopleID;
 
-        cmd.Parameters.Add("@businessPeople", SqlDbType.VarChar, 30);
+        cmd.Parameters.Add("@businessPeople", SqlDbType.VarChar, 10);
         cmd.Parameters["@businessPeople"].Direction = ParameterDirection.Input;
         cmd.Parameters["@businessPeople"].Value = businessPeople;
 
@@ -1034,18 +813,21 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@businessReason"].Direction = ParameterDirection.Input;
         cmd.Parameters["@businessReason"].Value = businessReason;
 
-        cmd.Parameters.Add("@approvalStatus", SqlDbType.SmallInt);
-        cmd.Parameters["@approvalStatus"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@approvalStatus"].Value = approvalStatus;
+        cmd.Parameters.Add("@approvalProgress", SqlDbType.SmallInt);
+        cmd.Parameters["@approvalProgress"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@approvalProgress"].Value = approvalProgress;
 
-        cmd.Parameters.Add("@createManID", SqlDbType.VarChar,10);
+        cmd.Parameters.Add("@createManID", SqlDbType.VarChar,13);
         cmd.Parameters["@createManID"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@createManID"].Value = createManID;
+        cmd.Parameters["@createManID"].Value = "user100";
 
         cmd.Parameters.Add("@Ret", SqlDbType.Int);
         cmd.Parameters["@Ret"].Direction = ParameterDirection.Output;
 
-        cmd.Parameters.Add("@ExpRemSingleID", SqlDbType.VarChar, 13);
+        cmd.Parameters.Add("@createTime", SqlDbType.SmallDateTime);
+        cmd.Parameters["@createTime"].Direction = ParameterDirection.Output;
+
+        cmd.Parameters.Add("@ExpRemSingleID", SqlDbType.VarChar, 15);
         cmd.Parameters["@ExpRemSingleID"].Direction = ParameterDirection.Output;
         try
         {
@@ -1088,7 +870,7 @@ public class FinancialSystem : virtualWebService
     [WebMethod(Description = "添加费用报销详情<br />"
                            + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
     //[SoapHeader("PageHeader")]
-    public string addExpenseReimbursementDetails(string ExpRemSingleID, string ExpRemAbstract, string supplementaryExplanation, string financialAccountID, string financialAccount, decimal expSum ,string createManID)
+    public string addExpenseReimbursementDetails(string ExpRemSingleID, string ExpRemAbstract, string supplementaryExplanation, string financialAccountID, string financialAccount, decimal expSum )
     {
         //verifyPageHeader(this);
         int ret = 9;
@@ -1097,29 +879,30 @@ public class FinancialSystem : virtualWebService
         SqlConnection sqlCon = new SqlConnection(conStr);
         sqlCon.Open();
         /*
-	            name:		addExpenseReimbursementDetails
-	            function:	1.添加费用报销单详情
-				            注意：本存储过程不锁定编辑！
-	            input: 
-				            @ExpRemSingleID	varchar(13),	--报销单ID
-				            @abstract	varchar(100),	--摘要
-				            @supplementaryExplanation	varchar(100),	--补充说明
-				            @financialAccountID	varchar(8),	--报销科目ID
-				            @financialAccount	varchar(30),	--报销科目
-				            @expSum	numeric(15,2),	--金额
+                    name:		addExpenseReimbursementDetails
+	                function:	1.添加费用报销单详情
+				                注意：本存储过程不锁定编辑！
+	                input: 
+				                ExpRemDetailsID	varchar(17)	not null,	--报销详情ID
+				                ExpRemSingleID	varchar(16)	not null,	--报销单ID
+				                abstract	varchar(100)	not null,	--摘要
+				                supplementaryExplanation	varchar(100)	not null,	--补充说明
+				                financialAccountID	varchar(13)	not null,	--报销科目ID
+				                financialAccount	varchar(200)	not null,	--报销科目
+				                expSum	float	not null,	--金额
 
-				            @createManID varchar(10),		--创建人工号
-	            output: 
-				            @Ret		int output,      --操作成功标识，0：成功，9：未知错误
-				            @rowNum		int output,		--序号
-				            @createTime smalldatetime output
-	            author:		卢嘉诚
-	            CreateDate:	2016-3-23
+				                @createManID varchar(10),		--创建人工号
+	                output: 
+				                @Ret		int output		--操作成功标识
+							                0:成功，1：该国别名称或代码已存在，9：未知错误
+				                @rowNum		int output,		--序号
+				                @createTime smalldatetime output
+	                author:		卢嘉诚
         */
         SqlCommand cmd = new SqlCommand("addExpenseReimbursementDetails", sqlCon);
         cmd.CommandType = CommandType.StoredProcedure;
 
-        cmd.Parameters.Add("@ExpRemSingleID", SqlDbType.VarChar, 13);
+        cmd.Parameters.Add("@ExpRemSingleID", SqlDbType.VarChar, 15);
         cmd.Parameters["@ExpRemSingleID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@ExpRemSingleID"].Value = ExpRemSingleID;
 
@@ -1131,11 +914,11 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@supplementaryExplanation"].Direction = ParameterDirection.Input;
         cmd.Parameters["@supplementaryExplanation"].Value = supplementaryExplanation;
 
-        cmd.Parameters.Add("@financialAccountID", SqlDbType.VarChar, 8);
+        cmd.Parameters.Add("@financialAccountID", SqlDbType.VarChar, 13);
         cmd.Parameters["@financialAccountID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@financialAccountID"].Value = financialAccountID;
 
-        cmd.Parameters.Add("@financialAccount", SqlDbType.VarChar, 30);
+        cmd.Parameters.Add("@financialAccount", SqlDbType.VarChar, 200);
         cmd.Parameters["@financialAccount"].Direction = ParameterDirection.Input;
         cmd.Parameters["@financialAccount"].Value = financialAccount;
 
@@ -1143,9 +926,9 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@expSum"].Direction = ParameterDirection.Input;
         cmd.Parameters["@expSum"].Value = expSum;
 
-        cmd.Parameters.Add("@createManID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@createManID", SqlDbType.VarChar, 13);
         cmd.Parameters["@createManID"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@createManID"].Value = createManID;
+        cmd.Parameters["@createManID"].Value = "user100";
 
         cmd.Parameters.Add("@Ret", SqlDbType.Int);
         cmd.Parameters["@Ret"].Direction = ParameterDirection.Output;
@@ -1153,6 +936,8 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters.Add("@createTime", SqlDbType.SmallDateTime);
         cmd.Parameters["@createTime"].Direction = ParameterDirection.Output;
 
+        cmd.Parameters.Add("@ExpRemDetailsID", SqlDbType.VarChar, 17);
+        cmd.Parameters["@ExpRemDetailsID"].Direction = ParameterDirection.Output;
         try
         {
             cmd.ExecuteNonQuery();
@@ -1202,7 +987,7 @@ public class FinancialSystem : virtualWebService
     //[SoapHeader("PageHeader")]
     public string addTravelExpensesDetails(string ExpRemSingleID, string StartDate, string endDate, string startingPoint, string destination, string vehicle, string documentsNum,
         string vehicleSum, string financialAccountID, string financialAccount, int peopleNum, float travelDays, decimal TravelAllowanceStandard, decimal travelAllowancesum,
-        string otherExpenses, decimal otherExpensesSum, string createManID)
+        string otherExpenses, decimal otherExpensesSum)
     {
         //verifyPageHeader(this);
         int ret = 9;
@@ -1211,41 +996,32 @@ public class FinancialSystem : virtualWebService
         SqlConnection sqlCon = new SqlConnection(conStr);
         sqlCon.Open();
         /*
-	       	name:		addTravelExpensesDetails
-	        function:	1.添加差旅费报销详情
-				        注意：本存储过程不锁定编辑！
-	        input: 
-				        @ExpRemSingleID varchar(13),	--报销单编号
-				        @StartDate smalldatetime,	--起始时间
-				        @endDate smalldatetime,	--结束日期
-				        @startingPoint varchar(12),	--起点
-				        @destination varchar(12),	--终点
-				        @vehicle		varchar(12),	--交通工具
-				        @documentsNum	int,	--单据张数
-				        @vehicleSum	numeric(15,2),	--交通费金额
-				        @financialAccountID	varchar(8),	--科目ID
-				        @financialAccount	varchar(30),	--科目名称
-				        @peopleNum	int,	--人数
-				        @travelDays float,	-- 出差天数
-				        @TravelAllowanceStandard numeric(15,2),	--出差补贴标准
-				        @travelAllowancesum	numeric(15,2),	--补贴金额
-				        @otherExpenses	varchar(20),	--其他费用
-				        @otherExpensesSum	numeric(15,2),	--其他费用金额
-
-				        @createManID varchar(10),		--创建人工号
-
-				        @Ret		int output,
-				        @createTime smalldatetime output
-	        output: 
-				        @Ret		int output		--操作成功标识，0：成功，9：未知错误
-				        @createTime smalldatetime output
-	        author:		卢嘉诚
-	        CreateDate:	2016-3-23
+             	name:		addTravelExpensesDetails
+	            function:	1.添加差旅费报销详情
+				            注意：本存储过程不锁定编辑！
+	            input: 
+				            TravelExpensesDetailsID varchar(18) not null,	--差旅费报销详情ID
+				            ExpRemSingleID varchar(15) not null,	--报销单编号
+				            StartDate smalldatetime	not null,	--起始时间
+				            endDate smalldatetime not null,	--结束日期
+				            startingPoint varchar(12) not null,	--起点
+				            destination varchar(12) not null,	--终点
+				            vehicle		varchar(12)	not null,	--交通工具
+				            documentsNum	int	not null,	--单据张数
+				            vehicleSum	money not null,	--交通费金额
+				            financialAccountID	varchar(13)	not null,	--科目ID
+				            financialAccount	varchar(20) not null,	--科目名称
+				            peopleNum	int not null,	--人数
+				            travelDays float ,	-- 出差天数
+				            TravelAllowanceStandard	money,	--出差补贴标准
+				            travelAllowancesum	money	not null,	--补贴金额
+				            otherExpenses	varchar(20) null,	--其他费用
+				            otherExpensesSum	money	null,	--其他费用金额
         */
         SqlCommand cmd = new SqlCommand("addTravelExpensesDetails", sqlCon);
         cmd.CommandType = CommandType.StoredProcedure;
 
-        cmd.Parameters.Add("@ExpRemSingleID", SqlDbType.VarChar, 13);
+        cmd.Parameters.Add("@ExpRemSingleID", SqlDbType.VarChar, 15);
         cmd.Parameters["@ExpRemSingleID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@ExpRemSingleID"].Value = ExpRemSingleID;
 
@@ -1277,11 +1053,11 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@vehicleSum"].Direction = ParameterDirection.Input;
         cmd.Parameters["@vehicleSum"].Value = vehicleSum;
 
-        cmd.Parameters.Add("@financialAccountID", SqlDbType.VarChar,8);
+        cmd.Parameters.Add("@financialAccountID", SqlDbType.VarChar,13);
         cmd.Parameters["@financialAccountID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@financialAccountID"].Value = financialAccountID;
 
-        cmd.Parameters.Add("@financialAccount", SqlDbType.VarChar,30);
+        cmd.Parameters.Add("@financialAccount", SqlDbType.VarChar,20);
         cmd.Parameters["@financialAccount"].Direction = ParameterDirection.Input;
         cmd.Parameters["@financialAccount"].Value = financialAccount;
 
@@ -1309,9 +1085,9 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@otherExpensesSum"].Direction = ParameterDirection.Input;
         cmd.Parameters["@otherExpensesSum"].Value = otherExpensesSum;
 
-        cmd.Parameters.Add("@createManID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@createManID", SqlDbType.VarChar, 13);
         cmd.Parameters["@createManID"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@createManID"].Value = createManID;
+        cmd.Parameters["@createManID"].Value = "user100";
 
         cmd.Parameters.Add("@Ret", SqlDbType.Int);
         cmd.Parameters["@Ret"].Direction = ParameterDirection.Output;
@@ -1319,13 +1095,14 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters.Add("@createTime", SqlDbType.SmallDateTime);
         cmd.Parameters["@createTime"].Direction = ParameterDirection.Output;
 
-
+        cmd.Parameters.Add("@TravelExpensesDetailsID", SqlDbType.VarChar, 17);
+        cmd.Parameters["@TravelExpensesDetailsID"].Direction = ParameterDirection.Output;
         try
         {
             cmd.ExecuteNonQuery();
             ret = (int)cmd.Parameters["@Ret"].Value;
             if (ret == 0)
-                return "添加成功！";
+                return (string)cmd.Parameters["@TravelExpensesDetailsID"].Value;
             else
                 return "Error:未知错误！";
         }
@@ -1366,8 +1143,8 @@ public class FinancialSystem : virtualWebService
 	        name:		delExpRemSingle
 	        function:	删除报销单
 	        input: 
-				        @ExpRemSingleID varchar(13),			--报销单ID
-				        @lockManID varchar(10) output,	--锁定人，如果当前报销单正在被人占用编辑则返回该人的工号
+				        @ExpRemSingleID varchar(15),			--报销单ID
+				        @lockManID varchar(13) output,	--锁定人，如果当前报销单正在被人占用编辑则返回该人的工号
 	        output: 
 				        @Ret		int output		--操作成功标识
 							        0:成功，1：指定的借支单不存在，
@@ -1381,12 +1158,12 @@ public class FinancialSystem : virtualWebService
         SqlCommand cmd = new SqlCommand("delExpRemSingle", sqlCon);
         cmd.CommandType = CommandType.StoredProcedure;
 
-        cmd.Parameters.Add("@ExpRemSingleID", SqlDbType.VarChar, 13);
+        cmd.Parameters.Add("@ExpRemSingleID", SqlDbType.VarChar, 15);
         cmd.Parameters["@ExpRemSingleID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@ExpRemSingleID"].Value = ExpRemSingleID;
 
 
-        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
         cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
         cmd.Parameters["@lockManID"].Value = lockManID;
 
@@ -1401,13 +1178,13 @@ public class FinancialSystem : virtualWebService
             if (ret == 0)
                 return "删除报销单成功！";
             else if (ret == 1)
-                return "Error:报销单" + ExpRemSingleID + "不存在！";
+                return "报销单" + ExpRemSingleID + "不存在！";
             else if (ret == 2)
-                return "Error:该单据已被用户" + lockManID + "锁定！";
+                return "该单据已被用户" + lockManID + "锁定！";
             else if (ret == 3)
-                return "Error:该单据处于审核状态无法删除";
+                return "该单据处于审核状态无法删除";
             else
-                return "Error:未知错误！";
+                return "未知错误！";
         }
         catch (Exception e)
         {
@@ -1446,8 +1223,8 @@ public class FinancialSystem : virtualWebService
             name:		lockExpRemSingleEdit
 	        function:	锁定报销单编辑，避免编辑冲突
 	        input: 
-				        @ExpRemSingleID varchar(13),			--报销单ID
-				        @lockManID varchar(10) output,	--锁定人，如果当前设备借用申请单正在被人占用编辑则返回该人的工号
+				        @ExpRemSingleID varchar(15),			--报销单ID
+				        @lockManID varchar(13) output,	--锁定人，如果当前设备借用申请单正在被人占用编辑则返回该人的工号
 	        output: 
 				        @Ret		int output		--操作成功标识
 							        0:成功，1：要锁定的借支单不存在，2:要锁定的借支单正在被别人编辑，
@@ -1460,12 +1237,12 @@ public class FinancialSystem : virtualWebService
         SqlCommand cmd = new SqlCommand("lockExpRemSingleEdit", sqlCon);
         cmd.CommandType = CommandType.StoredProcedure;
 
-        cmd.Parameters.Add("@ExpRemSingleID", SqlDbType.VarChar, 13);
+        cmd.Parameters.Add("@ExpRemSingleID", SqlDbType.VarChar, 15);
         cmd.Parameters["@ExpRemSingleID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@ExpRemSingleID"].Value = ExpRemSingleID;
 
 
-        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
         cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
         cmd.Parameters["@lockManID"].Value = lockManID;
 
@@ -1480,11 +1257,11 @@ public class FinancialSystem : virtualWebService
             if (ret == 0)
                 return "锁定成功！";
             else if (ret == 1)
-                return "Error:报销单" + ExpRemSingleID + "不存在！";
+                return "报销单" + ExpRemSingleID + "不存在！";
             else if (ret == 2)
-                return "Error:该单据已被用户" + lockManID + "锁定！";
+                return "该单据已被用户" + lockManID + "锁定！";
             else
-                return "Error:未知错误！";
+                return "未知错误！";
         }
         catch (Exception e)
         {
@@ -1523,8 +1300,8 @@ public class FinancialSystem : virtualWebService
             name:		unlockExpRemSingleEdit
 	        function:	释放锁定报销单编辑，避免编辑冲突
 	        input: 
-				        @ExpRemSingleID varchar(13),			--报销单ID
-				        @lockManID varchar(10) output,	--锁定人，如果当前设备借用申请单正在被人占用编辑则返回该人的工号
+				        @ExpRemSingleID varchar(15),			--报销单ID
+				        @lockManID varchar(13) output,	--锁定人，如果当前设备借用申请单正在被人占用编辑则返回该人的工号
 	        output: 
 				        @Ret		int output		--操作成功标识
 							        0:成功，1：要锁定的借支单不存在，2:要锁定的借支单正在被别人编辑，
@@ -1537,12 +1314,12 @@ public class FinancialSystem : virtualWebService
         SqlCommand cmd = new SqlCommand("unlockExpRemSingleEdit", sqlCon);
         cmd.CommandType = CommandType.StoredProcedure;
 
-        cmd.Parameters.Add("@ExpRemSingleID", SqlDbType.VarChar, 13);
+        cmd.Parameters.Add("@ExpRemSingleID", SqlDbType.VarChar, 15);
         cmd.Parameters["@ExpRemSingleID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@ExpRemSingleID"].Value = ExpRemSingleID;
 
 
-        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
         cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
         cmd.Parameters["@lockManID"].Value = lockManID;
 
@@ -1557,13 +1334,13 @@ public class FinancialSystem : virtualWebService
             if (ret == 0)
                 return "释放编辑锁成功！";
             else if (ret == 1)
-                return "Error:报销单" + ExpRemSingleID + "不存在！";
+                return "报销单" + ExpRemSingleID + "不存在！";
             else if (ret == 2)
-                return "Error:该单据已被用户" + lockManID + "锁定！";
+                return "该单据已被用户" + lockManID + "锁定！";
             else if (ret == 8)
-                return "Error:该单据未被任何人锁定";
+                return "该单据未被任何人锁定";
             else
-                return "Error:未知错误！";
+                return "未知错误！";
         }
         catch (Exception e)
         {
@@ -1604,7 +1381,7 @@ public class FinancialSystem : virtualWebService
     /// <param name="businessPeopleID">出差人ID</param>
     /// <param name="businessPeople">出差人姓名</param>
     /// <param name="businessReason">出差事由</param>
-    /// <param name="approvalStatus">审批进度</param>
+    /// <param name="approvalProgress">审批进度</param>
     /// <returns>成功：编辑成功！；失败："Error：..."</returns>
     [WebMethod(Description = "编辑费用报销单<br />"
                            + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
@@ -1612,7 +1389,7 @@ public class FinancialSystem : virtualWebService
     public string editExpRemSingle(string ExpRemSingleID, string departmentID, string ExpRemDepartment, string ExpRemDate, string projectID,
         string projectName, int ExpRemSingleNum, string note, int expRemSingleType, decimal amount, string borrowSingleID,
         decimal originalloan, decimal replenishment, decimal shouldRefund, string ExpRemPersonID, string ExpRemPerson,
-        string businessPeopleID, string businessPeople, string businessReason, int approvalStatus, string lockManID)
+        string businessPeopleID, string businessPeople, string businessReason, int approvalProgress, string lockManID)
     {
         //verifyPageHeader(this);
         int ret = 9;
@@ -1621,43 +1398,43 @@ public class FinancialSystem : virtualWebService
         SqlConnection sqlCon = new SqlConnection(conStr);
         sqlCon.Open();
         /*
-	            name:		editExpRemSingle
+                name:		editExpRemSingle
 	            function:	1.编辑报销单
-				            注意：本存储过程锁定编辑！
+				            注意：本存储过程不锁定编辑！
 	            input: 
-				            @ExpRemSingleID varchar(13),  --报销单ID			
+				            @ExpRemSingleID varchar(15),  --报销单ID			
 				            @departmentID varchar(13) ,	--部门ID
-				            @ExpRemDepartment varchar(30)	,	--报销部门
+				            @ExpRemDepartment varchar(20)	,	--报销部门
 				            @ExpRemDate smalldatetime ,	--报销日期
 				            @projectID varchar(13) ,	--项目ID
 				            @projectName varchar(50) ,	--项目名称
 				            @ExpRemSingleNum smallint ,	--报销单据及附件
 				            @note varchar(200),	--备注
 				            @expRemSingleType smallint ,	--报销单类型，0：费用报销单，1：差旅费报销单
-				            @amount numeric(15,2) ,	--合计金额
-				            @borrowSingleID varchar(13) ,	--原借支单ID
-				            @originalloan numeric(15,2) ,	--原借款
-				            @replenishment numeric(15,2) ,	--应补款
-				            @shouldRefund numeric(15,2) ,	--应退款
-				            @ExpRemPersonID varchar(10) ,	--报销人编号
-				            @ExpRemPerson varchar(30),	--报销人姓名
-				            @businessPeopleID	varchar(10) ,	--出差人编号
-				            @businessPeople	varchar(30) ,	--出差人
+				            @amount money ,	--合计金额
+				            @borrowSingleID varchar(15) ,	--原借支单ID
+				            @originalloan money ,	--原借款
+				            @replenishment money ,	--应补款
+				            @shouldRefund money ,	--应退款
+				            @ExpRemPersonID varchar(14) ,	--报销人编号
+				            @ExpRemPerson varchar(10),	--报销人姓名
+				            @businessPeopleID	varchar ,	--出差人编号
+				            @businessPeople	varchar(10) ,	--出差人
 				            @businessReason varchar(200)	,	--出差事由
-				            @approvalStatus smallint ,	--审批进度:0：新建，1：待审批，2：审批中,3:已审结
+				            @approvalProgress smallint ,	--审批进度:0：新建，1：待审批，2：审批中,3:已审结
 
-				            @lockManID  varchar(10),		--锁定人ID
+			                @lockManID varchar(10),		--创建人工号
 	            output: 
-				            @Ret		int output			--成功表示，0：成功，1：该单据已被其他用户锁定，2：该单据处于审核状态无法编辑，3：该单据不存在
-
+				            @Ret		int output		--操作成功标识
+							            0:成功，1：该借支单已被锁定，2：该借支单为审核状态9：未知错误
 	            author:		卢嘉诚
 	            CreateDate:	2016-3-23
-
+	            UpdateDate: 2016-3-23 by 
         */
         SqlCommand cmd = new SqlCommand("editExpRemSingle", sqlCon);
         cmd.CommandType = CommandType.StoredProcedure;
 
-        cmd.Parameters.Add("@ExpRemSingleID", SqlDbType.VarChar, 13);
+        cmd.Parameters.Add("@ExpRemSingleID", SqlDbType.VarChar, 15);
         cmd.Parameters["@ExpRemSingleID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@ExpRemSingleID"].Value = ExpRemSingleID;
 
@@ -1665,7 +1442,7 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@departmentID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@departmentID"].Value = departmentID;
 
-        cmd.Parameters.Add("@ExpRemDepartment", SqlDbType.VarChar, 30);
+        cmd.Parameters.Add("@ExpRemDepartment", SqlDbType.VarChar, 20);
         cmd.Parameters["@ExpRemDepartment"].Direction = ParameterDirection.Input;
         cmd.Parameters["@ExpRemDepartment"].Value = ExpRemDepartment;
 
@@ -1697,7 +1474,7 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@amount"].Direction = ParameterDirection.Input;
         cmd.Parameters["@amount"].Value = amount;
 
-        cmd.Parameters.Add("@borrowSingleID", SqlDbType.VarChar, 13);
+        cmd.Parameters.Add("@borrowSingleID", SqlDbType.VarChar, 15);
         cmd.Parameters["@borrowSingleID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@borrowSingleID"].Value = borrowSingleID;
 
@@ -1713,19 +1490,19 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@shouldRefund"].Direction = ParameterDirection.Input;
         cmd.Parameters["@shouldRefund"].Value = shouldRefund;
 
-        cmd.Parameters.Add("@ExpRemPersonID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@ExpRemPersonID", SqlDbType.VarChar, 13);
         cmd.Parameters["@ExpRemPersonID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@ExpRemPersonID"].Value = ExpRemPersonID;
 
-        cmd.Parameters.Add("@ExpRemPerson", SqlDbType.VarChar, 30);
+        cmd.Parameters.Add("@ExpRemPerson", SqlDbType.VarChar, 10);
         cmd.Parameters["@ExpRemPerson"].Direction = ParameterDirection.Input;
         cmd.Parameters["@ExpRemPerson"].Value = ExpRemPerson;
 
-        cmd.Parameters.Add("@businessPeopleID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@businessPeopleID", SqlDbType.VarChar, 13);
         cmd.Parameters["@businessPeopleID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@businessPeopleID"].Value = businessPeopleID;
 
-        cmd.Parameters.Add("@businessPeople", SqlDbType.VarChar, 30);
+        cmd.Parameters.Add("@businessPeople", SqlDbType.VarChar, 10);
         cmd.Parameters["@businessPeople"].Direction = ParameterDirection.Input;
         cmd.Parameters["@businessPeople"].Value = businessPeople;
 
@@ -1733,11 +1510,11 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@businessReason"].Direction = ParameterDirection.Input;
         cmd.Parameters["@businessReason"].Value = businessReason;
 
-        cmd.Parameters.Add("@approvalStatus", SqlDbType.SmallInt);
-        cmd.Parameters["@approvalStatus"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@approvalStatus"].Value = approvalStatus;
+        cmd.Parameters.Add("@approvalProgress", SqlDbType.SmallInt);
+        cmd.Parameters["@approvalProgress"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@approvalProgress"].Value = approvalProgress;
 
-        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
         cmd.Parameters["@lockManID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@lockManID"].Value = lockManID;
 
@@ -1754,11 +1531,11 @@ public class FinancialSystem : virtualWebService
             if (ret == 0)
                 return "编辑报销单成功";
             else if (ret == 1)
-                return "Error:该单据已被用户" + lockManID + "锁定！";
+                return "该单据已被用户" + lockManID + "锁定！";
             else if (ret == 2)
-                return "Error:该单据处于审核状态无法编辑";
+                return "该单据处于审核状态无法编辑";
             else if (ret == 3)
-                return "Error:报销单" + ExpRemSingleID + "不存在";
+                return "报销单" + ExpRemSingleID + "不存在";
             else
                 return "Error:未知错误！";
         }
@@ -1804,26 +1581,31 @@ public class FinancialSystem : virtualWebService
 	        function:	1.审核报销单
 				        注意：本存储过程不锁定编辑！
 	        input: 
-			        @billID	varchar(13),	--报销单ID
-			        @approvalStatus smallint,	--审批情况（同意/不同意）
+
+			        @billID	varchar(15),	--报销单ID
+			        @approvalStatus int,	--审批情况（同意/不同意）
 			        @approvalOpinions	varchar(200),	--审批意见
 			        @examinationPeoplePost varchar(50),	--审批人职务
-			        @examinationPeopleID	varchar(10),	--审批人ID
-			        @examinationPeopleName	varchar(30),	--审批人名称
+			        @examinationPeopleID	varchar(20),	--审批人ID
+			        @examinationPeopleName	varchar(20),	--审批人名称
 
-			        @createManID varchar(10) output,			--创建人ID
+
 
 	        output: 
-			        @Ret		int output           --操作成功标识,0:成功，1：要审核的报销单不存在，2：该报销单正在被其他用户锁定，3：该报销单为处于审核状态，9：未知错误
+			        @ApprovalDetailsID varchar(16) output,	--审批详情ID，主键，使用402号号码发生器生成
+			        @Ret		int output            --操作成功标识,0:成功，1：要审核的报销单不存在，2：该报销单正在被其他用户锁定，3：该报销单为处于审核状态，4：请先锁定报销单再审核避免冲突9：未知错误
 			        @createManID varchar(13) output,			--创建人ID
+				        @createTime smalldatetime output
 	        author:		卢嘉诚
 	        CreateDate:	2016-5-7
         */
         SqlCommand cmd = new SqlCommand("AudiExpRemSingle", sqlCon);
         cmd.CommandType = CommandType.StoredProcedure;
 
+        cmd.Parameters.Add("@ApprovalDetailsID", SqlDbType.VarChar, 16);
+        cmd.Parameters["@ApprovalDetailsID"].Direction = ParameterDirection.Output;
 
-        cmd.Parameters.Add("@billID", SqlDbType.VarChar, 13);
+        cmd.Parameters.Add("@billID", SqlDbType.VarChar, 15);
         cmd.Parameters["@billID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@billID"].Value = billID;
 
@@ -1839,15 +1621,15 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@examinationPeoplePost"].Direction = ParameterDirection.Input;
         cmd.Parameters["@examinationPeoplePost"].Value = examinationPeoplePost;
 
-        cmd.Parameters.Add("@examinationPeopleID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@examinationPeopleID", SqlDbType.VarChar, 20);
         cmd.Parameters["@examinationPeopleID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@examinationPeopleID"].Value = examinationPeopleID;
 
-        cmd.Parameters.Add("@examinationPeopleName", SqlDbType.VarChar, 30);
+        cmd.Parameters.Add("@examinationPeopleName", SqlDbType.VarChar, 20);
         cmd.Parameters["@examinationPeopleName"].Direction = ParameterDirection.Input;
         cmd.Parameters["@examinationPeopleName"].Value = examinationPeopleName;
 
-        cmd.Parameters.Add("@createManID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@createManID", SqlDbType.VarChar, 13);
         cmd.Parameters["@createManID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@createManID"].Value = createManID;
 
@@ -1884,198 +1666,6 @@ public class FinancialSystem : virtualWebService
         }
     }
 
-
-    /// <summary>
-    /// 功    能：添加费用报销单(XML)
-    /// 作    者：卢嘉诚
-    /// 编写日期：2016-4-21
-    /// </summary>
-    /// <param name="departmentID">部门ID</param>
-    /// <param name="ExpRemDepartment">报销部门</param>
-    /// <param name="ExpRemDate">报销日期</param>
-    /// <param name="projectID">项目ID</param>
-    /// <param name="projectName">项目名称</param>
-    /// <param name="ExpRemSingleNum">报销单据及附件数</param>
-    /// <param name="note">备注</param>
-    /// <param name="expRemSingleType">报销单类型</param>
-    /// <param name="amount">合计金额</param>
-    /// <param name="borrowSingleID">原借支单ID</param>
-    /// <param name="originalloan">原借款</param>
-    /// <param name="replenishment">应补款</param>
-    /// <param name="shouldRefund">应退款</param>
-    /// <param name="originalloan">原借款</param>
-    /// <param name="ExpRemPersonID">报销人ID</param>
-    /// <param name="ExpRemPerson">报销人姓名</param>
-    /// <param name="businessPeopleID">出差人ID</param>
-    /// <param name="businessPeople">出差人姓名</param>
-    /// <param name="businessReason">出差事由</param>
-    /// <param name="approvalStatus">审批进度</param>
-    /// <param name="xVar">详情XML</param>
-    /// <returns>成功：借支单编号，采用401号号码发生器发生；失败："Error：..."</returns>
-    [WebMethod(Description = "添加费用报销单(XML)<br />"
-                           + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
-    //[SoapHeader("PageHeader")]
-    public string addExpRemSingleForXML(string departmentID, string ExpRemDepartment, string ExpRemDate, string projectID,
-        string projectName, int ExpRemSingleNum, string note, int expRemSingleType, decimal amount, string borrowSingleID,
-        decimal originalloan, decimal replenishment, decimal shouldRefund, string ExpRemPersonID, string ExpRemPerson,
-        string businessPeopleID, string businessPeople, string businessReason, int approvalStatus, string createManID, string xVar)
-    {
-        //verifyPageHeader(this);
-        int ret = 9;
-        //从web.config获取连接字符串
-        string conStr = WebConfigurationManager.ConnectionStrings["conStr"].ToString();
-        SqlConnection sqlCon = new SqlConnection(conStr);
-        sqlCon.Open();
-        /*
-            name:		addExpRemSingle
-	        function:	1.添加费用报销单
-				        注意：本存储过程不锁定编辑！
-	        input: 
-				    @departmentID varchar(13) ,	--部门ID
-				    @ExpRemDepartment varchar(20)	,	--报销部门
-				    @ExpRemDate smalldatetime ,	--报销日期
-				    @projectID varchar(13) ,	--项目ID
-				    @projectName varchar(50) ,	--项目名称
-				    @ExpRemSingleNum smallint ,	--报销单据及附件
-				    @note varchar(200),	--备注
-				    @expRemSingleType smallint ,	--报销单类型，0：费用报销单，1：差旅费报销单
-				    @amount numeric(15,2) ,	--合计金额
-				    @borrowSingleID varchar(15) ,	--原借支单ID
-				    @originalloan numeric(15,2) ,	--原借款
-				    @replenishment numeric(15,2) ,	--应补款
-				    @shouldRefund numeric(15,2) ,	--应退款
-				    @ExpRemPersonID varchar(10) ,	--报销人编号
-				    @ExpRemPerson varchar(30),	--报销人姓名
-				    @businessPeopleID	varchar(10) ,	--出差人编号
-				    @businessPeople	varchar(30) ,	--出差人
-				    @businessReason varchar(200)	,	--出差事由
-				    @approvalStatus smallint ,		--审批状态，0：未发起，1：审核中，2：审批完成
-				    @xVar XML,					--XML格式的详情
-
-			        @createManID varchar(10),		--创建人工号
-	        output: 
-				        @Ret		int output		--操作成功标识
-							        0:成功，1：该国别名称或代码已存在，9：未知错误
-				        @createTime smalldatetime output
-	        author:		卢嘉诚
-        */
-        SqlCommand cmd = new SqlCommand("addExpRemSingleForXML", sqlCon);
-        cmd.CommandType = CommandType.StoredProcedure;
-
-        cmd.Parameters.Add("@departmentID", SqlDbType.VarChar, 13);
-        cmd.Parameters["@departmentID"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@departmentID"].Value = departmentID;
-
-        cmd.Parameters.Add("@ExpRemDepartment", SqlDbType.VarChar, 30);
-        cmd.Parameters["@ExpRemDepartment"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@ExpRemDepartment"].Value = ExpRemDepartment;
-
-        cmd.Parameters.Add("@ExpRemDate", SqlDbType.SmallDateTime);
-        cmd.Parameters["@ExpRemDate"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@ExpRemDate"].Value = ExpRemDate;
-
-        cmd.Parameters.Add("@projectID", SqlDbType.VarChar, 13);
-        cmd.Parameters["@projectID"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@projectID"].Value = projectID;
-
-        cmd.Parameters.Add("@projectName", SqlDbType.VarChar, 50);
-        cmd.Parameters["@projectName"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@projectName"].Value = projectName;
-
-        cmd.Parameters.Add("@ExpRemSingleNum", SqlDbType.SmallInt);
-        cmd.Parameters["@ExpRemSingleNum"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@ExpRemSingleNum"].Value = ExpRemSingleNum;
-
-        cmd.Parameters.Add("@note", SqlDbType.VarChar, 200);
-        cmd.Parameters["@note"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@note"].Value = note;
-
-        cmd.Parameters.Add("@expRemSingleType", SqlDbType.SmallInt);
-        cmd.Parameters["@expRemSingleType"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@expRemSingleType"].Value = expRemSingleType;
-
-        cmd.Parameters.Add("@amount", SqlDbType.Money);
-        cmd.Parameters["@amount"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@amount"].Value = amount;
-
-        cmd.Parameters.Add("@borrowSingleID", SqlDbType.VarChar, 13);
-        cmd.Parameters["@borrowSingleID"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@borrowSingleID"].Value = borrowSingleID;
-
-        cmd.Parameters.Add("@originalloan", SqlDbType.Money);
-        cmd.Parameters["@originalloan"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@originalloan"].Value = originalloan;
-
-        cmd.Parameters.Add("@replenishment", SqlDbType.Money);
-        cmd.Parameters["@replenishment"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@replenishment"].Value = replenishment;
-
-        cmd.Parameters.Add("@shouldRefund", SqlDbType.Money);
-        cmd.Parameters["@shouldRefund"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@shouldRefund"].Value = shouldRefund;
-
-        cmd.Parameters.Add("@ExpRemPersonID", SqlDbType.VarChar, 10);
-        cmd.Parameters["@ExpRemPersonID"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@ExpRemPersonID"].Value = ExpRemPersonID;
-
-        cmd.Parameters.Add("@ExpRemPerson", SqlDbType.VarChar, 30);
-        cmd.Parameters["@ExpRemPerson"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@ExpRemPerson"].Value = ExpRemPerson;
-
-        cmd.Parameters.Add("@businessPeopleID", SqlDbType.VarChar, 10);
-        cmd.Parameters["@businessPeopleID"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@businessPeopleID"].Value = businessPeopleID;
-
-        cmd.Parameters.Add("@businessPeople", SqlDbType.VarChar, 30);
-        cmd.Parameters["@businessPeople"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@businessPeople"].Value = businessPeople;
-
-        cmd.Parameters.Add("@businessReason", SqlDbType.VarChar, 200);
-        cmd.Parameters["@businessReason"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@businessReason"].Value = businessReason;
-
-        cmd.Parameters.Add("@approvalStatus", SqlDbType.SmallInt);
-        cmd.Parameters["@approvalStatus"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@approvalStatus"].Value = approvalStatus;
-
-        cmd.Parameters.Add("@xVar", SqlDbType.Xml);
-        cmd.Parameters["@xVar"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@xVar"].Value = xVar;
-
-        cmd.Parameters.Add("@createManID", SqlDbType.VarChar, 10);
-        cmd.Parameters["@createManID"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@createManID"].Value = createManID;
-
-        cmd.Parameters.Add("@Ret", SqlDbType.Int);
-        cmd.Parameters["@Ret"].Direction = ParameterDirection.Output;
-
-        cmd.Parameters.Add("@createTime", SqlDbType.SmallDateTime);
-        cmd.Parameters["@createTime"].Direction = ParameterDirection.Output;
-
-        cmd.Parameters.Add("@ExpRemSingleID", SqlDbType.VarChar, 13);
-        cmd.Parameters["@ExpRemSingleID"].Direction = ParameterDirection.Output;
-        try
-        {
-            cmd.ExecuteNonQuery();
-            ret = (int)cmd.Parameters["@Ret"].Value;
-            if (ret == 0)
-                return (string)cmd.Parameters["@ExpRemSingleID"].Value;
-            else
-                return "Error:未知错误！";
-        }
-        catch (Exception e)
-        {
-            return "Error:" + e.Message;
-        }
-        finally
-        {
-            cmd.Dispose();
-            sqlCon.Close();
-            sqlCon.Dispose();
-        }
-    }
-
-
     #endregion
 
     #region 附件的增删改
@@ -2084,80 +1674,67 @@ public class FinancialSystem : virtualWebService
     /// 作    者：卢嘉诚
     /// 编写日期：2016-4-28
     /// </summary>
-    /// <param name="uidFilename">UID文件名</param>
+    /// <param name="enclosureID">附件ID</param>
     /// <param name="billType">票据类型</param>
     /// <param name="billID">票据ID</param>
-    /// <param name="aFilename">原始文件名</param>
-    /// <param name="fileSize">文件尺寸</param>
-    /// <param name="fileType">文件类型</param>
-    /// <param name="fileLog">文件log</param>
+    /// <param name="enclosureAddress">附件地址</param>
+    /// <param name="enclosureType">附件类型</param>
     /// <returns>成功：借支单编号，采用406号号码发生器发生；失败："Error：..."</returns>
     [WebMethod(Description = "添加附件<br />"
                            + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
-    [SoapHeader("PageHeader")]
-    public string addAttachment(string uidFilename, int billType, string billID, string aFilename, int fileSize, string fileType, string fileLog, string createManID)
+    //[SoapHeader("PageHeader")]
+    public string addEnclosure(int billType, string billID, string enclosureAddress, int enclosureType)
     {
-        verifyPageHeader(this);
+        //verifyPageHeader(this);
         int ret = 9;
         //从web.config获取连接字符串
         string conStr = WebConfigurationManager.ConnectionStrings["conStr"].ToString();
         SqlConnection sqlCon = new SqlConnection(conStr);
         sqlCon.Open();
         /*
-	        name:		addAttachment
+          	name:		addEnclosure
 	        function:	1.添加附件
 				        注意：本存储过程不锁定编辑！
 	        input: 
-				        @uidFilename varchar(128),	--UID文件名
-				        @billType	 smallint,		--票据类型：0，借支单，1：报销单
-				        @billID	varchar(13),		--票据编号
-				        @aFilename varchar(128),	--原始文件名
-				        @fileSize bigint,			--文件尺寸
-				        @fileType varchar(10),		--文件类型
-				        @fileLog varchar(128),		--文件log：如果没有没有定义，则使用默认的文件类型LOG
+				        enclosureID	varchar(15)	not	null,	--主键：附件ID，使用第406号号码发生器产生
+				        billType	 smallint default(0)	not	null,	--票据类型：0，借支单，1：报销单
+				        billID	varchar(15)	not	null,	--票据编号
+				        enclosureAddress	varchar(200)	not	null,	--附件地址
+				        enclosureType	 smallint default(0)	not	null,	--附件类型
 
 				        @createManID varchar(10),		--创建人工号
-
 	        output: 
-				        @Ret		int output,     --成功标识,0:成功,9:未知错误
+				        @Ret		int output		--操作成功标识
+							        0:成功，1：该国别名称或代码已存在，9：未知错误
 				        @createTime smalldatetime output
 	        author:		卢嘉诚
-	        CreateDate:	2016-5-13
+	CreateDate:	2016-3-23
         */
-        SqlCommand cmd = new SqlCommand("addAttachment", sqlCon);
+        SqlCommand cmd = new SqlCommand("addEnclosure", sqlCon);
         cmd.CommandType = CommandType.StoredProcedure;
 
-        cmd.Parameters.Add("@uidFilename", SqlDbType.VarChar, 128);
-        cmd.Parameters["@uidFilename"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@uidFilename"].Value = uidFilename;
+        cmd.Parameters.Add("@enclosureID", SqlDbType.VarChar, 15);
+        cmd.Parameters["@enclosureID"].Direction = ParameterDirection.Output;
 
         cmd.Parameters.Add("@billType", SqlDbType.SmallInt);
         cmd.Parameters["@billType"].Direction = ParameterDirection.Input;
         cmd.Parameters["@billType"].Value = billType;
 
-        cmd.Parameters.Add("@billID", SqlDbType.VarChar, 13);
+        cmd.Parameters.Add("@billID", SqlDbType.VarChar,15);
         cmd.Parameters["@billID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@billID"].Value = billID;
 
-        cmd.Parameters.Add("@aFilename", SqlDbType.VarChar, 128);
-        cmd.Parameters["@aFilename"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@aFilename"].Value = aFilename;
+        cmd.Parameters.Add("@enclosureAddress", SqlDbType.VarChar, 200);
+        cmd.Parameters["@enclosureAddress"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@enclosureAddress"].Value = enclosureAddress;
 
-        cmd.Parameters.Add("@fileSize", SqlDbType.BigInt);
-        cmd.Parameters["@fileSize"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@fileSize"].Value = fileSize;
+        cmd.Parameters.Add("@enclosureType", SqlDbType.SmallInt);
+        cmd.Parameters["@enclosureType"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@enclosureType"].Value = enclosureType;
 
-        cmd.Parameters.Add("@fileType", SqlDbType.VarChar,10);
-        cmd.Parameters["@fileType"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@fileType"].Value = fileType;
-
-        cmd.Parameters.Add("@fileLog", SqlDbType.VarChar, 128);
-        cmd.Parameters["@fileLog"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@fileLog"].Value = fileLog;
-
-        cmd.Parameters.Add("@createManID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@createManID", SqlDbType.VarChar, 13);
         cmd.Parameters["@createManID"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@createManID"].Value = createManID;
+        cmd.Parameters["@createManID"].Value = "user0001";
 
         cmd.Parameters.Add("@Ret", SqlDbType.Int);
         cmd.Parameters["@Ret"].Direction = ParameterDirection.Output;
@@ -2171,7 +1748,7 @@ public class FinancialSystem : virtualWebService
             cmd.ExecuteNonQuery();
             ret = (int)cmd.Parameters["@Ret"].Value;
             if (ret == 0)
-                return (string)cmd.Parameters["@uidFilename"].Value;
+                return (string)cmd.Parameters["@enclosureID"].Value;
             else
                 return "Error:未知错误！";
         }
@@ -2193,43 +1770,42 @@ public class FinancialSystem : virtualWebService
     /// 作    者：卢嘉诚
     /// 编写日期：2016-4-28
     /// </summary>
-    /// <param name="uidFilename">UID文件名</param>
-    /// <param name="lockManID">锁定人ID</param>
+    /// <param name="enclosureID">附件ID</param>
+    /// <param name="createManID">附件ID</param>
     /// <returns>成功：借支单编号，采用406号号码发生器发生；失败："Error：..."</returns>
     [WebMethod(Description = "添加附件<br />"
                            + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
-    [SoapHeader("PageHeader")]
-    public string delEnclosure(string uidFilename, string lockManID)
+    //[SoapHeader("PageHeader")]
+    public string delEnclosure(string enclosureID, string createManID)
     {
-        verifyPageHeader(this);
+        //verifyPageHeader(this);
         int ret = 9;
         //从web.config获取连接字符串
         string conStr = WebConfigurationManager.ConnectionStrings["conStr"].ToString();
         SqlConnection sqlCon = new SqlConnection(conStr);
         sqlCon.Open();
         /*
-	        name:		delAttachment
-	        function:	1.删除附件
-				        注意：本存储过程不锁定编辑！
-	        input: 
-				        @uidFilename varchar(128),		--UID文件名
-				        @lockManID varchar(10),		--锁定人工号
-	        output: 
-				        @Ret		int output		  --成功标示，0：成功，1：该附件不存在,9:未知错误
-				        @createTime smalldatetime output
-	        author:		卢嘉诚
-	        CreateDate:	2016-5-13
+          	name:		delEnclosure
+	function:	1.删除附件
+				注意：本存储过程不锁定编辑！
+	input: 
+				enclosureID	varchar(15)	not	null,	--主键：附件ID
+				@createManID varchar(13),		--创建人工号
+	output: 
+				@Ret		int output		  --成功标示，0：成功，1：该附件不存在,9:未知错误
+						                  
+				@createTime smalldatetime output
+	CreateDate:	2016-3-23
         */
         SqlCommand cmd = new SqlCommand("delEnclosure", sqlCon);
         cmd.CommandType = CommandType.StoredProcedure;
 
-        cmd.Parameters.Add("@uidFilename", SqlDbType.VarChar, 128);
-        cmd.Parameters["@uidFilename"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@uidFilename"].Value = uidFilename;
+        cmd.Parameters.Add("@enclosureID", SqlDbType.VarChar, 15);
+        cmd.Parameters["@enclosureID"].Direction = ParameterDirection.Output;
 
-        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 10);
-        cmd.Parameters["@lockManID"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@lockManID"].Value = lockManID;
+        cmd.Parameters.Add("@createManID", SqlDbType.VarChar,13);
+        cmd.Parameters["@createManID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@createManID"].Value = "user100";
 
         cmd.Parameters.Add("@Ret", SqlDbType.Int);
         cmd.Parameters["@Ret"].Direction = ParameterDirection.Output;
@@ -2244,8 +1820,6 @@ public class FinancialSystem : virtualWebService
             ret = (int)cmd.Parameters["@Ret"].Value;
             if (ret == 0)
                 return "删除附件成功";
-            else if (ret == 1)
-                return "Error:要删除的附件" + uidFilename + "不存在！";
             else
                 return "Error:未知错误！";
         }
@@ -2273,7 +1847,7 @@ public class FinancialSystem : virtualWebService
     /// 作    者：卢嘉诚
     /// 编写日期：2016-4-28
     /// </summary>
-    /// <param name="FinancialSubjectID">科目ID</param>
+    /// <param name="classification">分类D</param>
     /// <param name="superiorSubjectsID">上级科目ID</param>
     /// <param name="superiorSubjects">上级科目名称</param>
     /// <param name="subjectName">科目名称</param>
@@ -2283,54 +1857,58 @@ public class FinancialSystem : virtualWebService
     /// <returns>成功：借支单编号，采用406号号码发生器发生；失败："Error：..."</returns>
     [WebMethod(Description = "添加科目<br />"
                            + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
-    [SoapHeader("PageHeader")]
-    public string addSubject(string FinancialSubjectID, string superiorSubjectsID, string superiorSubjects, string subjectName, int AccountNumber, string establishTime, string explain, string createManID)
+    //[SoapHeader("PageHeader")]
+    public string addSubject(int classification, string superiorSubjectsID, string superiorSubjects, string subjectName, int AccountNumber, string establishTime, string explain)
     {
-        verifyPageHeader(this);
+        //verifyPageHeader(this);
         int ret = 9;
         //从web.config获取连接字符串
         string conStr = WebConfigurationManager.ConnectionStrings["conStr"].ToString();
         SqlConnection sqlCon = new SqlConnection(conStr);
         sqlCon.Open();
         /*
-	        name:		addSubject
-	        function:	1.添加科目
-				        注意：本存储过程不锁定编辑！
-	        input: 
-				        @FinancialSubjectID	varchar(8),	--科目ID,主键
-				        @superiorSubjectsID	varchar(8),	--上级科目ID
-				        @superiorSubjects varchar(30),		--上级科目名称
-				        @subjectName	varchar(30),			--科目名称
-				        @AccountNumber int ,				--科目层数
-				        @establishTime smalldatetime,		--设立时间
-				        @explain	varchar(200),				--说明
+                 name:		addSubject
+	            function:	1.添加科目
+				            注意：本存储过程不锁定编辑！
+	            input: 
+				            FinancialSubjectID	varchar(13)	not	null,	--科目ID
+				            classification	smallint default(0) not null,	--分类
+				            superiorSubjectsID	varchar(13)	,	--上级科目ID
+				            superiorSubjects varchar(50)	,	--上级科目名称
+				            subjectName	varchar(50)	not null,	--科目名称
+				            AccountNumber int not null,	--科目层数
+				            establishTime smalldatetime	not null,	--设立时间
+				            explain varchar(200)	null,	--说明
 
-				        @createManID varchar(10),			--创建人工号
-	        output: 
-				        @Ret		int output		--操作成功标识
-							        0:成功，1：该国别名称或代码已存在，9：未知错误
-				        @createTime smalldatetime output
-	        author:		卢嘉诚
-	        CreateDate:	2016-3-23
-
+				            @createManID varchar(10),		--创建人工号
+	            output: 
+				            @Ret		int output		--操作成功标识
+							            0:成功，1：该国别名称或代码已存在，9：未知错误
+				            @createTime smalldatetime output
+	            author:		卢嘉诚
+	            CreateDate:	2016-3-23
+	            UpdateDate: 2016-3-23 by lw 根据编辑要求增加rowNum返回参数
+	CreateDate:	2016-3-23
         */
         SqlCommand cmd = new SqlCommand("addSubject", sqlCon);
         cmd.CommandType = CommandType.StoredProcedure;
 
+        cmd.Parameters.Add("@FinancialSubjectID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@FinancialSubjectID"].Direction = ParameterDirection.Output;
 
-        cmd.Parameters.Add("@FinancialSubjectID", SqlDbType.VarChar,8);
-        cmd.Parameters["@FinancialSubjectID"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@FinancialSubjectID"].Value = FinancialSubjectID;
+        cmd.Parameters.Add("@classification", SqlDbType.SmallInt);
+        cmd.Parameters["@classification"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@classification"].Value = classification;
 
-        cmd.Parameters.Add("@superiorSubjectsID", SqlDbType.VarChar, 8);
+        cmd.Parameters.Add("@superiorSubjectsID", SqlDbType.VarChar, 13);
         cmd.Parameters["@superiorSubjectsID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@superiorSubjectsID"].Value = superiorSubjectsID;
 
-        cmd.Parameters.Add("@superiorSubjects", SqlDbType.VarChar, 30);
+        cmd.Parameters.Add("@superiorSubjects", SqlDbType.VarChar, 50);
         cmd.Parameters["@superiorSubjects"].Direction = ParameterDirection.Input;
         cmd.Parameters["@superiorSubjects"].Value = superiorSubjects;
 
-        cmd.Parameters.Add("@subjectName", SqlDbType.VarChar,30);
+        cmd.Parameters.Add("@subjectName", SqlDbType.VarChar,50);
         cmd.Parameters["@subjectName"].Direction = ParameterDirection.Input;
         cmd.Parameters["@subjectName"].Value = subjectName;
 
@@ -2346,9 +1924,9 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@explain"].Direction = ParameterDirection.Input;
         cmd.Parameters["@explain"].Value = explain;
 
-        cmd.Parameters.Add("@createManID", SqlDbType.VarChar,10);
+        cmd.Parameters.Add("@createManID", SqlDbType.VarChar,13);
         cmd.Parameters["@createManID"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@createManID"].Value = createManID;
+        cmd.Parameters["@createManID"].Value = "user100";
 
         cmd.Parameters.Add("@Ret", SqlDbType.Int);
         cmd.Parameters["@Ret"].Direction = ParameterDirection.Output;
@@ -2399,31 +1977,32 @@ public class FinancialSystem : virtualWebService
         string conStr = WebConfigurationManager.ConnectionStrings["conStr"].ToString();
         SqlConnection sqlCon = new SqlConnection(conStr);
         sqlCon.Open();
-        /*
-             name:		editSubject
-             function:	1.编辑科目
-                         注意：本存储过程锁定编辑！
-             input: 
-                         @FinancialSubjectID	varchar(8),	--科目ID
-                         @subjectName	varchar(30),		--科目名称
-                         @explain varchar(200),				--说明
+       /*
+	        name:		editSubject
+	        function:	1.编辑科目
+				        注意：本存储过程锁定编辑！
+	        input: 
+				        FinancialSubjectID	varchar(13)	not	null,	--科目ID
+				        subjectName	varchar(50)	not null,			--科目名称
+				        explain varchar(200)	null,	--说明
 
-
-             output: 
-                         @lockManID varchar(10) output,		--锁定人工号
-                         @Ret		int output,			--操作成功标识,0:成功，1：该科目已被其他人用户锁定，3：该科目不存在，9：未知错误
-                         @createTime smalldatetime output
-             author:		卢嘉诚
-             CreateDate:	2016-3-23
-         */
+				        @lockManID varchar(13),		--锁定人工号
+	        output: 
+				        @Ret		int output		--操作成功标识
+							        0:成功，1：该国别名称或代码已存在，9：未知错误
+				        @createTime smalldatetime output
+	        author:		卢嘉诚
+	        CreateDate:	2016-5-3
+	        UpdateDate: 2016-5-3
+        */
         SqlCommand cmd = new SqlCommand("editSubject", sqlCon);
         cmd.CommandType = CommandType.StoredProcedure;
 
-        cmd.Parameters.Add("@FinancialSubjectID", SqlDbType.VarChar, 8);
+        cmd.Parameters.Add("@FinancialSubjectID", SqlDbType.VarChar, 13);
         cmd.Parameters["@FinancialSubjectID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@FinancialSubjectID"].Value = FinancialSubjectID;
 
-        cmd.Parameters.Add("@subjectName", SqlDbType.VarChar,30);
+        cmd.Parameters.Add("@subjectName", SqlDbType.VarChar,50);
         cmd.Parameters["@subjectName"].Direction = ParameterDirection.Input;
         cmd.Parameters["@subjectName"].Value = subjectName;
 
@@ -2431,7 +2010,7 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@explain"].Direction = ParameterDirection.Input;
         cmd.Parameters["@explain"].Value = explain;
 
-        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
         cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
         cmd.Parameters["@lockManID"].Value = lockManID;
 
@@ -2452,9 +2031,9 @@ public class FinancialSystem : virtualWebService
             if (ret == 0)
                 return "编辑成功！";
             else if (ret == 1)
-                return "Error:该科目已被用户" + lockManID + "锁定无法编辑";
+                return "该科目已被用户" + lockManID + "锁定无法编辑";
             else if (ret == 3)
-                return "Error:该科目不存在";
+                return "该科目不存在";
             else
                 return "Error:未知错误！";
         }
@@ -2491,29 +2070,29 @@ public class FinancialSystem : virtualWebService
         SqlConnection sqlCon = new SqlConnection(conStr);
         sqlCon.Open();
         /*
-	    name:		lockSubjectEdit
-	    function:	锁定科目编辑，避免编辑冲突
-	    input: 
-				    @FinancialSubjectID varchar(8),			--科目ID
-				    @lockManID varchar(10) output,	--锁定人，如果当前借支单正在被人占用编辑则返回该人的工号
-				
-	    output: 
-				    @Ret int output					--操作成功标识	0:成功，1：要锁定的科目不存在，2:要锁定的科目正在被别人编辑，9：未知错误
-							    0:成功，
-							    1：要锁定的科目不存在，
-							    2:要锁定的科目正在被别人编辑，
-							    9：未知错误
-	    author:		卢嘉诚
-	    CreateDate:	2016-4-16
+	        name:		lockSubjectEdit
+	        function:	锁定科目编辑，避免编辑冲突
+	        input: 
+				        @FinancialSubjectID varchar(13),			--科目ID
+				        @lockManID varchar(13) output,	--锁定人，如果当前科目正在被人占用编辑则返回该人的工号
+	        output: 
+				        @Ret		int output		--操作成功标识
+							        0:成功，
+							        1：要锁定的科目不存在，
+							        2:要锁定的科目正在被别人编辑，
+							        9：未知错误
+	        author:		卢嘉诚
+	        CreateDate:	2016-4-16
+	        UpdateDate: 
          */
         SqlCommand cmd = new SqlCommand("lockSubjectEdit", sqlCon);
         cmd.CommandType = CommandType.StoredProcedure;
 
-        cmd.Parameters.Add("@FinancialSubjectID", SqlDbType.VarChar, 8);
+        cmd.Parameters.Add("@FinancialSubjectID", SqlDbType.VarChar, 13);
         cmd.Parameters["@FinancialSubjectID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@FinancialSubjectID"].Value = FinancialSubjectID;
 
-        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
         cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
         cmd.Parameters["@lockManID"].Value = lockManID;
 
@@ -2530,9 +2109,9 @@ public class FinancialSystem : virtualWebService
             if (ret == 0)
                 return "锁定成功！";
             else if (ret == 1)
-                return "Error:该科目不存在！";
+                return "该科目不存在！";
             else if (ret == 2)
-                return "Error:要锁定的科目正在被用户" + lockManID + "锁定编辑";
+                return "要锁定的科目正在被用户" + lockManID + "锁定编辑";
             else
                 return "Error:未知错误！";
         }
@@ -2568,27 +2147,30 @@ public class FinancialSystem : virtualWebService
         SqlConnection sqlCon = new SqlConnection(conStr);
         sqlCon.Open();
         /*
-	        name:		unlockSubjectEdit
-	        function:	释放科目编辑锁定，避免编辑冲突
-	        input: 
-				        @FinancialSubjectID varchar(8),			--科目ID
-				        @lockManID varchar(10) output,	--锁定人，如果当前科目正在被人占用编辑则返回该人的工号
-	        output: 
-				        @Ret		int output		--操作成功标识0:成功，1：要释放锁定的科目不存在，2:要释放锁定的科目正在被别人编辑，8：该科目未被任何人锁定，9：未知错误
-							
-	        author:		卢嘉诚
-	        CreateDate:	2016-4-16
-	        UpdateDate: 
-
+            name:		unlockSubjectEdit
+	            function:	释放科目编辑锁定，避免编辑冲突
+	            input: 
+				            @FinancialSubjectID varchar(13),			--科目ID
+				            @lockManID varchar(13) output,	--锁定人，如果当前科目正在被人占用编辑则返回该人的工号
+	            output: 
+				            @Ret		int output		--操作成功标识
+							            0:成功，
+							            1：要释放锁定的科目不存在，
+							            2:要释放锁定的科目正在被别人编辑，
+							            8：该科目未被任何人锁定
+							            9：未知错误
+	            author:		卢嘉诚
+	            CreateDate:	2016-4-16
+	UpdateDate: 
          */
         SqlCommand cmd = new SqlCommand("unlockSubjectEdit", sqlCon);
         cmd.CommandType = CommandType.StoredProcedure;
 
-        cmd.Parameters.Add("@FinancialSubjectID", SqlDbType.VarChar, 8);
+        cmd.Parameters.Add("@FinancialSubjectID", SqlDbType.VarChar, 13);
         cmd.Parameters["@FinancialSubjectID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@FinancialSubjectID"].Value = FinancialSubjectID;
 
-        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
         cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
         cmd.Parameters["@lockManID"].Value = lockManID;
 
@@ -2604,11 +2186,11 @@ public class FinancialSystem : virtualWebService
             if (ret == 0)
                 return "释放锁定成功！";
             else if (ret == 1)
-                return "Error:科目" + FinancialSubjectID + "不存在！";
+                return "科目" + FinancialSubjectID + "不存在！";
             else if (ret == 2)
-                return "Error:该科目已被用户" + lockManID + "锁定无法编辑";
+                return "该科目已被用户" + lockManID + "锁定无法编辑";
             else if (ret == 8)
-                return "Error:该科目未被任何人锁定！";
+                return "该科目未被任何人锁定！";
             else
                 return "Error:未知错误！";
         }
@@ -2648,15 +2230,12 @@ public class FinancialSystem : virtualWebService
     /// <param name="administrator">管理人姓名</param>
     /// <param name="branchAddress">支行地址</param>
     /// <param name="remarks">备注</param>
-    /// <param name="Obsolete">是否作废</param>
-    /// <param name="enabledeate">启用日期</param>
-    /// <param name="createManID">创建人工号</param>
     /// <returns>成功：账户编号，采用409号号码发生器发生；失败："Error：..."</returns>
     [WebMethod(Description = "增加账户<br />"
                            + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
     //[SoapHeader("PageHeader")]
     public string addAccountList(string accountName, string bankAccount, string accountCompany, string accountOpening, string bankAccountNum, string accountDate, string administratorID, string administrator, string branchAddress,
-        string remarks, int Obsolete, string enabledeate, string createManID)
+        string remarks)
     {
         //verifyPageHeader(this);
         int ret = 9;
@@ -2665,40 +2244,39 @@ public class FinancialSystem : virtualWebService
         SqlConnection sqlCon = new SqlConnection(conStr);
         sqlCon.Open();
         /*
-	        name:		addAccountList
-	        function:	1.添加账户
-				        注意：本存储过程不锁定编辑！
-	        input: 
-				        @accountName	varchar(50),		--账户名称
-				        @bankAccount	varchar(100),		--开户行
-				        @accountCompany	varchar(100),	--开户名
-				        @accountOpening	varchar(50),	--开户账号
-				        @bankAccountNum	varchar(50),	--开户行号
-				        @accountDate	smalldatetime,	--开户时间
-				        @administratorID	varchar(10),	--管理人ID
-				        @administrator	varchar(30),	--管理人(姓名）
-				        @branchAddress	varchar(100),	--支行地址
-				        @remarks varchar(200),			--备注
-				        @Obsolete		smallint ,		--是否作废,0:在用，1：作废
-				        @enabledeate	smalldatetime,	--启用日期
+	            name:		addAccountList
+	            function:	1.添加账户
+				            注意：本存储过程不锁定编辑！
+	            input: 
+				            @accountID 	varchar(13) output,		--账户ID,主键,使用409号号码发生器生成
+				            @accountName	varchar(50),		--账户名称
+				            @bankAccount	varchar(100),		--开户行
+				            @accountCompany	varchar(100),	--开户名
+				            @accountOpening	varchar(50),	--开户账号
+				            @bankAccountNum	varchar(50),	--开户行号
+				            @accountDate	smalldatetime,	--开户时间
+				            @administratorID	varchar(13),	--管理人ID
+				            @administrator	varchar(20),	--管理人(姓名）
+				            @branchAddress	varchar(100),	--支行地址
+                			@remarks varchar(200),			--备注
 
-				        @createManID varchar(10),		--创建人工号
-	        output: 
-				        @accountID 	varchar(10) output,		--账户ID,主键,使用409号号码发生器生成
-				        @Ret		int output		--操作成功标识
-							        0:成功，1：该账户已存在，9：未知错误
-				
-	        author:		卢嘉诚
-	        CreateDate:	2016-3-23
-
+				            @createManID varchar(10),		--创建人工号
+	            output: 
+				            @Ret		int output		--操作成功标识
+							            0:成功，1：该账户已存在，9：未知错误
+				            @createTime smalldatetime output
+	            author:		卢嘉诚
+	            CreateDate:	2016-3-23
+	            UpdateDate: 2016-3-23 by lw 根据编辑要求增加rowNum返回参数
+	            UpdateDate: 
          */
         SqlCommand cmd = new SqlCommand("addAccountList", sqlCon);
         cmd.CommandType = CommandType.StoredProcedure;
 
-        cmd.Parameters.Add("@accountID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@accountID", SqlDbType.VarChar, 13);
         cmd.Parameters["@accountID"].Direction = ParameterDirection.Output;
 
-        cmd.Parameters.Add("@accountName", SqlDbType.VarChar, 50);
+        cmd.Parameters.Add("@accountName", SqlDbType.VarChar, 13);
         cmd.Parameters["@accountName"].Direction = ParameterDirection.Input;
         cmd.Parameters["@accountName"].Value = accountName;
 
@@ -2722,11 +2300,11 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@accountDate"].Direction = ParameterDirection.Input;
         cmd.Parameters["@accountDate"].Value = accountDate;
 
-        cmd.Parameters.Add("@administratorID", SqlDbType.VarChar,10);
+        cmd.Parameters.Add("@administratorID", SqlDbType.VarChar,13);
         cmd.Parameters["@administratorID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@administratorID"].Value = administratorID;
 
-        cmd.Parameters.Add("@administrator", SqlDbType.VarChar, 30);
+        cmd.Parameters.Add("@administrator", SqlDbType.VarChar, 20);
         cmd.Parameters["@administrator"].Direction = ParameterDirection.Input;
         cmd.Parameters["@administrator"].Value = administrator;
 
@@ -2738,17 +2316,9 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@remarks"].Direction = ParameterDirection.Input;
         cmd.Parameters["@remarks"].Value = remarks;
 
-        cmd.Parameters.Add("@Obsolete", SqlDbType.SmallInt);
-        cmd.Parameters["@Obsolete"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@Obsolete"].Value = Obsolete;
-
-        cmd.Parameters.Add("@enabledeate", SqlDbType.SmallDateTime);
-        cmd.Parameters["@enabledeate"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@enabledeate"].Value = enabledeate;
-
-        cmd.Parameters.Add("@createManID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@createManID", SqlDbType.VarChar, 13);
         cmd.Parameters["@createManID"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@createManID"].Value = createManID;
+        cmd.Parameters["@createManID"].Value = "user100";
 
         cmd.Parameters.Add("@Ret", SqlDbType.Int);
         cmd.Parameters["@Ret"].Direction = ParameterDirection.Output;
@@ -2795,26 +2365,27 @@ public class FinancialSystem : virtualWebService
         SqlConnection sqlCon = new SqlConnection(conStr);
         sqlCon.Open();
         /*
-	        name:		delAccountList
-	        function:		1.删除账户
-				        注意：本存储过程锁定编辑！
-	        input: 
-				        @accountID 	varchar(10) output,		--账户ID,主键,使用409号号码发生器生成
-				        @lockManID varchar(10),		--锁定人ID
-	        output: 
-				        @Ret		int output		--操作成功标示；0:成功，1：该账户不存在，2：该账户被其他用户锁定，3:请先锁定该账户在删除避免冲突，9：未知错误
-
-	        author:		卢嘉诚
-	        CreateDate:	2016-5-13
+	        	name:		delAccountList
+	            function:	1.删除账户
+				            注意：本存储过程锁定编辑！
+	            input: 
+				            @accountID 	varchar(13) output,		--账户ID,主键,使用409号号码发生器生成
+				            @lockManID varchar(13),		--锁定人ID
+	            output: 
+				            @Ret		int output		--操作成功标识;--操作成功标示；0:成功，1：该账户不存在，2：该账户被其他用户锁定，9：未知错误
+				            @createTime smalldatetime output
+	            author:		卢嘉诚
+	            CreateDate:	2016-3-23
+	            UpdateDate: 2016-3-23 by lw 根据编辑要求增加rowNum返回参数
          */
         SqlCommand cmd = new SqlCommand("delAccountList", sqlCon);
         cmd.CommandType = CommandType.StoredProcedure;
 
-        cmd.Parameters.Add("@accountID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@accountID", SqlDbType.VarChar, 13);
         cmd.Parameters["@accountID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@accountID"].Value = accountID;
 
-        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
         cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
         cmd.Parameters["@lockManID"].Value = lockManID;
 
@@ -2833,8 +2404,6 @@ public class FinancialSystem : virtualWebService
                 return "Error:账户" + accountID + "不存在！";
             else if (ret == 2)
                 return "Error:该账户被用户" + lockManID + "锁定";
-            else if (ret == 3)
-                return "Error:请先锁定该账户再删除，避免冲突！";
             else
                 return "Error:未知错误！";
         }
@@ -2867,7 +2436,6 @@ public class FinancialSystem : virtualWebService
     /// <param name="administrator">管理人姓名</param>
     /// <param name="branchAddress">支行地址</param>
     /// <param name="remarks">备注</param>
-    /// <param name="lockManID">锁定人ID</param>
     /// <returns>成功：账户编号，采用409号号码发生器发生；失败："Error：..."</returns>
     [WebMethod(Description = "编辑账户<br />"
                            + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
@@ -2882,37 +2450,38 @@ public class FinancialSystem : virtualWebService
         SqlConnection sqlCon = new SqlConnection(conStr);
         sqlCon.Open();
         /*
-	        name:		editAccountList
-	        function:	1.编辑账户
-				        注意：本存储过程锁定编辑！
-	        input: 
-				        @accountID 	varchar(10),		--账户ID,主键,使用409号号码发生器生成
-				        @accountName	varchar(50),		--账户名称
-				        @bankAccount	varchar(100),		--开户行
-				        @accountCompany	varchar(100),	--开户名
-				        @accountOpening	varchar(50),	--开户账号
-				        @bankAccountNum	varchar(50),	--开户行号
-				        @accountDate	smalldatetime,	--开户时间
-				        @administratorID	varchar(10),	--管理人ID
-				        @administrator	varchar(30),	--管理人(姓名）
-				        @branchAddress	varchar(100),	--支行地址
-				        @remarks varchar(200),			--备注
+	         	name:		editAccountList
+	            function:	1.编辑账户
+				            注意：本存储过程锁定编辑！
+	            input: 
+				            @accountID 	varchar(13),		--账户ID,主键,使用409号号码发生器生成
+				            @accountName	varchar(50),		--账户名称
+				            @bankAccount	varchar(100),		--开户行
+				            @accountCompany	varchar(100),	--开户名
+				            @accountOpening	varchar(50),	--开户账号
+				            @bankAccountNum	varchar(50),	--开户行号
+				            @accountDate	smalldatetime,	--开户时间
+				            @administratorID	varchar(13),	--管理人ID
+				            @administrator	varchar(20),	--管理人(姓名）
+				            @branchAddress	varchar(100),	--支行地址
+				            @remarks varchar(200),			--备注
 
-	        output: 
-				        @lockManID varchar(10)output,		--锁定人ID
-				        @Ret		int output		--操作成功标示；0:成功，1：该账户不存在，2：该账户已被其他用户锁定，9：未知错误
-	        author:		卢嘉诚
-	        CreateDate:	2016-3-23
-	
+				            @lockManID varchar(10)output,		--锁定人ID
+	            output: 
+				            @Ret		--操作成功标示；0:成功，1：该账户不存在，2：该账户已被其他用户锁定，9：未知错误
+				            @createTime smalldatetime output
+	            author:		卢嘉诚
+	            CreateDate:	2016-3-23
+	            UpdateDate: 2016-3-23 by lw 根据编辑要求增加rowNum返回参数
          */
         SqlCommand cmd = new SqlCommand("addAccountList", sqlCon);
         cmd.CommandType = CommandType.StoredProcedure;
 
-        cmd.Parameters.Add("@accountID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@accountID", SqlDbType.VarChar, 13);
         cmd.Parameters["@accountID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@accountID"].Value = accountID;
 
-        cmd.Parameters.Add("@accountName", SqlDbType.VarChar, 50);
+        cmd.Parameters.Add("@accountName", SqlDbType.VarChar, 13);
         cmd.Parameters["@accountName"].Direction = ParameterDirection.Input;
         cmd.Parameters["@accountName"].Value = accountName;
 
@@ -2936,11 +2505,11 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@accountDate"].Direction = ParameterDirection.Input;
         cmd.Parameters["@accountDate"].Value = accountDate;
 
-        cmd.Parameters.Add("@administratorID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@administratorID", SqlDbType.VarChar, 13);
         cmd.Parameters["@administratorID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@administratorID"].Value = administratorID;
 
-        cmd.Parameters.Add("@administrator", SqlDbType.VarChar, 30);
+        cmd.Parameters.Add("@administrator", SqlDbType.VarChar, 20);
         cmd.Parameters["@administrator"].Direction = ParameterDirection.Input;
         cmd.Parameters["@administrator"].Value = administrator;
 
@@ -2952,7 +2521,7 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@remarks"].Direction = ParameterDirection.Input;
         cmd.Parameters["@remarks"].Value = remarks;
 
-        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
         cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
         cmd.Parameters["@lockManID"].Value = lockManID;
 
@@ -2968,9 +2537,9 @@ public class FinancialSystem : virtualWebService
             if (ret == 0)
                 return "编辑成功！";
             else if (ret == 1)
-                return "Error:账户" + accountID + "不存在";
+                return "账户" + accountID + "不存在";
             else if (ret == 2)
-                return "Error:该账户已被用户" + lockManID + "锁定";
+                return "该账户已被用户" + lockManID + "锁定";
             else
                 return "Error:未知错误！";
         }
@@ -3006,13 +2575,12 @@ public class FinancialSystem : virtualWebService
         SqlConnection sqlCon = new SqlConnection(conStr);
         sqlCon.Open();
         /*
-	        name:		lockAccountEdit
+	   	    name:		lockAccountEdit
 	        function: 	锁定账户编辑，避免编辑冲突
 	        input: 
-				        @accountID varchar(10),		--账户ID
-
+				        @accountID varchar(13),		--账户ID
+				        @lockManID varchar(13) output,	--锁定人，如果当前科目正在被人占用编辑则返回该人的工号
 	        output: 
-				        @lockManID varchar(10) output,	--锁定人，如果当前借支单正在被人占用编辑则返回该人的工号
 				        @Ret		int output		--操作成功标识0:成功，1：要锁定的账户不存在，2:要锁定的账户正在被别人编辑，9：未知错误
 	        author:		卢嘉诚
 	        CreateDate:	2016-4-16
@@ -3021,11 +2589,11 @@ public class FinancialSystem : virtualWebService
         SqlCommand cmd = new SqlCommand("lockAccountEdit", sqlCon);
         cmd.CommandType = CommandType.StoredProcedure;
 
-        cmd.Parameters.Add("@accountID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@accountID", SqlDbType.VarChar, 13);
         cmd.Parameters["@accountID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@accountID"].Value = accountID;
 
-        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
         cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
         cmd.Parameters["@lockManID"].Value = lockManID;
 
@@ -3040,11 +2608,11 @@ public class FinancialSystem : virtualWebService
             ret = (int)cmd.Parameters["@Ret"].Value;
             lockManID = (string)cmd.Parameters["@lockManID"].Value;
             if (ret == 0)
-                return "Error:锁定成功！";
+                return "锁定成功！";
             else if (ret == 1)
-                return "Error:账户" + accountID + "不存在！";
+                return "账户" + accountID + "不存在！";
             else if (ret == 2)
-                return "Error:要锁定的账户正在被用户" + lockManID + "锁定编辑";
+                return "要锁定的账户正在被用户" + lockManID + "锁定编辑";
             else
                 return "Error:未知错误！";
         }
@@ -3081,24 +2649,25 @@ public class FinancialSystem : virtualWebService
         sqlCon.Open();
         /*
 	            name:		unlockAccountEdit
-	            function: 	释放锁定账户编辑，避免编辑冲突
+	            function: 	释放指定账户锁定，避免编辑冲突
 	            input: 
-				            @accountID varchar(10),			--账户ID
-				
+				            @accountID varchar(13),		    --账户ID
+				            @lockManID varchar(13) output,	--锁定人，如果当前科目正在被人占用编辑则返回该人的工号
 	            output: 
-				            @lockManID varchar(10) output,	--锁定人ID，如果当前账户正在被人占用编辑则返回该人的工号
 				            @Ret		int output		--操作成功标识0:成功，1：要释放锁定的账户不存在，2:要释放锁定的账户正在被别人编辑，8：该账户未被任何人锁定9：未知错误
 	            author:		卢嘉诚
 	            CreateDate:	2016-4-16
+	            UpdateDate: 
+	            UpdateDate: 
          */
         SqlCommand cmd = new SqlCommand("unlockAccountEdit", sqlCon);
         cmd.CommandType = CommandType.StoredProcedure;
 
-        cmd.Parameters.Add("@accountID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@accountID", SqlDbType.VarChar, 13);
         cmd.Parameters["@accountID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@accountID"].Value = accountID;
 
-        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
         cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
         cmd.Parameters["@lockManID"].Value = lockManID;
 
@@ -3149,14 +2718,13 @@ public class FinancialSystem : virtualWebService
     /// <param name="handoverPerson">交接人</param>
     /// <param name="transferMatters">移交事项</param>
     /// <param name="remarks">备注</param>
-    /// <param name="lockManID">锁定人ID</param>
-    /// <param name="TransferConfirmation">移交确认</param>
+    /// <param name="lockManID">锁定人</param>
     /// <returns>成功：返回账户移交ID！；失败："Error：..."</returns>
     [WebMethod(Description = "账户移交<br />"
                            + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
     //[SoapHeader("PageHeader")]
     public string accountTransfer(string handoverDate, string transferAccountID, string transferAccount, string transferPersonID, string transferPerson, string handoverPersonID, string handoverPerson, string transferMatters,
-        string remarks, string TransferConfirmation,string lockManID)
+        string remarks, string lockManID)
     {
         //verifyPageHeader(this);
         int ret = 9;
@@ -3165,28 +2733,26 @@ public class FinancialSystem : virtualWebService
         SqlConnection sqlCon = new SqlConnection(conStr);
         sqlCon.Open();
         /*
-	        name:		accountTransfer
-	        function: 	该存储过程锁定账户编辑，避免编辑冲突
-	        input: 
-
-				        @handoverDate	smalldatetime,	--移交日期
-				        @transferAccountID	varchar(10),	--移交账户ID
-				        @transferAccount	varchar(50),	--移交账户
-				        @transferPersonID	varchar(10),	--移交人ID
-				        @transferPerson	varchar(30),	--移交人
-				        @handoverPersonID	varchar(10),	--交接人ID
-				        @handoverPerson	varchar(30),	--交接人
-				        @transferMatters	varchar(200),	--移交事项
-				        @remarks		varchar(200),	--备注
-				        @TransferConfirmation smallint ,	--移交确认，0：未确认，1：确认
+	            name:		accountTransfer
+	            function: 	该存储过程锁定账户编辑，避免编辑冲突
+	            input: 
+				            @accountTransferID varchar(15) output,	--账户移交ID,主键，使用410号号码发生器生成
+				            @handoverDate	smalldatetime,	--移交日期
+				            @transferAccountID	varchar(13),	--移交账户ID
+				            @transferAccount	varchar(30),	--移交账户
+				            @transferPersonID	varchar(13),	--移交人ID
+				            @transferPerson	varchar(20),	--移交人
+				            @handoverPersonID	varchar(13),	--交接人ID
+				            @handoverPerson	varchar(20),	--交接人
+				            @transferMatters	varchar(200),	--移交事项
+				            @remarks		varchar(200),	--备注
+				            @lockManID varchar(13) output,	--锁定人，如果当前借支单正在被人占用编辑则返回该人的工号
 				
-	        output: 
-				        @accountTransferID varchar(15) output,	--账户移交ID,主键，使用410号号码发生器生成
-				        @lockManID varchar(10) output,	--锁定人，如果当前借支单正在被人占用编辑则返回该人的工号
-				        @Ret int output				--操作成功标识0:成功，1：要移交的的账户不存在，2:要移交的的账户正在被别人锁定，3:该账户未锁定，请先锁定账户9：未知错误
-	        author:		卢嘉诚
-	        CreateDate:	2016-4-16
-
+	            output: 
+				            @Ret		int output		--操作成功标识0:成功，1：要移交的的账户不存在，2:要移交的的账户正在被别人锁定，3:该账户未锁定，请先锁定账户9：未知错误
+	            author:		卢嘉诚
+	            CreateDate:	2016-4-16
+	            UpdateDate: 
          */
         SqlCommand cmd = new SqlCommand("accountTransfer", sqlCon);
         cmd.CommandType = CommandType.StoredProcedure;
@@ -3198,27 +2764,27 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@handoverDate"].Direction = ParameterDirection.Input;
         cmd.Parameters["@handoverDate"].Value = handoverDate;
 
-        cmd.Parameters.Add("@transferAccountID", SqlDbType.VarChar,10);
+        cmd.Parameters.Add("@transferAccountID", SqlDbType.VarChar,13);
         cmd.Parameters["@transferAccountID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@transferAccountID"].Value = transferAccountID;
 
-        cmd.Parameters.Add("@transferAccount", SqlDbType.VarChar,50);
+        cmd.Parameters.Add("@transferAccount", SqlDbType.VarChar,30);
         cmd.Parameters["@transferAccount"].Direction = ParameterDirection.Input;
         cmd.Parameters["@transferAccount"].Value = transferAccount;
 
-        cmd.Parameters.Add("@transferPersonID", SqlDbType.VarChar,10);
+        cmd.Parameters.Add("@transferPersonID", SqlDbType.VarChar,13);
         cmd.Parameters["@transferPersonID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@transferPersonID"].Value = transferPersonID;
 
-        cmd.Parameters.Add("@transferPerson", SqlDbType.VarChar, 30);
+        cmd.Parameters.Add("@transferPerson", SqlDbType.VarChar, 20);
         cmd.Parameters["@transferPerson"].Direction = ParameterDirection.Input;
         cmd.Parameters["@transferPerson"].Value = transferPerson;
 
-        cmd.Parameters.Add("@handoverPersonID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@handoverPersonID", SqlDbType.VarChar, 13);
         cmd.Parameters["@handoverPersonID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@handoverPersonID"].Value = handoverPersonID;
 
-        cmd.Parameters.Add("@handoverPerson", SqlDbType.VarChar, 30);
+        cmd.Parameters.Add("@handoverPerson", SqlDbType.VarChar, 20);
         cmd.Parameters["@handoverPerson"].Direction = ParameterDirection.Input;
         cmd.Parameters["@handoverPerson"].Value = handoverPerson;
 
@@ -3230,7 +2796,7 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@remarks"].Direction = ParameterDirection.Input;
         cmd.Parameters["@remarks"].Value = remarks;
 
-        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
         cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
         cmd.Parameters["@lockManID"].Value = lockManID;
 
@@ -3266,82 +2832,6 @@ public class FinancialSystem : virtualWebService
         }
     }
 
-
-    /// <summary>
-    /// 功    能：账户移交确认
-    /// 作    者：卢嘉诚
-    /// 编写日期：2016-4-28
-    /// </summary>
-    /// <param name="accountTransferID">账户移交ID</param>
-    /// <param name="lockManID">锁定人ID</param>
-    /// <returns>成功：确认账户移交成功！；失败："Error：..."</returns>
-    [WebMethod(Description = "账户移交确认<br />"
-                           + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
-    //[SoapHeader("PageHeader")]
-    public string TransferAccountConfirmation(string accountTransferID, string lockManID)
-    {
-        //verifyPageHeader(this);
-        int ret = 9;
-        //从web.config获取连接字符串
-        string conStr = WebConfigurationManager.ConnectionStrings["conStr"].ToString();
-        SqlConnection sqlCon = new SqlConnection(conStr);
-        sqlCon.Open();
-        /*
-	        name:		TransferAccountConfirmation
-	        function: 	该存储过程锁定账户编辑，避免编辑冲突
-	        input: 
-				        @accountTransferID		--账户移交ID
-
-				
-	        output: 
-				        @lockManID varchar(10) output,	--锁定人，如果当前借支单正在被人占用编辑则返回该人的工号
-				        @Ret int output				--操作成功标识0:成功，1：该次账户移交不存在，2:确认人并非交接人9：未知错误
-	        author:		卢嘉诚
-	        CreateDate:	2016-4-16
-
-         */
-        SqlCommand cmd = new SqlCommand("TransferAccountConfirmation", sqlCon);
-        cmd.CommandType = CommandType.StoredProcedure;
-
-        cmd.Parameters.Add("@accountTransferID", SqlDbType.VarChar, 15);
-        cmd.Parameters["@accountTransferID"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@accountTransferID"].Value = accountTransferID;
-
-        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 10);
-        cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
-        cmd.Parameters["@lockManID"].Value = lockManID;
-
-        cmd.Parameters.Add("@Ret", SqlDbType.Int);
-        cmd.Parameters["@Ret"].Direction = ParameterDirection.Output;
-
-
-        try
-        {
-            cmd.ExecuteNonQuery();
-            ret = (int)cmd.Parameters["@Ret"].Value;
-            lockManID = (string)cmd.Parameters["@lockManID"].Value;
-            if (ret == 0)
-                return (string)cmd.Parameters["@accountTransferID"].Value;
-            else if (ret == 1)
-                return "Error:本次账户移交" + accountTransferID + "不存在！";
-            else if (ret == 2)
-                return "Error：确认人并非该移账户移交的交接人！";
-            else
-                return "Error:未知错误！";
-        }
-        catch (Exception e)
-        {
-            return "Error:" + e.Message;
-        }
-        finally
-        {
-            cmd.Dispose();
-            sqlCon.Close();
-            sqlCon.Dispose();
-        }
-    }
-
-
     #endregion
 
 
@@ -3373,13 +2863,12 @@ public class FinancialSystem : virtualWebService
     /// <param name="clerkID">经手人ID</param>
     /// <param name="clerk">经手人</param>
     /// <param name="remarks">备注</param>
-    /// <param name="createManID">创建人ID</param>
     /// <returns>成功：账户编号，采用409号号码发生器发生；失败："Error：..."</returns>
     [WebMethod(Description = "增加账户明细<br />"
                            + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
     //[SoapHeader("PageHeader")]
     public string addAccountDetails(string accountID, string account, string detailDate, string Detailsabstract, decimal borrow, decimal loan, decimal balance, string departmentID, string department,
-        string projectID, string project, string clerkID, string clerk, string remarks, string createManID)
+        string projectID, string project, string clerkID, string clerk, string remarks)
     {
         //verifyPageHeader(this);
         int ret = 9;
@@ -3388,43 +2877,45 @@ public class FinancialSystem : virtualWebService
         SqlConnection sqlCon = new SqlConnection(conStr);
         sqlCon.Open();
         /*
-	            name:		addAccountDetails
+	           	name:		addAccountDetails
 	            function:	1.添加账户明细
 				            注意：本存储过程不锁定编辑！
 	            input: 
-				            @accountID 	varchar(10)	not null,	--账户ID
-				            @account		varchar(50)	not	null,	--账户名称
-				            @detailDate	smalldatetime	not null,	--日期
-				            @abstract	varchar(200),	--摘要
-				            @borrow		numeric(15,2),		--借
-				            @loan		numeric(15,2),		--贷
-				            @balance		numeric(15,2),		--余额
-				            @departmentID	varchar(13),	--部门ID
+				            @AccountDetailsID	varchar(16) output,	--账户明细ID，主键，使用408号号码发生器生成
+				            @accountID 	varchar(13),		--账户ID
+				            @account		varchar(30),		--账户名称
+				            @detailDate	smalldatetime	,	--日期
+				            @abstract	varchar(200),			--摘要
+				            @borrow		money,			--借
+				            @loan		money,			--贷
+				            @balance		money,			--余额
+				            @departmentID	varchar(13),		--部门ID
 				            @department		varchar(30),	--部门
 				            @projectID		varchar(13),	--项目ID
-				            @project			varchar(50),	--项目
-				            @clerkID		varchar(10),		--经手人ID
-				            @clerk		varchar(30),		--经手人
+				            @project			varchar(100),	--项目
+				            @clerkID		varchar(13),		--经手人ID
+				            @clerk		varchar(20),		--经手人
 				            @remarks		varchar(200),		--备注
 
 				            @createManID varchar(10),		--创建人工号
 	            output: 
-				            @AccountDetailsID	varchar(14) output,	--交易ID，主键，使用408号号码发生器生成
-				            @Ret		int output		--操作成功标示；0:成功，1：该账户已存在，9：未知错误
+				            @Ret		int output		--操作成功标识
+							            0:成功，9：未知错误
 	            author:		卢嘉诚
 	            CreateDate:	2016-3-23
+	            UpdateDate: 2016-3-23 by lw 根据编辑要求增加rowNum返回参数
          */
         SqlCommand cmd = new SqlCommand("addAccountDetails", sqlCon);
         cmd.CommandType = CommandType.StoredProcedure;
 
-        cmd.Parameters.Add("@AccountDetailsID", SqlDbType.VarChar, 14);
+        cmd.Parameters.Add("@AccountDetailsID", SqlDbType.VarChar, 16);
         cmd.Parameters["@AccountDetailsID"].Direction = ParameterDirection.Output;
 
-        cmd.Parameters.Add("@accountID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@accountID", SqlDbType.VarChar, 13);
         cmd.Parameters["@accountID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@accountID"].Value = accountID;
 
-        cmd.Parameters.Add("@account", SqlDbType.VarChar, 50);
+        cmd.Parameters.Add("@account", SqlDbType.VarChar, 30);
         cmd.Parameters["@account"].Direction = ParameterDirection.Input;
         cmd.Parameters["@account"].Value = account;
 
@@ -3460,15 +2951,15 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@projectID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@projectID"].Value = projectID;
 
-        cmd.Parameters.Add("@project", SqlDbType.VarChar, 50);
+        cmd.Parameters.Add("@project", SqlDbType.VarChar, 100);
         cmd.Parameters["@project"].Direction = ParameterDirection.Input;
         cmd.Parameters["@project"].Value = project;
 
-        cmd.Parameters.Add("@clerkID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@clerkID", SqlDbType.VarChar, 13);
         cmd.Parameters["@clerkID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@clerkID"].Value = clerkID;
 
-        cmd.Parameters.Add("@clerk", SqlDbType.VarChar, 30);
+        cmd.Parameters.Add("@clerk", SqlDbType.VarChar, 20);
         cmd.Parameters["@clerk"].Direction = ParameterDirection.Input;
         cmd.Parameters["@clerk"].Value = clerk;
 
@@ -3476,9 +2967,9 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@remarks"].Direction = ParameterDirection.Input;
         cmd.Parameters["@remarks"].Value = remarks;
 
-        cmd.Parameters.Add("@createManID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@createManID", SqlDbType.VarChar, 13);
         cmd.Parameters["@createManID"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@createManID"].Value = createManID;
+        cmd.Parameters["@createManID"].Value = "user100";
 
         cmd.Parameters.Add("@Ret", SqlDbType.Int);
         cmd.Parameters["@Ret"].Direction = ParameterDirection.Output;
@@ -3530,8 +3021,8 @@ public class FinancialSystem : virtualWebService
 	        function:		1.删除账户明细
 				        注意：本存储过程锁定编辑！
 	        input: 
-				        @AccountDetailsID	varchar(14) output,	--账户明细ID，主键，使用408号号码发生器生成
-				        @lockManID varchar(10),		--锁定人ID
+				        @AccountDetailsID	varchar(16) output,	--账户明细ID，主键，使用408号号码发生器生成
+				        @lockManID varchar(13),		--锁定人ID
 	        output: 
 				        @Ret		int output		--操作成功标识;--操作成功标示；0:成功，1：该账户明细不存在，2：该账户明细被其他用户锁定，9：未知错误
 	        author:		卢嘉诚
@@ -3541,11 +3032,11 @@ public class FinancialSystem : virtualWebService
         SqlCommand cmd = new SqlCommand("delAccountDetails", sqlCon);
         cmd.CommandType = CommandType.StoredProcedure;
 
-        cmd.Parameters.Add("@AccountDetailsID", SqlDbType.VarChar, 14);
+        cmd.Parameters.Add("@AccountDetailsID", SqlDbType.VarChar, 16);
         cmd.Parameters["@AccountDetailsID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@AccountDetailsID"].Value = AccountDetailsID;
 
-        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
         cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
         cmd.Parameters["@lockManID"].Value = lockManID;
 
@@ -3601,7 +3092,6 @@ public class FinancialSystem : virtualWebService
     /// <param name="clerkID">经手人ID</param>
     /// <param name="clerk">经手人</param>
     /// <param name="remarks">备注</param>
-    /// <param name="lockManID">锁定人</param>
     /// <returns>成功：编辑成功！；失败："Error：..."</returns>
     [WebMethod(Description = "增加账户明细<br />"
                            + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
@@ -3616,45 +3106,45 @@ public class FinancialSystem : virtualWebService
         SqlConnection sqlCon = new SqlConnection(conStr);
         sqlCon.Open();
         /*
-	        name:		editAccountDetails	
-	        function:	1.编辑账户明细
-				        注意：本存储过程锁定编辑！
-	        input: 
-				        @AccountDetailsID	varchar(14) output,	--交易ID，主键，使用408号号码发生器生成
-				        @accountID 	varchar(10),	--账户ID
-				        @account		varchar(50),--账户名称
-				        @detailDate	smalldatetime,	--日期
-				        @abstract	varchar(200),	--摘要
-				        @borrow		numeric(15,2),			--借
-				        @loan		numeric(15,2),			--贷
-				        @balance	numeric(15,2),			--余额
-				        @departmentID	varchar(13),--部门ID
-				        @department	varchar(30),	--部门
-				        @projectID	varchar(13),	--项目ID
-				        @project	varchar(50),	--项目
-				        @clerkID	varchar(10),	--经手人ID
-				        @clerk		varchar(30),	--经手人
-				        @remarks	varchar(200),	--备注
+	            name:		editAccountDetails	
+	            function:	1.编辑账户明细
+				            注意：本存储过程锁定编辑！
+	            input: 
+				            @AccountDetailsID	varchar(16) output,	--账户明细ID，主键
+				            @accountID 	varchar(13),		--账户ID
+				            @account		varchar(30),		--账户名称
+				            @detailDate	smalldatetime	,	--日期
+				            @abstract	varchar(200),			--摘要
+				            @borrow		money,			--借
+				            @loan		money,			--贷
+				            @balance		money,			--余额
+				            @departmentID	varchar(13),		--部门ID
+				            @department		varchar(30),	--部门
+				            @projectID		varchar(13),	--项目ID
+				            @project			varchar(100),	--项目
+				            @clerkID		varchar(13),		--经手人ID
+				            @clerk		varchar(20),		--经手人
+				            @remarks		varchar(200),		--备注
 
-				        @lockManID varchar(10)output,		--锁定人ID
-	        output: 
-				        @Ret		int output		--操作成功标示；0:成功，1：该账户明细不存在，2：该账户明细已被其他用户锁定，9：未知错误
-	        author:		卢嘉诚
-	        CreateDate:	2016-3-23
-
+				            @lockManID varchar(10)output,		--锁定人ID
+	            output: 
+				            @Ret		int output		--操作成功标示；0:成功，1：该账户明细不存在，2：该账户明细已被其他用户锁定，9：未知错误
+				            @createTime smalldatetime output
+	            author:		卢嘉诚
+	            CreateDate:	2016-3-23
          */
         SqlCommand cmd = new SqlCommand("editAccountDetails", sqlCon);
         cmd.CommandType = CommandType.StoredProcedure;
 
-        cmd.Parameters.Add("@AccountDetailsID", SqlDbType.VarChar, 14);
+        cmd.Parameters.Add("@AccountDetailsID", SqlDbType.VarChar, 16);
         cmd.Parameters["@AccountDetailsID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@AccountDetailsID"].Value = AccountDetailsID;
 
-        cmd.Parameters.Add("@accountID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@accountID", SqlDbType.VarChar, 13);
         cmd.Parameters["@accountID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@accountID"].Value = accountID;
 
-        cmd.Parameters.Add("@account", SqlDbType.VarChar, 50);
+        cmd.Parameters.Add("@account", SqlDbType.VarChar, 30);
         cmd.Parameters["@account"].Direction = ParameterDirection.Input;
         cmd.Parameters["@account"].Value = account;
 
@@ -3690,15 +3180,15 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@projectID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@projectID"].Value = projectID;
 
-        cmd.Parameters.Add("@project", SqlDbType.VarChar, 50);
+        cmd.Parameters.Add("@project", SqlDbType.VarChar, 100);
         cmd.Parameters["@project"].Direction = ParameterDirection.Input;
         cmd.Parameters["@project"].Value = project;
 
-        cmd.Parameters.Add("@clerkID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@clerkID", SqlDbType.VarChar, 13);
         cmd.Parameters["@clerkID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@clerkID"].Value = clerkID;
 
-        cmd.Parameters.Add("@clerk", SqlDbType.VarChar, 30);
+        cmd.Parameters.Add("@clerk", SqlDbType.VarChar, 20);
         cmd.Parameters["@clerk"].Direction = ParameterDirection.Input;
         cmd.Parameters["@clerk"].Value = clerk;
 
@@ -3706,7 +3196,7 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@remarks"].Direction = ParameterDirection.Input;
         cmd.Parameters["@remarks"].Value = remarks;
 
-        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
         cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
         cmd.Parameters["@lockManID"].Value = lockManID;
 
@@ -3724,7 +3214,7 @@ public class FinancialSystem : virtualWebService
             else if (ret == 1)
                 return "Error:账户明细" + AccountDetailsID + "不存在!";
             else if (ret == 2)
-                return "Error:该账户明细已经被用户" + lockManID + "锁定！";
+                return "该账户明细已经被用户" + lockManID + "锁定！";
             else
                 return "Error:未知错误！";
         }
@@ -3763,8 +3253,8 @@ public class FinancialSystem : virtualWebService
 	        name:		lockAccountDetailsEdit
 	        function: 	锁定账户明细编辑，避免编辑冲突
 	        input: 
-				        @AccountDetailsID varchar(14),		--账户ID
-				        @lockManID varchar(10) output,	--锁定人，如果当前科目正在被人占用编辑则返回该人的工号
+				        @AccountDetailsID varchar(16),		--账户ID
+				        @lockManID varchar(13) output,	--锁定人，如果当前科目正在被人占用编辑则返回该人的工号
 	        output: 
 				        @Ret		int output		--操作成功标识0:成功，1：要锁定的账户明细不存在，2:要锁定的账户明细正在被别人编辑，9：未知错误
 	        author:		卢嘉诚
@@ -3774,11 +3264,11 @@ public class FinancialSystem : virtualWebService
         SqlCommand cmd = new SqlCommand("lockAccountDetailsEdit", sqlCon);
         cmd.CommandType = CommandType.StoredProcedure;
 
-        cmd.Parameters.Add("@AccountDetailsID", SqlDbType.VarChar, 14);
+        cmd.Parameters.Add("@AccountDetailsID", SqlDbType.VarChar, 16);
         cmd.Parameters["@AccountDetailsID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@AccountDetailsID"].Value = AccountDetailsID;
 
-        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
         cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
         cmd.Parameters["@lockManID"].Value = lockManID;
 
@@ -3795,9 +3285,9 @@ public class FinancialSystem : virtualWebService
             if (ret == 0)
                 return "锁定成功！";
             else if (ret == 1)
-                return "Error:账户明细" + AccountDetailsID + "不存在！";
+                return "账户明细" + AccountDetailsID + "不存在！";
             else if (ret == 2)
-                return "Error:要锁定的账户明细正在被用户" + lockManID + "锁定编辑";
+                return "要锁定的账户明细正在被用户" + lockManID + "锁定编辑";
             else
                 return "Error:未知错误！";
         }
@@ -3836,8 +3326,8 @@ public class FinancialSystem : virtualWebService
 	            name:		lockAccountDetailsEdit
 	            function: 	释放锁定账户明细编辑，避免编辑冲突
 	            input: 
-				            @AccountDetailsID varchar(14),		--交易ID
-				            @lockManID varchar(10) output,	--锁定人，如果当前科目正在被人占用编辑则返回该人的工号
+				            @AccountDetailsID varchar(16),		--账户ID
+				            @lockManID varchar(13) output,	--锁定人，如果当前科目正在被人占用编辑则返回该人的工号
 	            output: 
 				            @Ret		int output		--操作成功标识0:成功，1：要释放锁定的账户明细不存在，2:要释放锁定的账户明细正在被别人编辑，8：该账户明细未被任何人锁定9：未知错误
 	            author:		卢嘉诚
@@ -3847,11 +3337,11 @@ public class FinancialSystem : virtualWebService
         SqlCommand cmd = new SqlCommand("unlockAccountDetailsEdit", sqlCon);
         cmd.CommandType = CommandType.StoredProcedure;
 
-        cmd.Parameters.Add("@AccountDetailsID", SqlDbType.VarChar, 14);
+        cmd.Parameters.Add("@AccountDetailsID", SqlDbType.VarChar, 16);
         cmd.Parameters["@AccountDetailsID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@AccountDetailsID"].Value = AccountDetailsID;
 
-        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
         cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
         cmd.Parameters["@lockManID"].Value = lockManID;
 
@@ -3901,7 +3391,11 @@ public class FinancialSystem : virtualWebService
     /// <param name="customerName">客户名称</param>
     /// <param name="abstract">摘要</param>
     /// <param name="incomeSum">收入金额</param>
+    /// <param name="contractAmount">合同金额</param>
+    /// <param name="receivedAmount">已收金额</param>
     /// <param name="remarks">备注</param>
+    /// <param name="collectionModeID">收款方式ID</param>
+    /// <param name="collectionMode">收款方式</param>
     /// <param name="startDate">收款日期</param>
     /// <param name="paymentApplicantID">收款申请人ID</param>
     /// <param name="payee">收款人</param>
@@ -3910,8 +3404,8 @@ public class FinancialSystem : virtualWebService
     [WebMethod(Description = "增加收入明细<br />"
                            + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
     //[SoapHeader("PageHeader")]
-    public string addIncome(string projectID, string project, string customerID, string customerName, string Incomeabstract, decimal incomeSum,  string remarks,
-        string startDate, string paymentApplicantID, string payee, string createManID)
+    public string addIncome(string projectID, string project, string customerID, string customerName, string Incomeabstract, decimal incomeSum, decimal contractAmount, decimal receivedAmount, string remarks,
+        string collectionModeID, string collectionMode, string startDate, string paymentApplicantID, string payee, string createManID)
     {
         //verifyPageHeader(this);
         int ret = 9;
@@ -3920,29 +3414,33 @@ public class FinancialSystem : virtualWebService
         SqlConnection sqlCon = new SqlConnection(conStr);
         sqlCon.Open();
         /*
-	            name:		addIncome
-	            function: 	该存储过程不锁定编辑
-	            input: 
+	        name:		addIncome
+	        function: 	该存储过程锁定账户编辑，避免编辑冲突
+	        input: 
 
-				            @projectID	varchar(13),	--项目ID
-				            @project		varchar(50),		--项目名称
-				            @customerID	varchar(10),			--客户ID
-				            @customerName	varchar(30),		--客户名称
-				            @abstract	varchar(200),			--摘要
-				            @incomeSum	numeric(15,2),			--收入金额
-				            @remarks	varchar(200),			--备注
-				            @startDate	smalldatetime,			--收款日期
-				            @paymentApplicantID	varchar(10),	--收款申请人ID
-				            @payee	varchar(30),				--收款人
-				            @createManID varchar(10),	--创建人
+				        @projectID	varchar(13),	--项目ID
+				        @project		varchar(50),	--项目名称
+				        @customerID	varchar(13),	--客户ID
+				        @customerName	varchar(30),	--客户名称
+				        @abstract	varchar(200),	--摘要
+				        @incomeSum	money,	--收入金额
+				        @contractAmount money,	--合同金额
+				        @receivedAmount	money,	--已收金额
+				        @remarks	varchar(200),	--备注
+				        @collectionModeID	varchar(13),	--收款方式ID
+				        @collectionMode		varchar(50),	--收款方式
+				        @startDate	smalldatetime	,	--收款日期
+				        @paymentApplicantID	varchar(13),	--收款申请人ID
+				        @payee	varchar(10),	--收款人
+				        @createManID varchar(13),	--创建人
 
 				
-	            output: 
-				            @incomeInformationID varchar(16)	output,	--收入记录号，主键，使用411号号码发生器生成
-				            @Ret int output				--操作成功标识0:成功，9：未知错误
-	            author:		卢嘉诚
-	            CreateDate:	2016-4-16
-	
+	        output: 
+				        @incomeInformationID varchar(16)	output,	--收入信息ID，主键，使用411号号码发生器生成
+				        @Ret int output				--操作成功标识0:成功，9：未知错误
+	        author:		卢嘉诚
+	        CreateDate:	2016-4-16
+	        UpdateDate: 
          */
         SqlCommand cmd = new SqlCommand("addIncome", sqlCon);
         cmd.CommandType = CommandType.StoredProcedure;
@@ -3974,23 +3472,39 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@incomeSum"].Direction = ParameterDirection.Input;
         cmd.Parameters["@incomeSum"].Value = incomeSum;
 
+        cmd.Parameters.Add("@contractAmount", SqlDbType.Money);
+        cmd.Parameters["@contractAmount"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@contractAmount"].Value = contractAmount;
+
+        cmd.Parameters.Add("@receivedAmount", SqlDbType.Money);
+        cmd.Parameters["@receivedAmount"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@receivedAmount"].Value = receivedAmount;
+
         cmd.Parameters.Add("@remarks", SqlDbType.VarChar, 200);
         cmd.Parameters["@remarks"].Direction = ParameterDirection.Input;
         cmd.Parameters["@remarks"].Value = remarks;
+
+        cmd.Parameters.Add("@collectionModeID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@collectionModeID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@collectionModeID"].Value = collectionModeID;
+
+        cmd.Parameters.Add("@collectionMode", SqlDbType.VarChar, 50);
+        cmd.Parameters["@collectionMode"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@collectionMode"].Value = collectionMode;
 
         cmd.Parameters.Add("@startDate", SqlDbType.SmallDateTime);
         cmd.Parameters["@startDate"].Direction = ParameterDirection.Input;
         cmd.Parameters["@startDate"].Value = startDate;
 
-        cmd.Parameters.Add("@paymentApplicantID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@paymentApplicantID", SqlDbType.VarChar, 13);
         cmd.Parameters["@paymentApplicantID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@paymentApplicantID"].Value = paymentApplicantID;
 
-        cmd.Parameters.Add("@payee", SqlDbType.VarChar, 30);
+        cmd.Parameters.Add("@payee", SqlDbType.VarChar, 10);
         cmd.Parameters["@payee"].Direction = ParameterDirection.Input;
         cmd.Parameters["@payee"].Value = payee;
 
-        cmd.Parameters.Add("@createManID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@createManID", SqlDbType.VarChar, 13);
         cmd.Parameters["@createManID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@createManID"].Value = createManID;
 
@@ -4044,7 +3558,7 @@ public class FinancialSystem : virtualWebService
 				            注意：本存储过程锁定编辑！
 	            input: 
 				            @incomeInformationID	varchar(16) output,	--收入信息ID，主键
-				            @lockManID varchar(10),		--锁定人ID
+				            @lockManID varchar(13),		--锁定人ID
 	            output: 
 				            @Ret		int output		--操作成功标识;--操作成功标示；0:成功，1：该收入明细不存在，2：该收入明细被其他用户锁定，3：请先锁定该收入明细再删除避免冲突，9：未知错误
 	            author:		卢嘉诚
@@ -4057,7 +3571,7 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@incomeInformationID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@incomeInformationID"].Value = incomeInformationID;
 
-        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
         cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
         cmd.Parameters["@lockManID"].Value = lockManID;
 
@@ -4106,6 +3620,8 @@ public class FinancialSystem : virtualWebService
     /// <param name="customerName">客户名称</param>
     /// <param name="Incomeabstract">摘要</param>
     /// <param name="incomeSum">收入金额</param>
+    /// <param name="contractAmount">合同金额</param>
+    /// <param name="receivedAmount">已收金额</param>
     /// <param name="remarks">备注</param>
     /// <param name="collectionModeID">收款方式ID</param>
     /// <param name="collectionMode">收款方式</param>
@@ -4117,7 +3633,7 @@ public class FinancialSystem : virtualWebService
     [WebMethod(Description = "编辑收入明细<br />"
                            + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
     //[SoapHeader("PageHeader")]
-    public string editIncome(string incomeInformationID, string projectID, string project, string customerID, string customerName,string Incomeabstract, decimal incomeSum,  string remarks, string collectionModeID,
+    public string editIncome(string incomeInformationID, string projectID, string project, string customerID, string customerName,string Incomeabstract, decimal incomeSum, decimal contractAmount, decimal receivedAmount, string remarks, string collectionModeID,
         string collectionMode, string startDate, string paymentApplicantID, string payee, string lockManID)
     {
         //verifyPageHeader(this);
@@ -4131,24 +3647,25 @@ public class FinancialSystem : virtualWebService
 	        function:	1.编辑收入明细
 				        注意：本存储过程锁定编辑！
 	        input: 
-				        @incomeInformationID varchar(16),		--收入记录号，主键
+				        @incomeInformationID varchar(16)	output,	--收入信息ID，主键，使用411号号码发生器生成
 				        @projectID	varchar(13),	--项目ID
-				        @project		varchar(50),		--项目名称
-				        @customerID	varchar(13),			--客户ID
-				        @customerName	varchar(30),		--客户名称
-				        @abstract		varchar(200),			--摘要
-				        @incomeSum	numeric(15,2),			--收入金额
-				        @remarks		varchar(200),			--备注
-				        @collectionModeID	varchar(10),	--收款方式ID
-				        @collectionMode	varchar(50),	--收款账号
-				        @startDate		smalldatetime,			--收款日期
-				        @paymentApplicantID	varchar(10),	--收款申请人ID
-				        @payee			varchar(30),				--收款人
+				        @project		varchar(50),	--项目名称
+				        @customerID	varchar(13),	--客户ID
+				        @customerName	varchar(30),	--客户名称
+				        @abstract	varchar(200),	--摘要
+				        @incomeSum	money,	--收入金额
+				        @contractAmount money,	--合同金额
+				        @receivedAmount	money,	--已收金额
+				        @remarks	varchar(200),	--备注
+				        @collectionModeID	varchar(13),	--收款方式ID
+				        @collectionMode		varchar(50),	--收款方式
+				        @startDate	smalldatetime	,	--收款日期
+				        @paymentApplicantID	varchar(13),	--收款申请人ID
+				        @payee	varchar(10),	--收款人
 
-				
 
 	        output: 
-				        @lockManID varchar(10) output,		--锁定人ID
+				        @lockManID varchar(10)output,		--锁定人ID
 				        @Ret		int output		--操作成功标示；0:成功，1：该账户明细不存在，2：该账户明细已被其他用户锁定，9：未知错误
 
 	        author:		卢嘉诚
@@ -4186,11 +3703,19 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@incomeSum"].Direction = ParameterDirection.Input;
         cmd.Parameters["@incomeSum"].Value = incomeSum;
 
+        cmd.Parameters.Add("@contractAmount", SqlDbType.Money);
+        cmd.Parameters["@contractAmount"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@contractAmount"].Value = contractAmount;
+
+        cmd.Parameters.Add("@receivedAmount", SqlDbType.Money);
+        cmd.Parameters["@receivedAmount"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@receivedAmount"].Value = receivedAmount;
+
         cmd.Parameters.Add("@remarks", SqlDbType.VarChar, 200);
         cmd.Parameters["@remarks"].Direction = ParameterDirection.Input;
         cmd.Parameters["@remarks"].Value = remarks;
 
-        cmd.Parameters.Add("@collectionModeID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@collectionModeID", SqlDbType.VarChar, 13);
         cmd.Parameters["@collectionModeID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@collectionModeID"].Value = collectionModeID;
 
@@ -4202,15 +3727,15 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@startDate"].Direction = ParameterDirection.Input;
         cmd.Parameters["@startDate"].Value = startDate;
 
-        cmd.Parameters.Add("@paymentApplicantID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@paymentApplicantID", SqlDbType.VarChar, 13);
         cmd.Parameters["@paymentApplicantID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@paymentApplicantID"].Value = paymentApplicantID;
 
-        cmd.Parameters.Add("@payee", SqlDbType.VarChar, 30);
+        cmd.Parameters.Add("@payee", SqlDbType.VarChar, 10);
         cmd.Parameters["@payee"].Direction = ParameterDirection.Input;
         cmd.Parameters["@payee"].Value = payee;
 
-        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
         cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
         cmd.Parameters["@lockManID"].Value = lockManID;
 
@@ -4252,7 +3777,7 @@ public class FinancialSystem : virtualWebService
 
 
     /// <summary>
-    /// 功    能：添加支出记录
+    /// 功    能：添加支出明细
     /// 作    者：卢嘉诚
     /// 编写日期：2016-4-28
     /// </summary>
@@ -4262,49 +3787,58 @@ public class FinancialSystem : virtualWebService
     /// <param name="customerName">客户名称</param>
     /// <param name="abstract">摘要</param>
     /// <param name="expensesSum">支出金额</param>
+    /// <param name="contractAmount">合同金额</param>
+    /// <param name="receivedAmount">已付金额</param>
     /// <param name="remarks">备注</param>
-    /// <param name="startDate">申请日期</param>
+    /// <param name="collectionModeID">付款方式ID</param>
+    /// <param name="collectionMode">付款方式</param>
+    /// <param name="startDate">付款日期</param>
     /// <param name="paymentApplicantID">付款申请人ID</param>
-    /// <param name="paymentApplicant">付款人申请人</param>
+    /// <param name="paymentApplicant">付款人</param>
     /// <param name="createManID">创建人ID</param>
-    /// <returns>成功：支出记录ID，采用412号号码发生器发生；失败："Error：..."</returns>
-    [WebMethod(Description = "添加支出记录<br />"
+    /// <returns>成功：收入明细编号，采用412号号码发生器发生；失败："Error：..."</returns>
+    [WebMethod(Description = "添加支出明细<br />"
                            + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
-    [SoapHeader("PageHeader")]
-    public string addExpenses(string projectID, string project, string customerID, string customerName, string Expensesabstract, decimal expensesSum,string remarks,
-         string startDate, string paymentApplicantID, string paymentApplicant, string createManID)
+    //[SoapHeader("PageHeader")]
+    public string addExpenses(string projectID, string project, string customerID, string customerName, string Expensesabstract, decimal expensesSum, decimal contractAmount, decimal receivedAmount, string remarks,
+        string collectionModeID, string collectionMode, string startDate, string paymentApplicantID, string paymentApplicant, string createManID)
     {
-        verifyPageHeader(this);
+        //verifyPageHeader(this);
         int ret = 9;
         //从web.config获取连接字符串
         string conStr = WebConfigurationManager.ConnectionStrings["conStr"].ToString();
         SqlConnection sqlCon = new SqlConnection(conStr);
         sqlCon.Open();
         /*
-	        name:		addExpenses
-	        function:	1.添加支出记录
-				        注意：本存储过程不锁定编辑！
-	        input: 
-				        @projectID	varchar(13),	--项目ID
-				        @project		varchar(50),	--项目名称
-				        @customerID	varchar(13),	--客户ID
-				        @customerName	varchar(30),	--客户名称
-				        @abstract	varchar(200),		--摘要
-				        @expensesSum	numeric(15,2),--支出金额
-				        @remarks	varchar(200),		--备注
-				        @startDate	smalldatetime,	--申请日期
-				        @paymentApplicantID	varchar(10),	--付款申请人ID
-				        @paymentApplicant		varchar(30),	--付款申请人
+                name:		addExpenses
+	            function:	1.添加支出明细
+				            注意：本存储过程不锁定编辑！
+	            input: 
 
-				        @createManID varchar(10),		--创建人工号
-	        output: 
-				        @expensesID	varchar(16) output,	--支出记录ID，主键，使用412号号码发生器生成
-				        @Ret		int output		--操作成功标识
-							        0:成功，9：未知错误
+				            @projectID	varchar(13),	--项目ID
+				            @project		varchar(50),	--项目名称
+				            @customerID	varchar(13),	--客户ID
+				            @customerName	varchar(30),	--客户名称
+				            @abstract	varchar(200),	--摘要
+				            @expensesSum	money,	--支出金额
+				            @contractAmount money,	--合同金额
+				            @receivedAmount money,	--已付金额
+				            @remarks	varchar(200),	--备注
+				            @collectionModeID	varchar(13) ,	--付款方式ID
+				            @collectionMode		varchar(50),	--付款方式
+				            @startDate	smalldatetime	,	--付款日期
+				            @paymentApplicantID	varchar(13),	--付款申请人ID
+				            @paymentApplicant	varchar(10),	--付款申请人
+
+				            @createManID varchar(13),		--创建人工号
+	            output: 
+				            @expensesID	varchar(16),	--支出信息ID，主键，使用412号号码发生器生成
+				            @Ret		int output		--操作成功标识
+							            0:成功，1：该国别名称或代码已存在，9：未知错误
 				
-	        author:		卢嘉诚
-	        CreateDate:	2016-3-23
-
+	            author:		卢嘉诚
+	            CreateDate:	2016-3-23
+	            UpdateDate: 2016-3-23 by lw 根据编辑要求增加rowNum返回参数
          */
         SqlCommand cmd = new SqlCommand("addExpenses", sqlCon);
         cmd.CommandType = CommandType.StoredProcedure;
@@ -4336,23 +3870,39 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@expensesSum"].Direction = ParameterDirection.Input;
         cmd.Parameters["@expensesSum"].Value = expensesSum;
 
+        cmd.Parameters.Add("@contractAmount", SqlDbType.Money);
+        cmd.Parameters["@contractAmount"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@contractAmount"].Value = contractAmount;
+
+        cmd.Parameters.Add("@receivedAmount", SqlDbType.Money);
+        cmd.Parameters["@receivedAmount"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@receivedAmount"].Value = receivedAmount;
+
         cmd.Parameters.Add("@remarks", SqlDbType.VarChar, 200);
         cmd.Parameters["@remarks"].Direction = ParameterDirection.Input;
         cmd.Parameters["@remarks"].Value = remarks;
+
+        cmd.Parameters.Add("@collectionModeID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@collectionModeID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@collectionModeID"].Value = collectionModeID;
+
+        cmd.Parameters.Add("@collectionMode", SqlDbType.VarChar, 50);
+        cmd.Parameters["@collectionMode"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@collectionMode"].Value = collectionMode;
 
         cmd.Parameters.Add("@startDate", SqlDbType.SmallDateTime);
         cmd.Parameters["@startDate"].Direction = ParameterDirection.Input;
         cmd.Parameters["@startDate"].Value = startDate;
 
-        cmd.Parameters.Add("@paymentApplicantID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@paymentApplicantID", SqlDbType.VarChar, 13);
         cmd.Parameters["@paymentApplicantID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@paymentApplicantID"].Value = paymentApplicantID;
 
-        cmd.Parameters.Add("@paymentApplicant", SqlDbType.VarChar, 30);
+        cmd.Parameters.Add("@paymentApplicant", SqlDbType.VarChar, 10);
         cmd.Parameters["@paymentApplicant"].Direction = ParameterDirection.Input;
         cmd.Parameters["@paymentApplicant"].Value = paymentApplicant;
 
-        cmd.Parameters.Add("@createManID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@createManID", SqlDbType.VarChar, 13);
         cmd.Parameters["@createManID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@createManID"].Value = createManID;
 
@@ -4382,14 +3932,14 @@ public class FinancialSystem : virtualWebService
     }
 
     /// <summary>
-    /// 功    能：删除支出记录
+    /// 功    能：删除支出明细
     /// 作    者：卢嘉诚
     /// 编写日期：2016-5-5
     /// </summary>
-    /// <param name="expensesID">支出记录ID</param>
+    /// <param name="expensesID">支出明细ID</param>
     /// <param name="lockManID">锁定人ID</param>
     /// <returns>成功：删除成功；失败："Error：..."</returns>
-    [WebMethod(Description = "删除支出记录<br />"
+    [WebMethod(Description = "删除支出明细<br />"
                            + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
     //[SoapHeader("PageHeader")]
     public string delExpenses(string expensesID, string lockManID)
@@ -4402,13 +3952,13 @@ public class FinancialSystem : virtualWebService
         sqlCon.Open();
         /*
 	            name:		delExpenses
-	            function:		1.删除支出记录
+	            function:		1.删除支出明细
 				            注意：本存储过程锁定编辑！
 	            input: 
 				            @expensesID	varchar(16) output,		--支出信息ID，主键
-				            @lockManID varchar(10),		--锁定人ID
+				            @lockManID varchar(13),		--锁定人ID
 	            output: 
-				            @Ret		int output		--操作成功标识;--操作成功标示；0:成功，1：该支出记录不存在，2：该支出记录被其他用户锁定，3：请先锁定该支出记录再删除避免冲突，9：未知错误
+				            @Ret		int output		--操作成功标识;--操作成功标示；0:成功，1：该支出明细不存在，2：该支出明细被其他用户锁定，3：请先锁定该支出明细再删除避免冲突，9：未知错误
 	            author:		卢嘉诚
 	            CreateDate:	2016-5-6
          */
@@ -4419,7 +3969,7 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@expensesID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@expensesID"].Value = expensesID;
 
-        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
         cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
         cmd.Parameters["@lockManID"].Value = lockManID;
 
@@ -4433,13 +3983,13 @@ public class FinancialSystem : virtualWebService
             ret = (int)cmd.Parameters["@Ret"].Value;
             lockManID = (string)cmd.Parameters["@lockManID"].Value;
             if (ret == 0)
-                return "删除支出记录成功！";
+                return "删除支出明细成功！";
             else if (ret == 1)
-                return "Error:支出记录" + expensesID + "不存在！";
+                return "Error:支出明细" + expensesID + "不存在！";
             else if (ret == 2)
-                return "Error:该支出记录被用户" + lockManID + "锁定";
+                return "Error:该支出明细被用户" + lockManID + "锁定";
             else if (ret == 3)
-                return "Error:请先锁定该支出记录再删除避免冲突！";
+                return "Error:请先锁定该支出明细再删除避免冲突！";
             else
                 return "Error:未知错误！";
         }
@@ -4457,27 +4007,32 @@ public class FinancialSystem : virtualWebService
 
 
     /// <summary>
-    /// 功    能：编辑支出记录
+    /// 功    能：编辑支出明细
     /// 作    者：卢嘉诚
     /// 编写日期：2016-4-28
     /// </summary>
-    /// <param name="expensesID">支出记录ID</param>
+    /// <param name="expensesID">支出明细ID</param>
     /// <param name="projectID">项目ID</param>
     /// <param name="project">项目</param>
     /// <param name="customerID">客户ID</param>
     /// <param name="customerName">客户名称</param>
     /// <param name="Expensesabstract">摘要</param>
     /// <param name="expensesSum">支出金额</param>
+    /// <param name="contractAmount">合同金额</param>
+    /// <param name="receivedAmount">已收金额</param>
     /// <param name="remarks">备注</param>
-    /// <param name="startDate">申请日期</param>
+    /// <param name="collectionModeID">付款方式ID</param>
+    /// <param name="collectionMode">付款方式</param>
+    /// <param name="startDate">付款日期</param>
     /// <param name="paymentApplicantID">付款申请人ID</param>
-    /// <param name="paymentApplicant">付款人申请人</param>
+    /// <param name="paymentApplicant">付款人</param>
     /// <param name="lockManID">锁定人ID</param>
     /// <returns>成功：编辑成功！；失败："Error：..."</returns>
-    [WebMethod(Description = "编辑支出记录<br />"
+    [WebMethod(Description = "编辑支出明细<br />"
                            + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
     //[SoapHeader("PageHeader")]
-    public string editExpenses(string expensesID, string projectID, string project, string customerID, string customerName, string Expensesabstract, decimal expensesSum,  string remarks, string startDate, string paymentApplicantID, string paymentApplicant, string lockManID)
+    public string editExpenses(string expensesID, string projectID, string project, string customerID, string customerName, string Expensesabstract, decimal expensesSum, decimal contractAmount, decimal receivedAmount, string remarks, string collectionModeID,
+        string collectionMode, string startDate, string paymentApplicantID, string paymentApplicant, string lockManID)
     {
         //verifyPageHeader(this);
         int ret = 9;
@@ -4486,28 +4041,32 @@ public class FinancialSystem : virtualWebService
         SqlConnection sqlCon = new SqlConnection(conStr);
         sqlCon.Open();
         /*
-	            name:		editExpenses
-	            function:	1.编辑支出记录
-				            注意：本存储过程锁定编辑！
-	            input: 
-				            @expensesID	varchar(16),	    --支出记录ID，主键
-				            @projectID	varchar(13),	    --项目ID
-				            @project		varchar(50),	--项目名称
-				            @customerID 	varchar(13),	 --客户ID
-				            @customerName	varchar(30),	--客户名称
-				            @abstract	    varchar(200),		--摘要
-				            @expensesSum	numeric(15,2) , --支出金额
-				            @remarks	varchar(200),		--备注
-				            @startDate	smalldatetime,	    --申请日期
-				            @paymentApplicantID	varchar(10),	--付款申请人ID
-				            @paymentApplicant		varchar(30),	--付款申请人
+	        name:		editExpenses
+	        function:	1.编辑支出明细
+				        注意：本存储过程锁定编辑！
+	        input: 
+				        @expensesID	varchar(16) output,	--支出信息ID，主键，使用412号号码发生器生成
+				        @projectID	varchar(13),	--项目ID
+				        @project		varchar(50),	--项目名称
+				        @customerID	varchar(13),	--客户ID
+				        @customerName	varchar(30),	--客户名称
+				        @abstract	varchar(200),	--摘要
+				        @expensesSum	money,	--支出金额
+				        @contractAmount money,	--合同金额
+				        @receivedAmount money,	--已付金额
+				        @remarks	varchar(200),	--备注
+				        @collectionModeID	varchar(13) ,	--付款方式ID
+				        @collectionMode		varchar(50),	--付款方式
+				        @startDate	smalldatetime	,	--付款日期
+				        @paymentApplicantID	varchar(13),	--付款申请人ID
+				        @paymentApplicant	varchar(10),	--付款申请人
 
-	            output: 
-				            @lockManID varchar(10)output,		--锁定人ID
-				            @Ret		int output			--操作成功标示；0:成功，1：该支出记录不存在，2：该支出记录已被其他用户锁定，3:请先锁定该支出记录避免编辑冲突4：该支出记录已确认无法编辑9：未知错误
+	        output: 
+				        @lockManID varchar(10)output,		--锁定人ID
+				        @Ret		int output			--操作成功标示；0:成功，1：该支出明细不存在，2：该支出明细已被其他用户锁定，3:请先锁定该支出明细避免编辑冲突4：该支出明细已确认无法编辑9：未知错误
 
-	            author:		卢嘉诚
-	            CreateDate:	2016-3-23
+	        author:		卢嘉诚
+	        CreateDate:	2016-3-23
 
          */
         SqlCommand cmd = new SqlCommand("editExpenses", sqlCon);
@@ -4541,23 +4100,39 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@expensesSum"].Direction = ParameterDirection.Input;
         cmd.Parameters["@expensesSum"].Value = expensesSum;
 
+        cmd.Parameters.Add("@contractAmount", SqlDbType.Money);
+        cmd.Parameters["@contractAmount"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@contractAmount"].Value = contractAmount;
+
+        cmd.Parameters.Add("@receivedAmount", SqlDbType.Money);
+        cmd.Parameters["@receivedAmount"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@receivedAmount"].Value = receivedAmount;
+
         cmd.Parameters.Add("@remarks", SqlDbType.VarChar, 200);
         cmd.Parameters["@remarks"].Direction = ParameterDirection.Input;
         cmd.Parameters["@remarks"].Value = remarks;
+
+        cmd.Parameters.Add("@collectionModeID", SqlDbType.VarChar, 13);
+        cmd.Parameters["@collectionModeID"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@collectionModeID"].Value = collectionModeID;
+
+        cmd.Parameters.Add("@collectionMode", SqlDbType.VarChar, 50);
+        cmd.Parameters["@collectionMode"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@collectionMode"].Value = collectionMode;
 
         cmd.Parameters.Add("@startDate", SqlDbType.SmallDateTime);
         cmd.Parameters["@startDate"].Direction = ParameterDirection.Input;
         cmd.Parameters["@startDate"].Value = startDate;
 
-        cmd.Parameters.Add("@paymentApplicantID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@paymentApplicantID", SqlDbType.VarChar, 13);
         cmd.Parameters["@paymentApplicantID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@paymentApplicantID"].Value = paymentApplicantID;
 
-        cmd.Parameters.Add("@paymentApplicant", SqlDbType.VarChar, 30);
+        cmd.Parameters.Add("@paymentApplicant", SqlDbType.VarChar, 10);
         cmd.Parameters["@paymentApplicant"].Direction = ParameterDirection.Input;
         cmd.Parameters["@paymentApplicant"].Value = paymentApplicant;
 
-        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
         cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
         cmd.Parameters["@lockManID"].Value = lockManID;
 
@@ -4573,13 +4148,13 @@ public class FinancialSystem : virtualWebService
             if (ret == 0)
                 return "编辑成功！";
             else if (ret == 1)
-                return "Error:支出记录" + expensesID + "不存在!";
+                return "Error:支出明细" + expensesID + "不存在!";
             else if (ret == 2)
-                return "Error:该支出记录已经被用户" + lockManID + "锁定！";
+                return "Error:该支出明细已经被用户" + lockManID + "锁定！";
             else if (ret == 3)
-                return "Error:请先锁定该支出记录再编辑，避免冲突！";
+                return "Error:请先锁定该支出明细再编辑，避免冲突！";
             else if (ret == 4)
-                return "Error:该支出记录已确认，无法编辑！";
+                return "Error:该支出明细已确认，无法编辑！";
             else
                 return "Error:未知错误！";
         }
@@ -4619,7 +4194,7 @@ public class FinancialSystem : virtualWebService
 	        function: 	锁定收入明细编辑，避免编辑冲突
 	        input: 
 				        @incomeInformationID varchar(16),		--收入信息ID
-				        @lockManID varchar(10) output,	--锁定人，如果当前收入明细正在被人占用编辑则返回该人的工号
+				        @lockManID varchar(13) output,	--锁定人，如果当前收入明细正在被人占用编辑则返回该人的工号
 	        output: 
 				        @Ret		int output		--操作成功标识0:成功，1：要锁定的收入明细不存在，2:要锁定的收入明细正在被别人编辑，9：未知错误
 	        author:		卢嘉诚
@@ -4633,7 +4208,7 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@incomeInformationID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@incomeInformationID"].Value = incomeInformationID;
 
-        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
         cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
         cmd.Parameters["@lockManID"].Value = lockManID;
 
@@ -4650,9 +4225,9 @@ public class FinancialSystem : virtualWebService
             if (ret == 0)
                 return "锁定成功！";
             else if (ret == 1)
-                return "Error:收入记录" + incomeInformationID + "不存在！";
+                return "收入明细" + incomeInformationID + "不存在！";
             else if (ret == 2)
-                return "Error:要锁定的收入记录正在被用户" + lockManID + "锁定编辑";
+                return "要锁定的收入明细正在被用户" + lockManID + "锁定编辑";
             else
                 return "Error:未知错误！";
         }
@@ -4692,7 +4267,7 @@ public class FinancialSystem : virtualWebService
 	        function: 	释放锁定收入明细编辑，避免编辑冲突
 	        input: 
 				        @incomeInformationID varchar(16),		--收入明细ID
-				        @lockManID varchar(10) output,			--锁定人，如果当前收入正在被人占用编辑则返回该人的工号
+				        @lockManID varchar(13) output,			--锁定人，如果当前收入正在被人占用编辑则返回该人的工号
 	        output: 
 				        @Ret		int output		--操作成功标识0:成功，1：要释放锁定的收入明细不存在，2:要释放锁定的收入明细正在被别人编辑，8：该收入明细未被任何人锁定9：未知错误
 	        author:		卢嘉诚
@@ -4706,7 +4281,7 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@incomeInformationID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@incomeInformationID"].Value = incomeInformationID;
 
-        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
         cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
         cmd.Parameters["@lockManID"].Value = lockManID;
 
@@ -4745,14 +4320,14 @@ public class FinancialSystem : virtualWebService
 
 
     /// <summary>
-    /// 功    能：锁定指定支出记录
+    /// 功    能：锁定指定支出明细
     /// 作    者：卢嘉诚
     /// 编写日期：2016-5-4
     /// </summary>
-    /// <param name="expensesID">支出记录ID</param>
+    /// <param name="expensesID">支出明细ID</param>
     /// <param name="lockManID">锁定人ID</param>
     /// <returns>成功：锁定成功；失败："Error：..."</returns>
-    [WebMethod(Description = "锁定指定支出记录<br />"
+    [WebMethod(Description = "锁定指定支出明细<br />"
                            + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
     //[SoapHeader("PageHeader")]
     public string lockExpensesEdit(string expensesID, string lockManID)
@@ -4765,12 +4340,12 @@ public class FinancialSystem : virtualWebService
         sqlCon.Open();
         /*
 	        name:		lockAccountDetailsEdit
-	        function: 	锁定支出记录编辑，避免编辑冲突
+	        function: 	锁定支出明细编辑，避免编辑冲突
 	        input: 
 				        @expensesID varchar(16),		--支出信息ID
-				        @lockManID varchar(10) output,	--锁定人，如果当前支出记录正在被人占用编辑则返回该人的工号
+				        @lockManID varchar(13) output,	--锁定人，如果当前支出明细正在被人占用编辑则返回该人的工号
 	        output: 
-				        @Ret		int output		--操作成功标识0:成功，1：要锁定的支出记录不存在，2:要锁定的支出记录正在被别人编辑，9：未知错误
+				        @Ret		int output		--操作成功标识0:成功，1：要锁定的支出明细不存在，2:要锁定的支出明细正在被别人编辑，9：未知错误
 	        author:		卢嘉诚
 	        CreateDate:	2016-4-16
 	        UpdateDate: 
@@ -4782,7 +4357,7 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@expensesID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@expensesID"].Value = expensesID;
 
-        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
         cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
         cmd.Parameters["@lockManID"].Value = lockManID;
 
@@ -4799,9 +4374,9 @@ public class FinancialSystem : virtualWebService
             if (ret == 0)
                 return "锁定成功！";
             else if (ret == 1)
-                return "Error:支出记录" + expensesID + "不存在！";
+                return "支出明细" + expensesID + "不存在！";
             else if (ret == 2)
-                return "Error:要锁定的支出记录正在被用户" + lockManID + "锁定编辑";
+                return "要锁定的支出明细正在被用户" + lockManID + "锁定编辑";
             else
                 return "Error:未知错误！";
         }
@@ -4818,14 +4393,14 @@ public class FinancialSystem : virtualWebService
     }
 
     /// <summary>
-    /// 功    能：释放指定支出记录锁定
+    /// 功    能：释放指定支出明细锁定
     /// 作    者：卢嘉诚
     /// 编写日期：2016-4-28
     /// </summary>
-    /// <param name="expensesID">支出记录ID</param>
+    /// <param name="expensesID">支出明细ID</param>
     /// <param name="lockManID">锁定人ID</param>
     /// <returns>成功：释放锁定成功！；失败："Error：..."</returns>
-    [WebMethod(Description = "释放指定支出记录锁定<br />"
+    [WebMethod(Description = "释放指定支出明细锁定<br />"
                            + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
     //[SoapHeader("PageHeader")]
     public string unlockExpensesEdit(string expensesID, string lockManID)
@@ -4838,12 +4413,12 @@ public class FinancialSystem : virtualWebService
         sqlCon.Open();
         /*
 	 	    name:		unlockExpensesEdit
-	        function: 	释放锁定支出记录编辑，避免编辑冲突
+	        function: 	释放锁定支出明细编辑，避免编辑冲突
 	        input: 
-				        @expensesID varchar(16),		--支出记录ID
-				        @lockManID varchar(10) output,			--锁定人，如果当前支出正在被人占用编辑则返回该人的工号
+				        @expensesID varchar(16),		--支出明细ID
+				        @lockManID varchar(13) output,			--锁定人，如果当前支出正在被人占用编辑则返回该人的工号
 	        output: 
-				        @Ret		int output		--操作成功标识0:成功，1：要释放锁定的支出记录不存在，2:要释放锁定的支出记录正在被别人编辑，8：该支出记录未被任何人锁定9：未知错误
+				        @Ret		int output		--操作成功标识0:成功，1：要释放锁定的支出明细不存在，2:要释放锁定的支出明细正在被别人编辑，8：该支出明细未被任何人锁定9：未知错误
 	        author:		卢嘉诚
 	        CreateDate:	2016-4-16
 	        UpdateDate: 
@@ -4855,7 +4430,7 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@expensesID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@expensesID"].Value = expensesID;
 
-        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
         cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
         cmd.Parameters["@lockManID"].Value = lockManID;
 
@@ -4871,11 +4446,11 @@ public class FinancialSystem : virtualWebService
             if (ret == 0)
                 return "释放锁定成功！";
             else if (ret == 1)
-                return "Error:支出记录" + expensesID + "不存在！";
+                return "Error:支出明细" + expensesID + "不存在！";
             else if (ret == 2)
-                return "Error:该支出记录已被用户" + lockManID + "锁定无法编辑！";
+                return "Error:该支出明细已被用户" + lockManID + "锁定无法编辑！";
             else if (ret == 8)
-                return "Error:该支出记录未被任何人锁定！";
+                return "Error:该支出明细未被任何人锁定！";
             else
                 return "Error:未知错误！";
         }
@@ -4900,16 +4475,16 @@ public class FinancialSystem : virtualWebService
     /// 编写日期：2016-4-28
     /// </summary>
     /// <param name="incomeInformationID">收入明细ID</param>
-    /// <param name="ActualArrivalTime">实际到账时间</param>
     /// <param name="confirmationDate">确认日期</param>
     /// <param name="confirmationPersonID">确认人ID</param>
     /// <param name="confirmationPerson">确认人</param>
+    /// <param name="approvalOpinion">审批意见ID</param>
     /// <param name="lockManID">锁定人ID</param>
     /// <returns>成功：释放锁定成功！；失败："Error：..."</returns>
     [WebMethod(Description = "确认指定收入明细<br />"
                            + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
     //[SoapHeader("PageHeader")]
-    public string confirmIncome(string incomeInformationID, string ActualArrivalTime,string confirmationDate, string confirmationPersonID, string confirmationPerson,  string lockManID)
+    public string confirmIncome(string incomeInformationID, string confirmationDate, string confirmationPersonID, string confirmationPerson, string approvalOpinion, string lockManID)
     {
         //verifyPageHeader(this);
         int ret = 9;
@@ -4922,18 +4497,18 @@ public class FinancialSystem : virtualWebService
 	        function: 	该存储过程锁定账户编辑，避免编辑冲突
 	        input: 
 				        @incomeInformationID varchar(16)	,	--收入信息ID，主键
-				        @ActualArrivalTime   smalldatetime  ,	--实际到账时间
 				        @confirmationDate	smalldatetime	,	--确认日期
-				        @confirmationPersonID	varchar(10),	--确认人ID
-				        @confirmationPerson		varchar(30),	--确认人
+				        @confirmationPersonID	varchar(13),	--确认人ID
+				        @confirmationPerson		varchar(10),	--确认人
+				        @approvalOpinion			varchar(200),	--审批意见
 
 				
 	        output: 
-				        @lockManID varchar(10) output,	--锁定人，如果当前借支单正在被人占用编辑则返回该人的工号
+				        @lockManID varchar(13) output,	--锁定人，如果当前借支单正在被人占用编辑则返回该人的工号
 				        @Ret		int output		--操作成功标识0:成功，1：要确认的收入明细不存在，2:要确认的收入明细正在被别人锁定，3:该收入明细未锁定，请先锁定9：未知错误
 	        author:		卢嘉诚
 	        CreateDate:	2016-4-16
-	
+	        UpdateDate: 
          */
         SqlCommand cmd = new SqlCommand("confirmIncome", sqlCon);
         cmd.CommandType = CommandType.StoredProcedure;
@@ -4942,23 +4517,23 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@incomeInformationID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@incomeInformationID"].Value = incomeInformationID;
 
-        cmd.Parameters.Add("@ActualArrivalTime", SqlDbType.SmallDateTime);
-        cmd.Parameters["@ActualArrivalTime"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@ActualArrivalTime"].Value = ActualArrivalTime;
-
         cmd.Parameters.Add("@confirmationDate", SqlDbType.SmallDateTime);
         cmd.Parameters["@confirmationDate"].Direction = ParameterDirection.Input;
         cmd.Parameters["@confirmationDate"].Value = confirmationDate;
 
-        cmd.Parameters.Add("@confirmationPersonID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@confirmationPersonID", SqlDbType.VarChar, 13);
         cmd.Parameters["@confirmationPersonID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@confirmationPersonID"].Value = confirmationPersonID;
 
-        cmd.Parameters.Add("@confirmationPerson", SqlDbType.VarChar, 30);
+        cmd.Parameters.Add("@confirmationPerson", SqlDbType.VarChar, 10);
         cmd.Parameters["@confirmationPerson"].Direction = ParameterDirection.Input;
         cmd.Parameters["@confirmationPerson"].Value = confirmationPerson;
 
-        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 10);
+        cmd.Parameters.Add("@approvalOpinion", SqlDbType.VarChar, 200);
+        cmd.Parameters["@approvalOpinion"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@approvalOpinion"].Value = approvalOpinion;
+
+        cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
         cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
         cmd.Parameters["@lockManID"].Value = lockManID;
 
@@ -4996,23 +4571,21 @@ public class FinancialSystem : virtualWebService
 
 
     /// <summary>
-    /// 功    能：确认指定支出记录
+    /// 功    能：确认指定支出明细
     /// 作    者：卢嘉诚
     /// 编写日期：2016-4-28
     /// </summary>
-    /// <param name="expensesID">支出记录ID</param>
-    /// <param name="collectionModeID">付款账户ID</param>
-    /// <param name="collectionMode">付款账户</param>
-    /// <param name="paymentDate">支付日期</param>
+    /// <param name="expensesID">支出明细ID</param>
     /// <param name="confirmationDate">确认日期</param>
     /// <param name="confirmationPersonID">确认人ID</param>
     /// <param name="confirmationPerson">确认人</param>
+    /// <param name="approvalOpinion">审批意见ID</param>
     /// <param name="lockManID">锁定人ID</param>
     /// <returns>成功：释放锁定成功！；失败："Error：..."</returns>
-    [WebMethod(Description = "确认指定支出记录<br />"
+    [WebMethod(Description = "确认指定支出明细<br />"
                            + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
     //[SoapHeader("PageHeader")]
-    public string confirmexpenses(string expensesID,string collectionModeID,string collectionMode, string paymentDate,string confirmationDate, string confirmationPersonID, string confirmationPerson,string lockManID)
+    public string confirmexpenses(string expensesID, string confirmationDate, string confirmationPersonID, string confirmationPerson, string approvalOpinion, string lockManID)
     {
         //verifyPageHeader(this);
         int ret = 9;
@@ -5024,39 +4597,26 @@ public class FinancialSystem : virtualWebService
 	            name:		confirmexpenses
 	            function: 	该存储过程锁定账户编辑，避免编辑冲突
 	            input: 
-				            @expensesID varchar(16),			--支出记录ID，主键
-				            @collectionModeID	varchar(10),	--付款账户ID
-				            @collectionMode	varchar(50),	--付款账户
-				            @paymentDate		smalldatetime,	--支付日期
+				            @expensesID varchar(16)	,	--支出信息ID，主键
 				            @confirmationDate	smalldatetime	,	--确认日期
-				            @confirmationPersonID	varchar(10),	--确认人ID
-				            @confirmationPerson	varchar(30),	--确认人
+				            @confirmationPersonID	varchar(13),	--确认人ID
+				            @confirmationPerson		varchar(10),	--确认人
+				            @approvalOpinion			varchar(200),	--审批意见
+
 				
 	            output: 
-				            @lockManID varchar(10) output,	--锁定人，如果当前借支出记录正在被人占用编辑则返回该人的工号
-				            @Ret		int output		--操作成功标识0:成功，1：要确认的支出记录不存在，2:要确认的支出记录正在被别人锁定，3:该支出记录未锁定，请先锁定9：未知错误
+				            @lockManID varchar(13) output,	--锁定人，如果当前借支单正在被人占用编辑则返回该人的工号
+				            @Ret		int output		--操作成功标识0:成功，1：要确认的支出明细不存在，2:要确认的支出明细正在被别人锁定，3:该支出明细未锁定，请先锁定9：未知错误
 	            author:		卢嘉诚
 	            CreateDate:	2016-4-16
-	
-          */
+	            UpdateDate: 
+         */
         SqlCommand cmd = new SqlCommand("confirmexpenses", sqlCon);
         cmd.CommandType = CommandType.StoredProcedure;
 
         cmd.Parameters.Add("@expensesID", SqlDbType.VarChar, 16);
         cmd.Parameters["@expensesID"].Direction = ParameterDirection.Input;
         cmd.Parameters["@expensesID"].Value = expensesID;
-
-        cmd.Parameters.Add("@collectionModeID", SqlDbType.VarChar, 10);
-        cmd.Parameters["@collectionModeID"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@collectionModeID"].Value = collectionModeID;
-
-        cmd.Parameters.Add("@collectionMode", SqlDbType.VarChar, 50);
-        cmd.Parameters["@collectionMode"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@collectionMode"].Value = collectionMode;
-
-        cmd.Parameters.Add("@paymentDate", SqlDbType.SmallDateTime);
-        cmd.Parameters["@paymentDate"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@paymentDate"].Value = paymentDate;
 
         cmd.Parameters.Add("@confirmationDate", SqlDbType.SmallDateTime);
         cmd.Parameters["@confirmationDate"].Direction = ParameterDirection.Input;
@@ -5070,6 +4630,9 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters["@confirmationPerson"].Direction = ParameterDirection.Input;
         cmd.Parameters["@confirmationPerson"].Value = confirmationPerson;
 
+        cmd.Parameters.Add("@approvalOpinion", SqlDbType.VarChar, 200);
+        cmd.Parameters["@approvalOpinion"].Direction = ParameterDirection.Input;
+        cmd.Parameters["@approvalOpinion"].Value = approvalOpinion;
 
         cmd.Parameters.Add("@lockManID", SqlDbType.VarChar, 13);
         cmd.Parameters["@lockManID"].Direction = ParameterDirection.InputOutput;
@@ -5087,11 +4650,11 @@ public class FinancialSystem : virtualWebService
             if (ret == 0)
                 return "支出确认成功！";
             else if (ret == 1)
-                return "Error:支出记录" + expensesID + "不存在！";
+                return "Error:支出明细" + expensesID + "不存在！";
             else if (ret == 2)
-                return "Error:该支出记录已被用户" + lockManID + "锁定无法编辑！";
+                return "Error:该支出明细已被用户" + lockManID + "锁定无法编辑！";
             else if (ret == 3)
-                return "Error:该支出记录未锁定，请先锁定再确认，避免冲突";
+                return "Error:该支出明细未锁定，请先锁定再确认，避免冲突";
             else
                 return "Error:未知错误！";
         }
@@ -5110,51 +4673,7 @@ public class FinancialSystem : virtualWebService
     #endregion
 
 
-    /// <summary>
-    /// 模块编号：
-    /// 作    用：根据输入码获取项目列表。这是渐进增强控件使用的获取列表服务
-    /// 作    者：
-    /// 入口参数：
-    ///             string inputCode    //输入的字符
-    ///             string  maxItem     //最大行数
-    /// 出口参数：
-    ///             可用的项目结果集
-    /// 编写日期：2016-03-28
-    /// </summary>
-    /// <param name="InputCode"></param>
-    /// <param name="maxItem"></param>
-    /// <returns></returns>
-    [WebMethod(Description = "根据输入码获取项目列表。这是渐进增强控件使用的获取列表服务",
-        EnableSession = false)]
-    public DataSet getProjectListByInputCode( string InputCode, string maxItem)
-    {
-        //verifyPageHeader(this);
 
-        string strCmd = "select distinct top " + maxItem +
-                " projectID,projectName,customerID,customerName,contractAmount,collectedAmount" +
-                " from project where  projectName like '%%" +
-                InputCode + "%%' order by projectName";
-        //从web.config获取连接字符串
-        string constr = WebConfigurationManager.ConnectionStrings["constr"].ToString();
-        using (SqlConnection sqlcon = new SqlConnection(constr))
-        {
-            try
-            {
-                sqlcon.Open();
-                DataSet ds = new DataSet();
-                using (SqlCommand sqlCmd = new SqlCommand(strCmd, sqlcon))
-                using (SqlDataAdapter da = new SqlDataAdapter(sqlCmd))
-                {
-                    da.Fill(ds);
-                }
-                return ds;
-            }
-            catch (Exception e)
-            {
-                return null;
-            }
-        }
-    }
 
 
 
