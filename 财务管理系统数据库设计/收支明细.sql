@@ -55,8 +55,6 @@ drop PROCEDURE addIncome
 				@abstract	varchar(200),			--摘要
 				@incomeSum	numeric(15,2),			--收入金额
 				@remarks	varchar(200),			--备注
-				@collectionModeID	varchar(10),	--收款方式ID
-				@collectionMode		varchar(50),	--收款账号
 				@startDate	smalldatetime,			--收款日期
 				@paymentApplicantID	varchar(10),	--收款申请人ID
 				@payee	varchar(30),				--收款人
@@ -79,8 +77,6 @@ create PROCEDURE addIncome
 				@abstract		varchar(200),			--摘要
 				@incomeSum	numeric(15,2),			--收入金额
 				@remarks		varchar(200),			--备注
-				@collectionModeID	varchar(10),	--收款方式ID
-				@collectionMode	varchar(50),	--收款账号
 				@startDate		smalldatetime,			--收款日期
 				@paymentApplicantID	varchar(10),	--收款申请人ID
 				@payee			varchar(30),				--收款人
@@ -107,8 +103,6 @@ AS
 						abstract	,	--摘要
 						incomeSum,	--收入金额
 						remarks,	--备注
-						collectionModeID,	--收款方式ID
-						collectionMode,	--收款账户
 						startDate,	--收款日期
 						paymentApplicantID,	--收款申请人ID
 						payee,	--收款人
@@ -125,8 +119,6 @@ AS
 						@abstract	,	--摘要
 						@incomeSum,	--收入金额
 						@remarks,	--备注
-						@collectionModeID,	--收款方式ID
-						@collectionMode,	--收款账户
 						@startDate,	--收款日期
 						@paymentApplicantID,	--收款申请人ID
 						@payee,	--收款人

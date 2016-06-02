@@ -206,6 +206,55 @@ public class FinancialSystem : virtualWebService
      }
 
 
+     /// <summary>
+     /// 功   能：获取收入明细列表           
+     /// 作    者：卢苇
+     /// 编写日期：2015-10-21
+     /// </summary>
+     /// <param name="colList">列名,“*” or “”代表全部字段</param>
+     /// <param name="strWhere">范围约束</param>
+     /// <param name="strOrder">排序要求</param>
+     /// <returns>项目列表结果集</returns>
+     [WebMethod(Description = "一般查询语句，根据前台传入的查询条件、排序方式和要检索的字段，检索项目列表结果集<br />"
+                             + "<a href='../../SDK/PM/Interface.html#projectManager.getProjectList'>SDK说明</a>", EnableSession = false)]
+     [SoapHeader("PageHeader")]
+     public DataSet getIncomeList(string colList, string strWhere, string strOrder)
+     {
+         verifyPageHeader(this);
+         if (colList.Trim() == "" || colList.Trim() == "*")
+         {
+             colList = "incomeInformationID,isnull(convert(varchar(19),startDate,120),'') startDate, abstract, isnull(incomeSum,0) incomeSum,";
+             colList += "remarks";
+         }
+         if (strWhere != "")
+             strWhere = strWhere.Replace("|", "%");
+         if (strOrder.Trim() == "")
+             strOrder = "order by incomeInformationID desc";
+         string tabName = "incomeList ";
+
+         string strCmd = "select " + colList + " from " + tabName + " " + strWhere + " " + strOrder;
+         //从web.config获取连接字符串
+         string constr = WebConfigurationManager.ConnectionStrings["constr"].ToString();
+         using (SqlConnection sqlcon = new SqlConnection(constr))
+         {
+             try
+             {
+                 sqlcon.Open();
+                 DataSet ds = new DataSet();
+                 using (SqlCommand sqlCmd = new SqlCommand(strCmd, sqlcon))
+                 using (SqlDataAdapter da = new SqlDataAdapter(sqlCmd))
+                 {
+                     da.Fill(ds);
+                 }
+                 return ds;
+             }
+             catch (Exception e)
+             {
+                 return null;
+             }
+         }
+     }
+
      #endregion
 
 
@@ -3853,8 +3902,6 @@ public class FinancialSystem : virtualWebService
     /// <param name="abstract">摘要</param>
     /// <param name="incomeSum">收入金额</param>
     /// <param name="remarks">备注</param>
-    /// <param name="collectionModeID">收款方式ID</param>
-    /// <param name="collectionMode">收款方式</param>
     /// <param name="startDate">收款日期</param>
     /// <param name="paymentApplicantID">收款申请人ID</param>
     /// <param name="payee">收款人</param>
@@ -3864,7 +3911,7 @@ public class FinancialSystem : virtualWebService
                            + "<a href='../../SDK/PM/Interface.html#projectManager.addProject'>SDK说明</a>", EnableSession = false)]
     //[SoapHeader("PageHeader")]
     public string addIncome(string projectID, string project, string customerID, string customerName, string Incomeabstract, decimal incomeSum,  string remarks,
-        string collectionModeID, string collectionMode, string startDate, string paymentApplicantID, string payee, string createManID)
+        string startDate, string paymentApplicantID, string payee, string createManID)
     {
         //verifyPageHeader(this);
         int ret = 9;
@@ -3884,8 +3931,6 @@ public class FinancialSystem : virtualWebService
 				            @abstract	varchar(200),			--摘要
 				            @incomeSum	numeric(15,2),			--收入金额
 				            @remarks	varchar(200),			--备注
-				            @collectionModeID	varchar(10),	--收款方式ID
-				            @collectionMode		varchar(50),	--收款账号
 				            @startDate	smalldatetime,			--收款日期
 				            @paymentApplicantID	varchar(10),	--收款申请人ID
 				            @payee	varchar(30),				--收款人
@@ -3932,14 +3977,6 @@ public class FinancialSystem : virtualWebService
         cmd.Parameters.Add("@remarks", SqlDbType.VarChar, 200);
         cmd.Parameters["@remarks"].Direction = ParameterDirection.Input;
         cmd.Parameters["@remarks"].Value = remarks;
-
-        cmd.Parameters.Add("@collectionModeID", SqlDbType.VarChar, 10);
-        cmd.Parameters["@collectionModeID"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@collectionModeID"].Value = collectionModeID;
-
-        cmd.Parameters.Add("@collectionMode", SqlDbType.VarChar, 50);
-        cmd.Parameters["@collectionMode"].Direction = ParameterDirection.Input;
-        cmd.Parameters["@collectionMode"].Value = collectionMode;
 
         cmd.Parameters.Add("@startDate", SqlDbType.SmallDateTime);
         cmd.Parameters["@startDate"].Direction = ParameterDirection.Input;
@@ -5073,26 +5110,30 @@ public class FinancialSystem : virtualWebService
     #endregion
 
 
-    ///<summary>
-    ///模块编号：
-    ///作    用：根据项目ID和项目名称获取项目列表。这是渐进增强控件使用的获取列表服务
-    ///作    者：
-    ///入口参数：
-    ///         string projectID,    //项目ID
-    ///         string inputCode    //输入的字符
-    ///         string maxItem      //最大行数
-    ///出口参数：
-    ///         可用的客户员工结果集
-    ///编写日期：
-    ///</summary>
-    [WebMethod(Description = "根据项目ID和项目名称获取项目列表。这是渐进增强控件使用的获取列表服务", EnableSession = false)]
-    [SoapHeader("PageHeader")]
-    public DataSet getProjectListByInputCode(string projectID, string inputCode, string maxItem)
+    /// <summary>
+    /// 模块编号：
+    /// 作    用：根据输入码获取项目列表。这是渐进增强控件使用的获取列表服务
+    /// 作    者：
+    /// 入口参数：
+    ///             string inputCode    //输入的字符
+    ///             string  maxItem     //最大行数
+    /// 出口参数：
+    ///             可用的项目结果集
+    /// 编写日期：2016-03-28
+    /// </summary>
+    /// <param name="InputCode"></param>
+    /// <param name="maxItem"></param>
+    /// <returns></returns>
+    [WebMethod(Description = "根据输入码获取项目列表。这是渐进增强控件使用的获取列表服务",
+        EnableSession = false)]
+    public DataSet getProjectListByInputCode( string InputCode, string maxItem)
     {
-        verifyPageHeader(this);
-        string strCmd = "select distinct top " + maxItem + " projectID, projectName" +
-                        " from project" +
-                        " where projectID='" + projectID + "%' and projectName like '" + inputCode + "%' order by projectID";
+        //verifyPageHeader(this);
+
+        string strCmd = "select distinct top " + maxItem +
+                " projectID,projectName,customerID,customerName,contractAmount,collectedAmount" +
+                " from project where  projectName like '%%" +
+                InputCode + "%%' order by projectName";
         //从web.config获取连接字符串
         string constr = WebConfigurationManager.ConnectionStrings["constr"].ToString();
         using (SqlConnection sqlcon = new SqlConnection(constr))
@@ -5114,8 +5155,6 @@ public class FinancialSystem : virtualWebService
             }
         }
     }
-
-
 
 
 
