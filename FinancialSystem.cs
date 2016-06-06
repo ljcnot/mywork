@@ -255,6 +255,74 @@ public class FinancialSystem : virtualWebService
          }
      }
 
+
+
+     /// <summary>
+     /// 功   能：获取支出明细列表           
+     /// 作    者：卢苇
+     /// 编写日期：2015-10-21
+     /// </summary>
+     /// <param name="colList">列名,“*” or “”代表全部字段</param>
+     /// <param name="strWhere">范围约束</param>
+     /// <param name="strOrder">排序要求</param>
+     /// <returns>项目列表结果集</returns>
+     [WebMethod(Description = "一般查询语句，根据前台传入的查询条件、排序方式和要检索的字段，检索项目列表结果集<br />"
+                             + "<a href='../../SDK/PM/Interface.html#projectManager.getProjectList'>SDK说明</a>", EnableSession = false)]
+     [SoapHeader("PageHeader")]
+     public DataSet getExpensesList(string colList, string strWhere, string strOrder)
+     {
+         verifyPageHeader(this);
+         if (colList.Trim() == "" || colList.Trim() == "*")
+         {
+             colList = "expensesID,isnull(convert(varchar(19),startDate,120),'') startDate, abstract, isnull(incomeSum,0) expensesSum,";
+             colList += "remarks";
+         }
+         if (strWhere != "")
+             strWhere = strWhere.Replace("|", "%");
+         if (strOrder.Trim() == "")
+             strOrder = "order by expensesID desc";
+         string tabName = "expensesList ";
+
+         string strCmd = "select " + colList + " from " + tabName + " " + strWhere + " " + strOrder;
+         //从web.config获取连接字符串
+         string constr = WebConfigurationManager.ConnectionStrings["constr"].ToString();
+         using (SqlConnection sqlcon = new SqlConnection(constr))
+         {
+             try
+             {
+                 sqlcon.Open();
+                 DataSet ds = new DataSet();
+                 using (SqlCommand sqlCmd = new SqlCommand(strCmd, sqlcon))
+                 using (SqlDataAdapter da = new SqlDataAdapter(sqlCmd))
+                 {
+                     da.Fill(ds);
+                 }
+                 return ds;
+             }
+             catch (Exception e)
+             {
+                 return null;
+             }
+         }
+     }
+
+
+     /// <summary>
+     /// 功    能：根据编号查找支出明细（返回对象）
+     /// 作    者：卢嘉诚
+     /// 编写日期：2016-6-6
+     /// </summary>
+     /// <param name="expensesID">支出明细编号</param>
+     /// <returns>项目（对象方式）</returns>
+     [WebMethod(Description = "根据编号查找项目（返回对象）<br />"
+                             + "<a href='../../SDK/PM/Interface.html#projectManager.getProjectByID'>SDK说明</a>", EnableSession = false)]
+     [SoapHeader("PageHeader")]
+     public clsExpenses getExpensesByID(string expensesID)
+     {
+         verifyPageHeader(this);
+         return new clsExpenses(expensesID);
+     }
+
      #endregion
 
 
@@ -5118,7 +5186,7 @@ public class FinancialSystem : virtualWebService
         //verifyPageHeader(this);
 
         string strCmd = "select distinct top " + maxItem +
-                " projectID,projectName,customerName,contractAmount,collectedAmount" +
+                " projectID,projectName,customerID,customerName,contractAmount,collectedAmount,paidAmount" +
                 " from project where  projectName like '%%" +
                 InputCode + "%%' order by projectName";
         //从web.config获取连接字符串

@@ -575,12 +575,12 @@ customerName	varchar(30)	not null,	--客户名称
 abstract	varchar(200)	not null,	--摘要
 expensesSum	numeric(15,2)	not null,	--支出金额
 remarks	varchar(200),	--备注
-collectionModeID	varchar(10) not null,	--付款账户ID
-collectionMode		varchar(50)	not null,	--付款账户
-startDate	smalldatetime	not null,	--申请日期
+collectionModeID	varchar(10) ,	--付款账户ID
+collectionMode		varchar(50)	,	--付款账户
+startDate	 smalldatetime	not null,	--申请日期
 paymentApplicantID	varchar(10)	not null,	--付款申请人ID
 paymentApplicant	varchar(30)	not null,	--付款申请人
-confirmationStatus	smallint default(0) not null, --确认状态，0：未确认，1：已确认
+confirmationStatus	 smallint default(0) not null, --确认状态，0：未确认，1：已确认
 paymentDate		smalldatetime,	--支付日期
 confirmationDate	smalldatetime	,	--确认日期
 confirmationPersonID	varchar(10),	--确认人ID

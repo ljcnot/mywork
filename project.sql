@@ -28,6 +28,7 @@ CREATE TABLE project
 	progress numeric(6,2) default(0),	--进度：有进度管理系统汇总过来
 	pStatus	nvarchar(10) null,			--状态说明:由第2000号代码字典定义,但可以手工输入，所以保存状态名称
 	collectedAmount numeric(12,2) default(0),	--已收款：由财务收款系统汇总过来
+	paidAmount numeric(12,2) default(0),			--已付款：由财务付款系统汇总过来
 	--uncollectedAmount numeric(12,2),	--尾款：计算字段
 	remarks	nvarchar(60) null,			--备注
 	--collectedDetail xml,				--回款情况
