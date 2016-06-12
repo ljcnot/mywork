@@ -1051,9 +1051,12 @@ AS
 					and	  ISNULL(lockManID,'')<>'')
 	if (@thisLockMan<>'')
 	begin
-		set @lockManID = @thisLockMan
-		set @Ret = 2
-		return
+		if (@thisLockMan <> @lockManID)
+		begin		
+			set @lockManID = @thisLockMan
+			set @Ret = 2
+			return
+		end
 	end
 
 	update expensesList
